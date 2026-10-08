@@ -71,16 +71,85 @@ Không fabricate source count, trust score hoặc verified state.
 ### Vertical DNA
 - Core News: monochrome editorial.
 - AI Channel: monochrome + blue/data cues.
-- Entertainment: image-driven magazine.
-- Music: media/video-forward.
+- Entertainment: image-driven magazine composition.
+- Entertainment / Âm nhạc: may use media/video-forward layouts while remaining part of the Entertainment vertical.
 - Crypto: data-friendly, green chỉ là accent.
 - Góc Tối: restrained documentary, không imagery giật gân.
 - Tâm sự: whitespace-heavy, reading-first.
 
 Tất cả sử dụng chung tokens, accessibility và navigation system.
 
-### Motion / accessibility
-Motion subtle; respect prefers-reduced-motion. Semantic HTML, keyboard navigation, visible focus, contrast tốt và màu không phải signal duy nhất.
+### Motion
+
+Tokens (MStudio design-system decision, không phải WCAG requirement):
+
+```css
+--motion-duration-fast: 120ms;
+--motion-duration-base: 200ms;
+--motion-duration-slow: 320ms;
+--motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+--motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+```
+
+Rules:
+- Motion must communicate hierarchy, feedback or state.
+- Prefer transform/opacity for animated visual transitions.
+- Never use `transition: all`.
+- No decorative page transitions in v1.
+- No continuous decorative animation.
+- Skeleton animation must not change layout geometry.
+- Autoplay media must follow accessibility/editorial policy.
+
+`prefers-reduced-motion: reduce`:
+- Remove non-essential movement.
+- Disable decorative transform/parallax transitions.
+- Skeleton becomes static.
+- State changes remain understandable without animation.
+- Do not blindly disable essential feedback.
+- Do not use a global `!important` kill-switch unless necessary.
+
+### Accessibility
+
+Target: WCAG 2.2 AA.
+
+- Normal text contrast >= 4.5:1.
+- Large text contrast >= 3:1.
+- WCAG pointer target minimum follows SC 2.5.8 (24x24 CSS px, có ngoại lệ spacing).
+- MStudio preferred touch target = 44x44 CSS px for primary/mobile controls.
+- Visible `:focus-visible`.
+- Keyboard complete.
+- Skip-to-content.
+- Semantic landmarks/headings.
+- Focus must not be hidden by sticky UI.
+- Color is never the sole information signal.
+
+### Frontend performance
+
+Core Web Vitals at p75:
+- LCP <= 2.5s
+- INP <= 200ms
+- CLS <= 0.1
+
+Segmentation: mobile, desktop.
+
+Rules:
+- Reserve dimensions/aspect ratio for images, video and embeds.
+- Skeleton preserves final-content geometry.
+- Optimize the LCP media deliberately; hero/LCP image must not be casually lazy-loaded.
+- Lazy-load appropriate below-fold media.
+- Responsive images use correct sizing strategy.
+- Avoid unnecessary client-side JavaScript.
+- Third-party JS requires justification.
+- No heavy animation library for trivial transitions.
+- Performance regressions are acceptance failures for critical public surfaces.
+
+### Language / theme
+
+- Primary document language: Vietnamese (`lang="vi"`).
+- `MStudio Channel` is a non-translatable brand name (`translate="no"` on brand surfaces).
+- Use language metadata for significant foreign-language content where applicable.
+- Dark mode is explicitly out of scope for v1.
+- Agents must not add dark-theme architecture without an approved task.
 
 ## Media policy
 Priority: primary/original có quyền rõ -> licensed/official -> approved public provider -> generated illustration nếu policy cho phép.
@@ -100,7 +169,7 @@ Cloudflare DNS/CDN/WAF
 Next.js Web + MStudio Studio
         |
         v
-Worker APIs
+Hono API (workers/api) + job Workers
         |
         v
 Repository layer
@@ -119,6 +188,43 @@ Sources -> Scheduler/Ingest Worker -> Queues
 -> Publish Queue
 -> D1/R2/cache/search/sitemaps/recommendation
 ```
+
+## Backend stack (locked)
+Khóa theo quyết định Human Lead. Đổi stack = sửa PLAN + human review, không sửa ngầm trong task.
+
+```yaml
+frontend:
+  framework: Next.js
+  language: TypeScript
+
+backend:
+  framework: Hono
+  runtime: Cloudflare Workers
+  language: TypeScript
+
+database:
+  primary: Cloudflare D1
+
+storage:
+  object: Cloudflare R2
+  cache_config: Cloudflare KV
+
+async:
+  queue: Cloudflare Queues
+  scheduler: Cloudflare Cron Triggers
+
+semantic:
+  vector: Cloudflare Vectorize
+
+ai:
+  gateway: ModelGateway
+  initial_provider: Gemini
+```
+
+Rules:
+- Mọi HTTP API cho Web/Studio đi qua `workers/api` (Hono). Job Workers (ingest/normalize/intelligence/media/publish) không expose HTTP public trực tiếp.
+- Không thêm NestJS/Express: giữ BE nhỏ, gần Workers runtime, đúng mục tiêu Free-tier-first.
+- TypeScript strict cho mọi Worker; types bindings sinh từ config (`wrangler types` hoặc tương đương), không hardcode shape của D1/R2/KV.
 
 ## Cloudflare Free-tier operating rules
 Free-tier budget là functional requirement.
@@ -154,7 +260,9 @@ mstudio-channel/
 │ └ studio/
 │   ├ app/{newsroom,content,sources,ai-desk,seo,audience,media,automation,settings}/
 │   └ components/
-├ workers/{ingest,normalize,intelligence,media,publish}/
+├ workers/
+│ ├ api/src/{index.ts,routes/,middleware/,handlers/}
+│ └ {ingest,normalize,intelligence,media,publish}/
 ├ packages/
 │ ├ ui/
 │ ├ db/{schema,repositories,migrations}/
