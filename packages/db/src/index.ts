@@ -7,3 +7,8 @@ export * from "./repositories/feeds.ts";
 export * from "./repositories/raw-items.ts";
 export * from "./repositories/jobs.ts";
 export * from "./repositories/users.ts";
+export * from "./repositories/stories.ts";
+export * from "./repositories/story-sources.ts";
+export * from "./repositories/facts.ts";
+export * from "./repositories/claims.ts";
+export * from "./repositories/entities.ts";

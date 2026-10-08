@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { openMigratedTestDb } from "./testing/helpers.ts";
 
-test("migration v1 creates the five core tables", async () => {
+test("migrations create the core and story domain tables", async () => {
   const { db, close } = await openMigratedTestDb();
   try {
     const tables = (
@@ -13,10 +13,16 @@ test("migration v1 creates the five core tables", async () => {
         .all<{ name: string }>()
     ).results.map((row) => row.name);
     assert.deepEqual(tables, [
+      "claims",
+      "entities",
+      "facts",
       "feeds",
       "jobs",
       "raw_items",
       "sources",
+      "stories",
+      "story_entities",
+      "story_sources",
       "users",
     ]);
   } finally {
@@ -24,7 +30,7 @@ test("migration v1 creates the five core tables", async () => {
   }
 });
 
-test("migration v1 creates the documented hot-query indexes", async () => {
+test("migrations create the documented hot-query indexes", async () => {
   const { db, close } = await openMigratedTestDb();
   try {
     const indexes = (
@@ -35,6 +41,9 @@ test("migration v1 creates the documented hot-query indexes", async () => {
         .all<{ name: string }>()
     ).results.map((row) => row.name);
     assert.deepEqual(indexes, [
+      "idx_claims_story_status",
+      "idx_entities_normalized",
+      "idx_facts_story",
       "idx_feeds_enabled_created",
       "idx_jobs_correlation_id",
       "idx_jobs_status_type",
@@ -42,6 +51,8 @@ test("migration v1 creates the documented hot-query indexes", async () => {
       "idx_raw_items_feed_fetched",
       "idx_raw_items_payload_hash",
       "idx_raw_items_status_created",
+      "idx_story_entities_entity",
+      "idx_story_sources_story",
     ]);
   } finally {
     close();

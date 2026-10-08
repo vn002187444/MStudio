@@ -14,6 +14,19 @@ export type {
   SourceRecord,
   UserRecord,
 } from "./domain.ts";
+export type {
+  ClaimRecord,
+  ClaimStatus,
+  EntityKind,
+  EntityRecord,
+  FactRecord,
+  StoryEntityRecord,
+  StoryEntityRole,
+  StoryRecord,
+  StorySourceRecord,
+  StorySourceRole,
+  StoryStatus,
+} from "./story.ts";
 export type { Cursor, PageInput, PagedRows } from "./pagination.ts";
 export type {
   NormalizeJobMessage,
