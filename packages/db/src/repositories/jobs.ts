@@ -1,8 +1,11 @@
 import type { D1Database } from "@cloudflare/workers-types";
+import type { JobRecord, JobStatus } from "@mstudio/contracts";
 import { paginate, pageSize } from "./pagination.ts";
 import type { PageInput, PagedRows } from "./pagination.ts";
 
-export type JobStatus = "pending" | "running" | "succeeded" | "failed";
+export type { JobStatus };
+
+export type JobRow = JobRecord;
 
 interface JobRowRaw {
   id: string;
@@ -17,22 +20,6 @@ interface JobRowRaw {
   scheduledAt: string | null;
   startedAt: string | null;
   finishedAt: string | null;
-  createdAt: string;
-}
-
-export interface JobRow {
-  id: string;
-  type: string;
-  status: JobStatus;
-  payload: string;
-  attempt: number;
-  maxAttempts: number;
-  correlationId?: string;
-  errorCode?: string;
-  errorMessage?: string;
-  scheduledAt?: string;
-  startedAt?: string;
-  finishedAt?: string;
   createdAt: string;
 }
 

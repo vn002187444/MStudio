@@ -1,17 +1,6 @@
-export interface Cursor {
-  createdAt: string;
-  id: string;
-}
+import type { Cursor, PageInput, PagedRows } from "@mstudio/contracts";
 
-export interface PageInput {
-  limit?: number;
-  cursor?: Cursor;
-}
-
-export interface PagedRows<T> {
-  rows: T[];
-  nextCursor?: Cursor;
-}
+export type { Cursor, PageInput, PagedRows };
 
 export const DEFAULT_PAGE_SIZE = 50;
 export const MAX_PAGE_SIZE = 100;

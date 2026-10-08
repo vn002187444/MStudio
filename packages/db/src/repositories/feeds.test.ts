@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   createFeed,
   getFeed,
+  listEnabledFeeds,
   listFeedsBySource,
   setFeedEnabled,
   updateFeedFetchResult,
@@ -111,6 +112,33 @@ test("records feed fetch results", async () => {
       error: "ETIMEDOUT",
     });
     assert.equal(failed?.lastError, "ETIMEDOUT");
+  } finally {
+    close();
+  }
+});
+
+test("lists enabled feeds only", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    await seedSource(db, "src-1");
+    await createFeed(db, {
+      id: "feed-1",
+      sourceId: "src-1",
+      url: "https://source-1.example.com/1.xml",
+      format: "rss",
+      now: "2026-01-01T00:00:01.000Z",
+    });
+    await createFeed(db, {
+      id: "feed-2",
+      sourceId: "src-1",
+      url: "https://source-1.example.com/2.xml",
+      format: "rss",
+      now: "2026-01-01T00:00:02.000Z",
+    });
+    await setFeedEnabled(db, "feed-2", false);
+    const enabled = await listEnabledFeeds(db);
+    assert.equal(enabled.rows.length, 1);
+    assert.equal(enabled.rows[0].id, "feed-1");
   } finally {
     close();
   }

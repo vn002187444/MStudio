@@ -1,8 +1,11 @@
 import type { D1Database } from "@cloudflare/workers-types";
+import type { FeedFormat, FeedRecord } from "@mstudio/contracts";
 import { paginate, pageSize } from "./pagination.ts";
 import type { PageInput, PagedRows } from "./pagination.ts";
 
-export type FeedFormat = "rss" | "atom" | "jsonfeed" | "sitemap";
+export type { FeedFormat };
+
+export type FeedRow = FeedRecord;
 
 interface FeedRowRaw {
   id: string;
@@ -13,19 +16,6 @@ interface FeedRowRaw {
   fetchIntervalSeconds: number;
   lastFetchedAt: string | null;
   lastError: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface FeedRow {
-  id: string;
-  sourceId: string;
-  url: string;
-  format: FeedFormat;
-  enabled: boolean;
-  fetchIntervalSeconds: number;
-  lastFetchedAt?: string;
-  lastError?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -114,6 +104,31 @@ export async function listFeedsBySource(
             `${FEED_SELECT} WHERE source_id = ? ORDER BY created_at ASC, id ASC LIMIT ?`,
           )
           .bind(sourceId, limit + 1)
+          .all<FeedRowRaw>()
+      ).results;
+  return paginate(results.map(toFeedRow), limit);
+}
+
+export async function listEnabledFeeds(
+  db: D1Database,
+  input: PageInput = {},
+): Promise<PagedRows<FeedRow>> {
+  const limit = pageSize(input.limit);
+  const results = input.cursor
+    ? (
+        await db
+          .prepare(
+            `${FEED_SELECT} WHERE enabled = 1 AND (created_at, id) > (?, ?) ORDER BY created_at ASC, id ASC LIMIT ?`,
+          )
+          .bind(input.cursor.createdAt, input.cursor.id, limit + 1)
+          .all<FeedRowRaw>()
+      ).results
+    : (
+        await db
+          .prepare(
+            `${FEED_SELECT} WHERE enabled = 1 ORDER BY created_at ASC, id ASC LIMIT ?`,
+          )
+          .bind(limit + 1)
           .all<FeedRowRaw>()
       ).results;
   return paginate(results.map(toFeedRow), limit);

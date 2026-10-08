@@ -1,21 +1,16 @@
 import type { D1Database } from "@cloudflare/workers-types";
+import type {
+  AllowStatus,
+  RightsStatus,
+  SourceKind,
+  SourceRecord,
+} from "@mstudio/contracts";
 import { paginate, pageSize } from "./pagination.ts";
-import type { Cursor, PageInput, PagedRows } from "./pagination.ts";
+import type { PageInput, PagedRows } from "./pagination.ts";
 
-export type SourceKind = "rss" | "sitemap" | "api" | "manual";
-export type RightsStatus = "clear" | "licensed" | "unknown";
-export type AllowStatus = "approved" | "denied" | "pending";
+export type { AllowStatus, RightsStatus, SourceKind };
 
-export interface SourceRow extends Cursor {
-  id: string;
-  name: string;
-  originUrl: string;
-  kind: SourceKind;
-  rightsStatus: RightsStatus;
-  allowStatus: AllowStatus;
-  createdAt: string;
-  updatedAt: string;
-}
+export type SourceRow = SourceRecord;
 
 export interface NewSource {
   id: string;
@@ -107,4 +102,15 @@ export async function setSourceAllowStatus(
     .run();
   if (result.meta.changes === 0) return undefined;
   return getSource(db, id);
+}
+
+export async function deleteSource(
+  db: D1Database,
+  id: string,
+): Promise<boolean> {
+  const result = await db
+    .prepare("DELETE FROM sources WHERE id = ?")
+    .bind(id)
+    .run();
+  return result.meta.changes > 0;
 }

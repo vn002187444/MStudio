@@ -35,6 +35,7 @@ test("migration v1 creates the documented hot-query indexes", async () => {
         .all<{ name: string }>()
     ).results.map((row) => row.name);
     assert.deepEqual(indexes, [
+      "idx_feeds_enabled_created",
       "idx_jobs_correlation_id",
       "idx_jobs_status_type",
       "idx_raw_items_canonical",

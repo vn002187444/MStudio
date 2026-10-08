@@ -1,21 +1,24 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { D1Database } from "@cloudflare/workers-types";
 import { applyMigration, createMigration } from "../migrations.ts";
 import { openTestDatabase } from "./adapter.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const V1_SQL = readFileSync(
-  join(here, "..", "..", "migrations", "0001_v1.sql"),
-  "utf8",
-);
+const migrationsDir = join(here, "..", "..", "migrations");
 
 export async function openMigratedTestDb(): Promise<{
-  db: import("@cloudflare/workers-types").D1Database;
+  db: D1Database;
   close(): void;
 }> {
   const testDb = openTestDatabase();
-  const migration = createMigration("0001_v1", "core schema v1", V1_SQL);
-  await applyMigration(testDb.db, migration);
+  const files = readdirSync(migrationsDir)
+    .filter((file) => file.endsWith(".sql"))
+    .sort();
+  for (const file of files) {
+    const sql = readFileSync(join(migrationsDir, file), "utf8");
+    await applyMigration(testDb.db, createMigration(file, file, sql));
+  }
   return testDb;
 }

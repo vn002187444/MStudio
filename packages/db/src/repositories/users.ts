@@ -1,18 +1,11 @@
 import type { D1Database } from "@cloudflare/workers-types";
+import type { UserRecord, UserRole } from "@mstudio/contracts";
 import { paginate, pageSize } from "./pagination.ts";
 import type { PageInput, PagedRows } from "./pagination.ts";
 
-export type UserRole = "admin" | "editor" | "reviewer" | "seo" | "analyst";
+export type { UserRole };
 
-interface UserRowRaw {
-  id: string;
-  email: string;
-  role: UserRole;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface UserRow extends UserRowRaw {}
+export type UserRow = UserRecord;
 
 export interface NewUser {
   id: string;
@@ -50,7 +43,7 @@ export async function getUser(
   const row = await db
     .prepare(`${USER_SELECT} WHERE id = ?`)
     .bind(id)
-    .first<UserRowRaw>();
+    .first<UserRow>();
   return row ?? undefined;
 }
 
@@ -61,7 +54,7 @@ export async function getUserByEmail(
   const row = await db
     .prepare(`${USER_SELECT} WHERE email = ?`)
     .bind(email)
-    .first<UserRowRaw>();
+    .first<UserRow>();
   return row ?? undefined;
 }
 
@@ -77,13 +70,13 @@ export async function listUsers(
             `${USER_SELECT} WHERE (created_at, id) > (?, ?) ORDER BY created_at ASC, id ASC LIMIT ?`,
           )
           .bind(input.cursor.createdAt, input.cursor.id, limit + 1)
-          .all<UserRowRaw>()
+          .all<UserRow>()
       ).results
     : (
         await db
           .prepare(`${USER_SELECT} ORDER BY created_at ASC, id ASC LIMIT ?`)
           .bind(limit + 1)
-          .all<UserRowRaw>()
+          .all<UserRow>()
       ).results;
   return paginate(results, limit);
 }

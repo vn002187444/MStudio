@@ -1,12 +1,11 @@
 import type { D1Database } from "@cloudflare/workers-types";
+import type { RawItemRecord, RawItemStatus } from "@mstudio/contracts";
 import { paginate, pageSize } from "./pagination.ts";
 import type { PageInput, PagedRows } from "./pagination.ts";
 
-export type RawItemStatus =
-  | "incoming"
-  | "normalized"
-  | "clustered"
-  | "discarded";
+export type { RawItemStatus };
+
+export type RawItemRow = RawItemRecord;
 
 interface RawItemRowRaw {
   id: string;
@@ -17,21 +16,6 @@ interface RawItemRowRaw {
   canonicalUrl: string | null;
   title: string | null;
   publishedAt: string | null;
-  fetchedAt: string;
-  payloadHash: string;
-  status: RawItemStatus;
-  createdAt: string;
-}
-
-export interface RawItemRow {
-  id: string;
-  feedId: string;
-  sourceId: string;
-  externalId?: string;
-  url: string;
-  canonicalUrl?: string;
-  title?: string;
-  publishedAt?: string;
   fetchedAt: string;
   payloadHash: string;
   status: RawItemStatus;

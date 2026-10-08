@@ -1,0 +1,17 @@
+{
+  "name": "@mstudio/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit",
+    "test": "node -e \"console.log('no tests yet')\""
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

@@ -108,6 +108,58 @@ Rules:
 - Do not blindly disable essential feedback.
 - Do not use a global `!important` kill-switch unless necessary.
 
+### Visual effects / interaction language (v1)
+Direction: quiet interaction. Hover/focus làm rõ khả năng tương tác, không biến newsroom thành landing page công nghệ. Restrained hơn các gallery hiệu ứng ngoài web: không 3D tilt, glow, glitch, parallax, shimmer trang trí.
+
+```yaml
+visual_effects_v1:
+
+  navigation:
+    hover: underline_or_ink_change
+    active: persistent_indicator
+    movement: none
+
+  headline_link:
+    hover: subtle_underline_or_color
+    movement: none
+
+  news_card:
+    hover: subtle_surface_or_border_change
+    translate: none_by_default
+    shadow: none_or_minimal
+
+  article_image:
+    hover: none
+
+  clickable_thumbnail:
+    hover: subtle_image_scale
+    max_scale: 1.02
+    overflow: clipped
+
+  button:
+    hover: background_or_border_change
+    active: subtle_press_feedback
+
+  topic_chip:
+    hover: foreground_background_inversion
+    movement: none
+
+  source_link:
+    hover: underline
+    movement: none
+
+  breaking:
+    accent: breaking-red
+    animation: none_by_default
+
+  trending:
+    accent: monochrome
+    animation: none
+```
+
+Explicitly cấm mặc định trong v1:
+3D tilt, glow, neon border, cursor trail, magnetic cursor/button, glitch text, RGB split, infinite marquee chỉ để trang trí, Ken Burns decorative animation, aggressive card lifting, glassmorphism, autoplay decorative motion.
+
 ### Accessibility
 
 Target: WCAG 2.2 AA.

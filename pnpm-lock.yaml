@@ -282,7 +282,17 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
+  packages/contracts:
+    devDependencies:
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+
   packages/db:
+    dependencies:
+      '@mstudio/contracts':
+        specifier: workspace:*
+        version: link:../contracts
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261008.1
@@ -305,6 +315,31 @@ importers:
 
   packages/ui: {}
 
+  workers/api:
+    dependencies:
+      '@mstudio/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@mstudio/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@mstudio/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^5.20261008.1
+        version: 5.20261008.1
+      '@types/node':
+        specifier: ^26.6.4
+        version: 26.6.4
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      wrangler:
+        specifier: ^4.148.0
+        version: 4.148.0(@cloudflare/workers-types@5.20261008.1)(@types/node@26.6.4)
+
   workers/ingest:
     dependencies:
       '@mstudio/observability':
@@ -319,7 +354,7 @@ importers:
         version: 7.0.2
       wrangler:
         specifier: ^4.148.0
-        version: 4.148.0(@cloudflare/workers-types@5.20261008.1)
+        version: 4.148.0(@cloudflare/workers-types@5.20261008.1)(@types/node@26.6.4)
 
 packages:
 
@@ -3807,7 +3842,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20261006.1
       '@cloudflare/workerd-windows-64': 1.20261006.1
 
-  wrangler@4.148.0(@cloudflare/workers-types@5.20261008.1):
+  wrangler@4.148.0(@cloudflare/workers-types@5.20261008.1)(@types/node@26.6.4):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.5.0
       '@cloudflare/unenv-preset': 2.16.2(unenv@2.0.0-rc.24)(workerd@1.20261006.1)
