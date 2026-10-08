@@ -1,0 +1,25 @@
+/**
+ * MStudio Channel shared design tokens (PLAN.md UX spec — Black & White editorial).
+ * 85-90% diện tích monochrome, accent dùng có chủ đích.
+ */
+:root {
+  --black: #090909;
+  --ink: #101114;
+  --white: #ffffff;
+  --off-white: #f6f6f4;
+  --soft: #f6f7f9;
+  --gray: #667085;
+  --border: #e3e3e3;
+  --ai-blue: #2563eb;
+  --breaking-red: #d92d20;
+  --crypto-green: #16a36a;
+  --entertainment-purple: #8b5cf6;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --max-content-width: 1280px;
+  --font-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

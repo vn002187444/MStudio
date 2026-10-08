@@ -1,0 +1,19 @@
+{
+  "name": "@mstudio/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit",
+    "test": "node -e \"console.log('no tests yet')\""
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@mstudio/observability": "workspace:*",
+    "typescript": "^7.0.2"
+  }
+}

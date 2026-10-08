@@ -1,0 +1,31 @@
+{
+  "name": "mstudio-ingest",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-08",
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "LOG_LEVEL": "info"
+  },
+  "env": {
+    "dev": {
+      "name": "mstudio-ingest-dev",
+      "vars": {
+        "ENVIRONMENT": "dev",
+        "LOG_LEVEL": "debug"
+      }
+    },
+    "staging": {
+      "name": "mstudio-ingest-staging",
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}

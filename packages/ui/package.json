@@ -1,0 +1,11 @@
+{
+  "name": "@mstudio/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared design tokens and UI primitives for MStudio Channel (MST-001 foundation).",
+  "exports": {
+    "./tokens": "./tokens.ts",
+    "./tokens.css": "./tokens.css"
+  }
+}

@@ -1,0 +1,206 @@
+project:
+  name: MStudio Channel
+  cadence: 2-week-sprints
+  cloudflare_mode: free-tier-first
+  primary_web: nextjs
+  human_final_review: true
+
+owners:
+  opencode: { role: frontend-product }
+  commandcode: { role: backend-infrastructure }
+  jules: { role: async-isolated-pr }
+  human: { role: architecture-editorial-release-gate }
+
+definition_of_done:
+  - acceptance_passed
+  - relevant_tests_passed
+  - typecheck_passed
+  - lint_passed
+  - no_secrets
+  - no_unrelated_diff
+  - docs_updated_if_needed
+  - quota_impact_reported
+  - human_review_required
+
+# Bắt buộc: agent load các skills này qua skill tool trước khi làm task.
+task_skills:
+  MST-001: [nextjs-on-cloudflare, frontend-ui-engineering, vercel-react-best-practices]
+  MST-002: [wrangler, workers-best-practices, cloudflare]
+  MST-003: [documentation-and-adrs]
+  MST-004: [workers-best-practices, api-and-interface-design, test-driven-development]
+  MST-005: [frontend-ui-engineering, fixing-accessibility, ui-styling]
+  MST-006: [api-and-interface-design, workers-best-practices, test-driven-development]
+  MST-007: [workers-best-practices, wrangler, test-driven-development]
+  MST-008: [workers-best-practices, test-driven-development]
+  MST-009: [frontend-ui-engineering, fixing-accessibility]
+  MST-010: [test-driven-development, debugging-and-error-recovery]
+  MST-011: [observability-and-instrumentation, workers-best-practices]
+  MST-012: [frontend-ui-engineering, fixing-accessibility, web-design-guidelines]
+  MST-020: [api-and-interface-design, workers-best-practices, documentation-and-adrs]
+  MST-021: [workers-best-practices, performance-optimization]
+  MST-022: [frontend-ui-engineering, fixing-accessibility]
+  MST-023: [test-driven-development, documentation-and-adrs]
+  MST-030: [api-and-interface-design, workers-best-practices, observability-and-instrumentation]
+  MST-031: [agents-sdk, test-driven-development, security-and-hardening]
+  MST-032: [frontend-ui-engineering, fixing-accessibility]
+  MST-040: [frontend-ui-engineering, fixing-accessibility]
+  MST-041: [api-and-interface-design, workers-best-practices, test-driven-development]
+  MST-042: [frontend-ui-engineering, fixing-metadata, web-perf]
+  MST-050: [seo-audit, fixing-metadata, workers-best-practices]
+  MST-051: [frontend-ui-engineering, fixing-accessibility, fixing-metadata]
+  MST-052: [seo-audit, test-driven-development]
+  MST-060: [workers-best-practices, observability-and-instrumentation, performance-optimization]
+  MST-061: [workers-best-practices, performance-optimization, test-driven-development]
+  MST-062: [frontend-ui-engineering, fixing-accessibility, web-perf]
+  MST-063: [test-driven-development, documentation-and-adrs, shipping-and-launch]
+
+sprints:
+  - id: S01
+    goal: "Approved RSS -> Queue -> Normalize -> Persist -> CMS Incoming"
+    tasks:
+      - id: MST-001
+        title: Next.js web foundation
+        owner: opencode
+        priority: P0
+        paths: ["apps/web/**", "packages/ui/**"]
+        depends_on: []
+        acceptance: [app_router_boots, typecheck_passes, public_route_group_exists, shared_design_tokens_created]
+        tests: [typecheck, build]
+        quota_impact: none
+      - id: MST-002
+        title: Workspace and Worker foundation
+        owner: commandcode
+        priority: P0
+        paths: ["package.json", "pnpm-workspace.yaml", "workers/**", "packages/config/**"]
+        depends_on: []
+        acceptance: [deterministic_workspace_install, worker_skeleton_builds, dev_staging_config_separated]
+        tests: [workspace-build]
+        quota_impact: none
+      - id: MST-003
+        title: Documentation scaffold
+        owner: jules
+        priority: P1
+        paths: ["docs/**"]
+        depends_on: []
+        acceptance: [adr_template, runbook_template, local_setup_documented]
+        tests: [docs-links]
+        quota_impact: none
+      - id: MST-004
+        title: D1 schema v1
+        owner: commandcode
+        priority: P0
+        paths: ["packages/db/**"]
+        depends_on: [MST-002]
+        human_gate: schema
+        acceptance: [source_feed_rawitem_job_user_defined, migration_reproducible, hot_query_indexes_documented]
+        tests: [migration-test, repository-test]
+        quota_impact: medium
+      - id: MST-005
+        title: Studio shell and Incoming placeholder
+        owner: opencode
+        priority: P0
+        paths: ["apps/studio/**", "packages/ui/**"]
+        depends_on: [MST-001]
+        acceptance: [studio_navigation, incoming_route, loading_empty_error_states]
+        tests: [typecheck, ui-smoke]
+        quota_impact: low
+      - id: MST-006
+        title: Source Manager API
+        owner: commandcode
+        priority: P0
+        paths: ["packages/db/**", "packages/contracts/**", "workers/**"]
+        depends_on: [MST-004]
+        acceptance: [source_crud, feed_enable_disable, validation, paginated_list]
+        tests: [api-test, repository-test]
+        quota_impact: low
+      - id: MST-007
+        title: RSS fetch and scheduler
+        owner: commandcode
+        priority: P0
+        paths: ["workers/ingest/**"]
+        depends_on: [MST-006]
+        acceptance: [approved_feed_fetch, compact_queue_message, scheduler_handles_multiple_feeds, failure_logged]
+        tests: [fetch-fixture, idempotent-trigger-test]
+        quota_impact: medium
+      - id: MST-008
+        title: Normalize and idempotency
+        owner: commandcode
+        priority: P0
+        paths: ["workers/normalize/**", "packages/contracts/**", "packages/db/**"]
+        depends_on: [MST-007]
+        acceptance: [normalized_rawitem, duplicate_input_does_not_duplicate_row, canonical_url_candidate]
+        tests: [fixture-test, idempotency-test]
+        quota_impact: medium
+      - id: MST-009
+        title: Incoming UI integration
+        owner: opencode
+        priority: P0
+        paths: ["apps/studio/**"]
+        depends_on: [MST-008]
+        acceptance: [paginated_incoming_list, source_time_status_visible, loading_empty_error_states]
+        tests: [ui-smoke, typecheck]
+        quota_impact: low
+      - id: MST-010
+        title: Ingestion regression tests
+        owner: jules
+        priority: P1
+        paths: ["tests/**"]
+        depends_on: [MST-008]
+        acceptance: [duplicate_regression, parser_fixtures, failure_fixture]
+        tests: [test-suite]
+        quota_impact: none
+      - id: MST-011
+        title: Observability and QuotaGuard foundation
+        owner: commandcode
+        priority: P0
+        paths: ["packages/observability/**", "workers/**", "packages/config/**"]
+        depends_on: [MST-002]
+        acceptance: [correlation_id, job_error_envelope, quota_guard_interface, feature_kill_switches]
+        tests: [unit-tests]
+        quota_impact: low
+      - id: MST-012
+        title: Public editorial shell
+        owner: opencode
+        priority: P1
+        paths: ["apps/web/**", "packages/ui/**"]
+        depends_on: [MST-001]
+        acceptance: [desktop_header, mobile_header, taxonomy_navigation, editorial_home_shell, white_black_tokens]
+        tests: [responsive-smoke, a11y-smoke]
+        quota_impact: low
+
+  - id: S02
+    goal: "RawItems -> StoryCluster -> Evidence Research Desk"
+    tasks:
+      - { id: MST-020, title: Story domain schema, owner: commandcode, priority: P0, paths: ["packages/db/**", "packages/contracts/**"], depends_on: [MST-004], human_gate: schema_and_evidence_semantics, acceptance: [story_source_fact_claim_entity_models, migrations], tests: [migration-test, repository-test], quota_impact: medium }
+      - { id: MST-021, title: Cheap duplicate and cluster candidate stage, owner: commandcode, priority: P0, paths: ["workers/intelligence/**"], depends_on: [MST-020], acceptance: [cheap_filters_before_vector_query, cluster_candidate_output, vectorize_optional_kill_switch], tests: [cluster-fixtures], quota_impact: medium }
+      - { id: MST-022, title: Research Desk UI, owner: opencode, priority: P0, paths: ["apps/studio/**", "packages/ui/**"], depends_on: [MST-020], acceptance: [three_pane_layout, sources_panel, fact_claim_matrix, intelligence_panel], tests: [ui-smoke, a11y-smoke], quota_impact: low }
+      - { id: MST-023, title: Story intelligence fixtures, owner: jules, priority: P1, paths: ["tests/**", "docs/**"], depends_on: [MST-021], acceptance: [multi_source_fixture, conflict_fixture, duplicate_fixture], tests: [test-suite], quota_impact: none }
+
+  - id: S03
+    goal: "Evidence -> AI Draft with traceable AgentRuns"
+    tasks:
+      - { id: MST-030, title: ModelGateway, owner: commandcode, priority: P0, paths: ["packages/ai/model-gateway/**"], depends_on: [MST-020], acceptance: [gemini_adapter, provider_neutral_interface, timeouts, usage_metadata], tests: [mock-provider-test], quota_impact: none }
+      - { id: MST-031, title: Evidence Verification Writer workflow, owner: commandcode, priority: P0, paths: ["packages/ai/**", "workers/intelligence/**"], depends_on: [MST-030], human_gate: editorial_ai, acceptance: [structured_outputs, source_refs, agentrun_persistence, retry_boundary], tests: [agent-contract-tests], quota_impact: medium }
+      - { id: MST-032, title: AI Desk and agent history, owner: opencode, priority: P1, paths: ["apps/studio/**"], depends_on: [MST-031], acceptance: [agent_status, history, failure_view, generate_draft_action], tests: [ui-smoke], quota_impact: low }
+
+  - id: S04
+    goal: "Draft -> Review -> Publish -> Next.js article"
+    tasks:
+      - { id: MST-040, title: Article Editor, owner: opencode, priority: P0, paths: ["apps/studio/**", "packages/ui/**"], depends_on: [MST-031], acceptance: [rich_blocks, quick_summary, sources, seo_inspector, desktop_mobile_preview], tests: [editor-smoke, a11y-smoke], quota_impact: low }
+      - { id: MST-041, title: Revision and publishing state machine, owner: commandcode, priority: P0, paths: ["packages/db/**", "workers/publish/**", "packages/contracts/**"], depends_on: [MST-031], human_gate: publishing, acceptance: [revision_history, review_gate, publish_idempotency, correction_state], tests: [state-machine-test], quota_impact: medium }
+      - { id: MST-042, title: Public article category templates, owner: opencode, priority: P0, paths: ["apps/web/**", "packages/ui/**", "packages/seo/**"], depends_on: [MST-041], acceptance: [desktop_article, mobile_reading_layout, source_block, category_template], tests: [render-test, responsive-smoke], quota_impact: low }
+
+  - id: S05
+    goal: "Search SEO Topic Entity and Internal Discovery"
+    tasks:
+      - { id: MST-050, title: SEO and sitemap backend, owner: commandcode, priority: P0, paths: ["packages/seo/**", "workers/publish/**", "packages/contracts/**"], depends_on: [MST-041], acceptance: [canonical_model, structured_metadata, sitemap_events, news_sitemap_data], tests: [schema-tests, sitemap-tests], quota_impact: low }
+      - { id: MST-051, title: Search topic entity UX, owner: opencode, priority: P0, paths: ["apps/web/**", "packages/ui/**"], depends_on: [MST-050], acceptance: [search_ui, topic_page, entity_page, pagination], tests: [ui-smoke], quota_impact: low }
+      - { id: MST-052, title: SEO regression suite, owner: jules, priority: P1, paths: ["tests/**"], depends_on: [MST-050], acceptance: [canonical_tests, structured_data_tests, sitemap_regression], tests: [test-suite], quota_impact: none }
+
+  - id: S06
+    goal: "Personalized discovery v1 and beta hardening"
+    tasks:
+      - { id: MST-060, title: Reader event pipeline, owner: commandcode, priority: P0, paths: ["workers/**", "packages/db/**", "packages/contracts/**"], depends_on: [MST-042], acceptance: [meaningful_event_schema, sampling, batching, quota_guard], tests: [pipeline-tests], quota_impact: medium }
+      - { id: MST-061, title: Recommendation candidate service, owner: commandcode, priority: P0, paths: ["workers/**", "packages/db/**"], depends_on: [MST-060], acceptance: [fresh, trending, followed, related, diversity_guard], tests: [ranking-fixtures], quota_impact: medium }
+      - { id: MST-062, title: For You Follow Hide UX, owner: opencode, priority: P0, paths: ["apps/web/**", "packages/ui/**"], depends_on: [MST-061], acceptance: [for_you_feed, follow, hide, reason_affordance, mobile_states], tests: [ui-smoke, a11y-smoke], quota_impact: low }
+      - { id: MST-063, title: Beta regression and docs, owner: jules, priority: P1, paths: ["tests/**", "docs/**"], depends_on: [MST-052, MST-062], acceptance: [regression_suite, setup_docs, runbook_update], tests: [all-safe-tests], quota_impact: none }

@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "../../../packages/ui/tokens.css";
+
+:root {
+  color-scheme: light;
+  background: var(--soft);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--ai-blue);
+  outline-offset: 2px;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
