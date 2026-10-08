@@ -342,6 +342,9 @@ importers:
 
   workers/ingest:
     dependencies:
+      '@mstudio/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@mstudio/observability':
         specifier: workspace:*
         version: link:../../packages/observability
@@ -349,6 +352,9 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^5.20261008.1
         version: 5.20261008.1
+      '@types/node':
+        specifier: ^26.6.4
+        version: 26.6.4
       typescript:
         specifier: ^7.0.2
         version: 7.0.2

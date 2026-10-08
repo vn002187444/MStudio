@@ -6,6 +6,7 @@ import {
   withCorrelationId,
   type LogLevel,
 } from "@mstudio/observability";
+import { runScheduler } from "./scheduler.ts";
 
 export default {
   async fetch(
@@ -51,10 +52,38 @@ export default {
       return jobErrorResponse(envelope);
     }
   },
+
+  async scheduled(
+    controller: ScheduledController,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<void> {
+    void controller;
+    const correlationId = `scheduled-${crypto.randomUUID()}`;
+    const logger = createLogger({
+      environment: env.ENVIRONMENT,
+      logLevel: (env.LOG_LEVEL ?? "info") as LogLevel,
+      correlationId,
+    });
+    ctx.waitUntil(
+      runScheduler(env, logger).catch((error: unknown) => {
+        logger.error("scheduler_failed", {
+          code: "INTERNAL_ERROR",
+          message:
+            error instanceof Error ? error.message : "unknown error",
+        });
+      }),
+    );
+  },
 } satisfies {
   fetch: (
     request: Request,
     env: Env,
     ctx: ExecutionContext,
   ) => Promise<Response>;
+  scheduled: (
+    controller: ScheduledController,
+    env: Env,
+    ctx: ExecutionContext,
+  ) => Promise<void>;
 };
