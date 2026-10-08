@@ -1,0 +1,31 @@
+{
+  "name": "mstudio-normalize",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-08",
+  "vars": {
+    "ENVIRONMENT": "production",
+    "LOG_LEVEL": "info"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mstudio_dev",
+      "database_id": "local-dev-placeholder"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "RAW_BUCKET",
+      "bucket_name": "mstudio-raw"
+    }
+  ],
+  "queues": {
+    "consumers": [
+      {
+        "queue": "mstudio-normalize",
+        "max_batch_size": 100,
+        "max_retries": 3
+      }
+    ]
+  }
+}

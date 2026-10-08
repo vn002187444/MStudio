@@ -16,6 +16,10 @@ export type {
 } from "./domain.ts";
 export type { Cursor, PageInput, PagedRows } from "./pagination.ts";
 export type {
+  NormalizeJobMessage,
+  NormalizedFeedItem,
+} from "./queue.ts";
+export type {
   ApiErrorResponse,
   CreateFeedRequest,
   CreateSourceRequest,
