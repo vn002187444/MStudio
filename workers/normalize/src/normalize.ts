@@ -2,7 +2,7 @@ import type {
   NormalizedFeedItem,
   NormalizeJobMessage,
 } from "@mstudio/contracts";
-import { createRawItem, getFeed } from "@mstudio/db";
+import { createRawItems, getFeed } from "@mstudio/db";
 import type { Logger } from "@mstudio/observability";
 import { parseFeed, type ParsedFeedItem } from "./parsers.ts";
 import { sha256Hex } from "./sha256.ts";
@@ -62,27 +62,20 @@ export async function processNormalizeMessage(
   if (!feed) {
     throw new Error(`feed ${message.feedId} not found`);
   }
-  let created = 0;
-  let duplicates = 0;
-  for (const item of normalized) {
-    const result = await createRawItem(db, {
-      id: crypto.randomUUID(),
-      feedId: feed.id,
-      sourceId: feed.sourceId,
-      externalId: item.externalId,
-      url: item.url,
-      canonicalUrl: item.canonicalUrl,
-      title: item.title,
-      publishedAt: item.publishedAt,
-      fetchedAt: message.fetchedAt,
-      payloadHash: item.payloadHash,
-    });
-    if (result.created) {
-      created += 1;
-    } else {
-      duplicates += 1;
-    }
-  }
+  const inputs = normalized.map((item) => ({
+    id: crypto.randomUUID(),
+    feedId: feed.id,
+    sourceId: feed.sourceId,
+    externalId: item.externalId,
+    url: item.url,
+    canonicalUrl: item.canonicalUrl,
+    title: item.title,
+    publishedAt: item.publishedAt,
+    fetchedAt: message.fetchedAt,
+    payloadHash: item.payloadHash,
+  }));
+
+  const { created, duplicates } = await createRawItems(db, inputs);
   logger.info("feed_normalized", {
     feedId: message.feedId,
     hash: message.hash,
