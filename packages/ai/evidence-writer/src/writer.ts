@@ -79,6 +79,43 @@ function parseSourceRefs(value: unknown, where: string): AgentRunSourceRef[] {
   return value;
 }
 
+function parseStructuredFact(fact: unknown, index: number): StructuredFact {
+  if (!isRecord(fact) || typeof fact.text !== "string") {
+    throw new WriterValidationError(`facts[${index}].text must be a string`);
+  }
+  return {
+    text: fact.text,
+    sourceRefs: parseSourceRefs(
+      fact.sourceRefs,
+      `facts[${index}]`,
+    ),
+  };
+}
+
+function parseStructuredClaim(claim: unknown, index: number): StructuredClaim {
+  if (!isRecord(claim) || typeof claim.text !== "string") {
+    throw new WriterValidationError(`claims[${index}].text must be a string`);
+  }
+  if (
+    claim.confidence !== undefined &&
+    (typeof claim.confidence !== "number" ||
+      claim.confidence < 0 ||
+      claim.confidence > 1)
+  ) {
+    throw new WriterValidationError(
+      `claims[${index}].confidence must be a number between 0 and 1`,
+    );
+  }
+  return {
+    text: claim.text,
+    sourceRefs: parseSourceRefs(
+      claim.sourceRefs,
+      `claims[${index}]`,
+    ),
+    confidence: claim.confidence as number | undefined,
+  };
+}
+
 export function parseEvidenceOutput(
   text: string,
 ): EvidenceVerificationOutput {
@@ -101,41 +138,8 @@ export function parseEvidenceOutput(
   if (!Array.isArray(claims)) {
     throw new WriterValidationError("output.claims must be an array");
   }
-  const parsedFacts: StructuredFact[] = facts.map((fact, index) => {
-    if (!isRecord(fact) || typeof fact.text !== "string") {
-      throw new WriterValidationError(`facts[${index}].text must be a string`);
-    }
-    return {
-      text: fact.text,
-      sourceRefs: parseSourceRefs(
-        fact.sourceRefs,
-        `facts[${index}]`,
-      ),
-    };
-  });
-  const parsedClaims: StructuredClaim[] = claims.map((claim, index) => {
-    if (!isRecord(claim) || typeof claim.text !== "string") {
-      throw new WriterValidationError(`claims[${index}].text must be a string`);
-    }
-    if (
-      claim.confidence !== undefined &&
-      (typeof claim.confidence !== "number" ||
-        claim.confidence < 0 ||
-        claim.confidence > 1)
-    ) {
-      throw new WriterValidationError(
-        `claims[${index}].confidence must be a number between 0 and 1`,
-      );
-    }
-    return {
-      text: claim.text,
-      sourceRefs: parseSourceRefs(
-        claim.sourceRefs,
-        `claims[${index}]`,
-      ),
-      confidence: claim.confidence as number | undefined,
-    };
-  });
+  const parsedFacts: StructuredFact[] = facts.map(parseStructuredFact);
+  const parsedClaims: StructuredClaim[] = claims.map(parseStructuredClaim);
   return { summary, facts: parsedFacts, claims: parsedClaims };
 }
 
