@@ -14,6 +14,8 @@ test("migrations create the core and story domain tables", async () => {
     ).results.map((row) => row.name);
     assert.deepEqual(tables, [
       "agent_runs",
+      "article_revisions",
+      "articles",
       "claims",
       "entities",
       "facts",
@@ -44,6 +46,8 @@ test("migrations create the documented hot-query indexes", async () => {
     assert.deepEqual(indexes, [
       "idx_agent_runs_status",
       "idx_agent_runs_story",
+      "idx_article_revisions_article",
+      "idx_articles_story_status",
       "idx_claims_story_status",
       "idx_entities_normalized",
       "idx_facts_story",

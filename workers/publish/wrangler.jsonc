@@ -1,0 +1,16 @@
+{
+  "name": "mstudio-publish",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-08",
+  "vars": {
+    "ENVIRONMENT": "dev",
+    "LOG_LEVEL": "debug"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mstudio_dev",
+      "database_id": "local-dev-placeholder"
+    }
+  ]
+}

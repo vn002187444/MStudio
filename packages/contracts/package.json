@@ -9,9 +9,10 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit",
-    "test": "node -e \"console.log('no tests yet')\""
+    "test": "node --test src/*.test.ts"
   },
   "devDependencies": {
+    "@types/node": "^26.6.4",
     "typescript": "^7.0.2"
   }
 }

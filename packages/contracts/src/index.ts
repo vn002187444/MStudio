@@ -28,6 +28,16 @@ export type {
   StoryStatus,
 } from "./story.ts";
 export type { Cursor, PageInput, PagedRows } from "./pagination.ts";
+export type { ArticleStatus } from "./publishing.ts";
+export {
+  ARTICLE_STATUSES,
+  ARTICLE_TRANSITIONS,
+  canTransition,
+  isArticleStatus,
+  isPublishedState,
+  isTerminal,
+  validateTransition,
+} from "./publishing.ts";
 export type {
   NormalizeJobMessage,
   NormalizedFeedItem,
