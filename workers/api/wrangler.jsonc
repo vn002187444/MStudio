@@ -11,7 +11,7 @@
     {
       "binding": "DB",
       "database_name": "mstudio_dev",
-      "database_id": "local-dev-placeholder"
+      "database_id": "6cef0de8-cd16-4494-a809-d1d177be002e"
     }
   ],
   "queues": {
