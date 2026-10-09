@@ -49,6 +49,19 @@ export type {
   NormalizedFeedItem,
 } from "./queue.ts";
 export type {
+  NewReaderEvent,
+  ReaderEventInput,
+  ReaderEventMessage,
+  ReaderEventRecord,
+  ReaderEventType,
+  ReaderEventsIngestResponse,
+  ReaderProfileRecord,
+} from "./reader-events.ts";
+export {
+  MEANINGFUL_READER_EVENT_TYPES,
+  isMeaningfulReaderEventType,
+} from "./reader-events.ts";
+export type {
   ArticleJsonLd,
   ArticleSeoInput,
   NewsSitemapEntry,

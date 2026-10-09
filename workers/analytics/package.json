@@ -1,0 +1,25 @@
+{
+  "name": "@mstudio-worker-analytics",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@mstudio/contracts": "workspace:*",
+    "@mstudio/db": "workspace:*",
+    "@mstudio/observability": "workspace:*"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && wrangler deploy --dry-run",
+    "test": "node --test src/*.test.ts"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261008.1",
+    "@types/node": "^26.6.4",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.148.0"
+  }
+}
