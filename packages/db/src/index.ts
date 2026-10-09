@@ -12,3 +12,4 @@ export * from "./repositories/story-sources.ts";
 export * from "./repositories/facts.ts";
 export * from "./repositories/claims.ts";
 export * from "./repositories/entities.ts";
+export * from "./repositories/agent-runs.ts";
