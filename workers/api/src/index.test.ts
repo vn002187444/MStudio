@@ -780,3 +780,68 @@ test("wrong method on /events returns 405", async () => {
     close();
   }
 });
+
+test("GET /recommendations returns candidate list", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/recommendations?limit=5"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      candidates: unknown[];
+    };
+    assert.deepEqual(body.candidates, []);
+  } finally {
+    close();
+  }
+});
+
+test("GET /recommendations rejects invalid limit", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/recommendations?limit=0"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 400);
+    const body = (await response.json()) as ApiErrorResponse;
+    assert.equal(body.error.code, "VALIDATION_FAILED");
+  } finally {
+    close();
+  }
+});
+
+test("GET /recommendations rejects empty userId", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/recommendations?userId="),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 400);
+    const body = (await response.json()) as ApiErrorResponse;
+    assert.equal(body.error.code, "VALIDATION_FAILED");
+    assert.ok(body.error.details?.userId);
+  } finally {
+    close();
+  }
+});
+
+test("wrong method on /recommendations returns 405", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/recommendations", { method: "POST" }),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 405);
+  } finally {
+    close();
+  }
+});

@@ -273,6 +273,41 @@ export function validatePagination(
   return { ok: true, value: { limit, cursor } };
 }
 
+export interface RecommendationsQuery {
+  userId?: string;
+  articleId?: string;
+  limit?: number;
+}
+
+export function validateRecommendationsQuery(
+  params: URLSearchParams,
+): ValidationResult<RecommendationsQuery> {
+  const errors: ValidationErrors = {};
+  const userId = params.get("userId");
+  if (userId !== null && !isNonEmptyString(userId)) {
+    pushError(errors, "userId", "must be a non-empty string");
+  }
+  const articleId = params.get("articleId");
+  if (articleId !== null && !isNonEmptyString(articleId)) {
+    pushError(errors, "articleId", "must be a non-empty string");
+  }
+  if (Object.keys(errors).length > 0) {
+    return { ok: false, errors };
+  }
+  const pagination = validatePagination(params);
+  if (!pagination.ok) {
+    return { ok: false, errors: pagination.errors };
+  }
+  return {
+    ok: true,
+    value: {
+      userId: userId ?? undefined,
+      articleId: articleId ?? undefined,
+      limit: pagination.value.limit,
+    },
+  };
+}
+
 export function validateRawItemStatus(
   status: string | null,
 ): ValidationResult<RawItemStatus> {

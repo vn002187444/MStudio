@@ -31,11 +31,16 @@ import {
   type Logger,
 } from "@mstudio/observability";
 import {
+  buildRecommendations,
+  DEFAULT_RECOMMENDATION_LIMIT,
+} from "./recommendations.ts";
+import {
   validateCreateFeed,
   validateCreateSource,
   validatePagination,
   validateRawItemStatus,
   validateReaderEvents,
+  validateRecommendationsQuery,
   validateUpdateFeed,
   validateUpdateSourceAllowStatus,
 } from "./validate.ts";
@@ -217,6 +222,27 @@ app.post("/events", async (c) => {
   return c.json(response, 202);
 });
 
+app.get("/recommendations", async (c) => {
+  const url = new URL(c.req.url);
+  const validation = validateRecommendationsQuery(
+    url.searchParams,
+  );
+  if (!validation.ok) {
+    throw badRequest(
+      "VALIDATION_FAILED",
+      "invalid recommendations query",
+      validation.errors,
+    );
+  }
+  const { userId, articleId, limit } = validation.value;
+  const candidates = await buildRecommendations(c.env.DB, {
+    userId,
+    articleId,
+    limit: limit ?? DEFAULT_RECOMMENDATION_LIMIT,
+  });
+  return c.json({ candidates });
+});
+
 app.get("/sources", async (c) => {
   const url = new URL(c.req.url);
   const pagination = validatePagination(url.searchParams);
@@ -350,6 +376,9 @@ app.patch("/feeds/:id", async (c) => {
 app.all("/sources", (c) => c.text("Method not allowed", 405));
 app.all("/raw-items", (c) => c.text("Method not allowed", 405));
 app.all("/events", (c) => c.text("Method not allowed", 405));
+app.all("/recommendations", (c) =>
+  c.text("Method not allowed", 405),
+);
 app.all("/sources/:id", (c) => c.text("Method not allowed", 405));
 app.all("/sources/:id/allow-status", (c) =>
   c.text("Method not allowed", 405),

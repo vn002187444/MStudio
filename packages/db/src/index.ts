@@ -6,6 +6,7 @@ export * from "./repositories/sources.ts";
 export * from "./repositories/feeds.ts";
 export * from "./repositories/raw-items.ts";
 export * from "./repositories/reader-events.ts";
+export * from "./repositories/recommendations.ts";
 export * from "./repositories/jobs.ts";
 export * from "./repositories/users.ts";
 export * from "./repositories/stories.ts";
