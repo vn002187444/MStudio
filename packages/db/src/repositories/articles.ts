@@ -339,6 +339,42 @@ export interface PublishResult {
   alreadyPublished: boolean;
 }
 
+function validatePublishRevision(
+  id: string,
+  revisionId: string,
+  revision: ArticleRevisionRecord | undefined,
+) {
+  if (!revision || revision.articleId !== id) {
+    throw new Error(`revision ${revisionId} does not belong to article ${id}`);
+  }
+}
+
+function validatePublishState(
+  article: ArticleRecord,
+  revisionId: string,
+): { alreadyPublished: boolean } {
+  if (article.status !== "scheduled" && article.status !== "published") {
+    throw new TransitionError(
+      `article ${article.id} must be scheduled before publish (current: ${article.status})`,
+      article.status,
+      "published",
+      ["scheduled"],
+    );
+  }
+
+  if (article.publishedRevisionId === revisionId) {
+    return { alreadyPublished: true };
+  }
+
+  if (article.status === "published" && article.publishedRevisionId) {
+    throw new PublishConflictError(
+      `article ${article.id} already published revision ${article.publishedRevisionId}`,
+    );
+  }
+
+  return { alreadyPublished: false };
+}
+
 export async function publishArticle(
   db: D1Database,
   id: string,
@@ -350,32 +386,15 @@ export async function publishArticle(
     throw new Error(`article ${id} not found`);
   }
   const revision = await getRevision(db, revisionId);
-  if (!revision || revision.articleId !== id) {
-    throw new Error(`revision ${revisionId} does not belong to article ${id}`);
-  }
 
-  const publishKey = `${id}:${revisionId}`;
-  if (
-    article.status !== "scheduled" &&
-    article.status !== "published"
-  ) {
-    throw new TransitionError(
-      `article ${id} must be scheduled before publish (current: ${article.status})`,
-      article.status,
-      "published",
-      ["scheduled"],
-    );
-  }
+  validatePublishRevision(id, revisionId, revision);
 
-  if (article.publishedRevisionId === revisionId) {
+  const { alreadyPublished } = validatePublishState(article, revisionId);
+  if (alreadyPublished) {
     return { article, alreadyPublished: true };
   }
 
-  if (article.status === "published" && article.publishedRevisionId) {
-    throw new PublishConflictError(
-      `article ${id} already published revision ${article.publishedRevisionId}`,
-    );
-  }
+  const publishKey = `${id}:${revisionId}`;
 
   await db
     .prepare(
