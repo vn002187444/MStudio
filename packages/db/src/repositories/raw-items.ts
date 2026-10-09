@@ -53,6 +53,56 @@ function toRawItemRow(row: RawItemRowRaw): RawItemRow {
   };
 }
 
+export async function createRawItems(
+  db: D1Database,
+  inputs: NewRawItem[],
+): Promise<{ created: number; duplicates: number }> {
+  if (inputs.length === 0) {
+    return { created: 0, duplicates: 0 };
+  }
+
+  const now = new Date().toISOString();
+  const statements = inputs.map((input) =>
+    db
+      .prepare(
+        `INSERT OR IGNORE INTO raw_items
+         (id, feed_id, source_id, external_id, url, canonical_url, title,
+          published_at, fetched_at, payload_hash, status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'incoming', ?)`
+      )
+      .bind(
+        input.id,
+        input.feedId,
+        input.sourceId,
+        input.externalId ?? null,
+        input.url,
+        input.canonicalUrl ?? null,
+        input.title ?? null,
+        input.publishedAt ?? null,
+        input.fetchedAt,
+        input.payloadHash,
+        now
+      )
+  );
+
+  let created = 0;
+  let duplicates = 0;
+
+  for (let i = 0; i < statements.length; i += 100) {
+    const batch = statements.slice(i, i + 100);
+    const results = await db.batch(batch);
+    for (const result of results) {
+      if (result.meta.changes && result.meta.changes > 0) {
+        created += 1;
+      } else {
+        duplicates += 1;
+      }
+    }
+  }
+
+  return { created, duplicates };
+}
+
 export async function createRawItem(
   db: D1Database,
   input: NewRawItem,
