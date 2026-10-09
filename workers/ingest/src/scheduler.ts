@@ -163,32 +163,40 @@ export async function runScheduler(
   do {
     const page = await listApprovedFeeds(db, pageSize, cursor);
     result.feeds += page.feeds.length;
-    for (const feed of page.feeds) {
-      const fetchedAt = new Date().toISOString();
-      try {
-        const outcome = await processFeed(feed, env, {
-          fetchTimeoutMs: options.fetchTimeoutMs,
-        });
-        if (outcome === "duplicate") {
-          result.duplicates += 1;
-        } else {
-          result.enqueued += 1;
+    const outcomes = await Promise.all(
+      page.feeds.map(async (feed) => {
+        const fetchedAt = new Date().toISOString();
+        try {
+          const outcome = await processFeed(feed, env, {
+            fetchTimeoutMs: options.fetchTimeoutMs,
+          });
+          await updateFeedFetchResult(db, feed.id, { fetchedAt });
+          return { status: "success" as const, outcome };
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "unknown error";
+          logger.error("feed_fetch_failed", {
+            feedId: feed.id,
+            url: feed.url,
+            code: "FETCH_FAILED",
+            message,
+          });
+          await updateFeedFetchResult(db, feed.id, {
+            fetchedAt,
+            error: message,
+          });
+          return { status: "error" as const };
         }
-        await updateFeedFetchResult(db, feed.id, { fetchedAt });
-      } catch (error) {
+      })
+    );
+
+    for (const outcome of outcomes) {
+      if (outcome.status === "error") {
         result.failed += 1;
-        const message =
-          error instanceof Error ? error.message : "unknown error";
-        logger.error("feed_fetch_failed", {
-          feedId: feed.id,
-          url: feed.url,
-          code: "FETCH_FAILED",
-          message,
-        });
-        await updateFeedFetchResult(db, feed.id, {
-          fetchedAt,
-          error: message,
-        });
+      } else if (outcome.outcome === "duplicate") {
+        result.duplicates += 1;
+      } else {
+        result.enqueued += 1;
       }
     }
     cursor = page.nextCursor;
