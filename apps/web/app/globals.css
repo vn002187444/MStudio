@@ -301,3 +301,92 @@ h3 {
 :target {
   scroll-margin-top: var(--header-offset);
 }
+
+/* ---- For You feed (MST-062) ---- */
+
+.rec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rec-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.rec-pool {
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  padding: 2px 8px;
+}
+
+.rec-card details summary {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.topic-manage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.topic-manage-row {
+  align-items: center;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.btn-follow,
+.btn-hide {
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  min-height: 44px;
+  padding: 8px 16px;
+}
+
+.btn-follow {
+  background: var(--black);
+  border: 1px solid var(--black);
+  color: var(--white);
+}
+
+.btn-follow:hover:not(:disabled) {
+  background: var(--ink-900);
+}
+
+.btn-hide {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+
+.btn-hide:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+
+.btn-follow:disabled,
+.btn-hide:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+>>>>>>> f8d8633 (feat(MST-062): For You Follow Hide UX (opencode))
