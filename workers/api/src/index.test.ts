@@ -9,10 +9,16 @@ import type {
   SourceRecord,
 } from "@mstudio/contracts";
 import {
+  addRevision,
+  addStorySource,
+  createArticle,
   createFeed,
   createRawItem,
   createSource,
+  createStory,
+  publishArticle,
   setRawItemStatus,
+  transitionArticle,
 } from "@mstudio/db";
 import { openMigratedTestDb } from "@mstudio/db/testing";
 import worker from "./index.ts";
@@ -772,6 +778,214 @@ test("wrong method on /events returns 405", async () => {
   try {
     const response = await worker.fetch(
       request("/events", { method: "GET" }),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 405);
+  } finally {
+    close();
+  }
+});
+
+test("GET /recommendations returns candidate list", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/recommendations?limit=5"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      candidates: unknown[];
+    };
+    assert.deepEqual(body.candidates, []);
+  } finally {
+    close();
+  }
+});
+
+test("GET /recommendations rejects invalid limit", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/recommendations?limit=0"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 400);
+    const body = (await response.json()) as ApiErrorResponse;
+    assert.equal(body.error.code, "VALIDATION_FAILED");
+  } finally {
+    close();
+  }
+});
+
+test("GET /recommendations rejects empty userId", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/recommendations?userId="),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 400);
+    const body = (await response.json()) as ApiErrorResponse;
+    assert.equal(body.error.code, "VALIDATION_FAILED");
+    assert.ok(body.error.details?.userId);
+  } finally {
+    close();
+  }
+});
+
+test("wrong method on /recommendations returns 405", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/recommendations", { method: "POST" }),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 405);
+  } finally {
+    close();
+  }
+});
+
+async function seedPublishedArticle(): Promise<{
+  env: Env;
+  close(): void;
+}> {
+  const { db, close } = await openMigratedTestDb();
+  const env = {
+    DB: db,
+    ENVIRONMENT: "test",
+    LOG_LEVEL: "error",
+  } as unknown as Env;
+  const now = "2026-01-01T00:00:00.000Z";
+  await createSource(db, {
+    id: "src-1",
+    name: "Source",
+    originUrl: "https://example.com",
+    kind: "rss",
+    now,
+  });
+  await createFeed(db, {
+    id: "feed-1",
+    sourceId: "src-1",
+    url: "https://example.com/feed",
+    format: "rss",
+    now,
+  });
+  await createRawItem(db, {
+    id: "raw-1",
+    feedId: "feed-1",
+    sourceId: "src-1",
+    externalId: "ext-1",
+    url: "https://example.com/1",
+    fetchedAt: now,
+    payloadHash: "hash-1",
+  });
+  await createStory(db, { id: "story-1", title: "Story", now });
+  await addStorySource(db, {
+    id: "ss-1",
+    storyId: "story-1",
+    rawItemId: "raw-1",
+    role: "primary",
+    now,
+  });
+  await createArticle(db, {
+    id: "art-1",
+    storyId: "story-1",
+    now,
+  });
+  await addRevision(db, {
+    id: "rev-1",
+    articleId: "art-1",
+    title: "Published Title",
+    body: "body",
+    summary: "summary",
+    now,
+  });
+  await transitionArticle(db, "art-1", "ai_qa", now);
+  await transitionArticle(db, "art-1", "auto_eligible", now);
+  await transitionArticle(db, "art-1", "scheduled", now);
+  await publishArticle(db, "art-1", "rev-1", now);
+  await createArticle(db, {
+    id: "art-draft",
+    storyId: "story-1",
+    now,
+  });
+  return { env, close };
+}
+
+test("GET /articles/:id returns a published article with its title", async () => {
+  const { env, close } = await seedPublishedArticle();
+  try {
+    const response = await worker.fetch(
+      request("/articles/art-1"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      article: {
+        id: string;
+        storyId: string;
+        status: string;
+        title: string;
+        summary?: string;
+        publishedRevisionId: string;
+      };
+    };
+    assert.equal(body.article.id, "art-1");
+    assert.equal(body.article.storyId, "story-1");
+    assert.equal(body.article.status, "published");
+    assert.equal(body.article.title, "Published Title");
+    assert.equal(body.article.summary, "summary");
+    assert.equal(body.article.publishedRevisionId, "rev-1");
+  } finally {
+    close();
+  }
+});
+
+test("GET /articles/:id returns 404 for a missing article", async () => {
+  const { env, close } = await seedPublishedArticle();
+  try {
+    const response = await worker.fetch(
+      request("/articles/does-not-exist"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 404);
+    const body = (await response.json()) as ApiErrorResponse;
+    assert.equal(body.error.code, "ARTICLE_NOT_FOUND");
+  } finally {
+    close();
+  }
+});
+
+test("GET /articles/:id returns 404 for an unpublished article", async () => {
+  const { env, close } = await seedPublishedArticle();
+  try {
+    const response = await worker.fetch(
+      request("/articles/art-draft"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 404);
+    const body = (await response.json()) as ApiErrorResponse;
+    assert.equal(body.error.code, "ARTICLE_NOT_FOUND");
+  } finally {
+    close();
+  }
+});
+
+test("wrong method on /articles/:id returns 405", async () => {
+  const { env, close } = await seedPublishedArticle();
+  try {
+    const response = await worker.fetch(
+      request("/articles/art-1", { method: "POST" }),
       env,
       context() as unknown as ExecutionContext,
     );

@@ -178,6 +178,62 @@ export async function listArticlesByStory(
   return paginate(results.map(toArticleRow), limit);
 }
 
+export interface PublishedArticleRecord {
+  id: string;
+  storyId: string;
+  status: ArticleStatus;
+  title: string;
+  summary?: string;
+  publishedRevisionId: string;
+  updatedAt: string;
+}
+
+interface PublishedArticleRowRaw {
+  id: string;
+  storyId: string;
+  status: ArticleStatus;
+  title: string;
+  summary: string | null;
+  publishedRevisionId: string;
+  updatedAt: string;
+}
+
+const PUBLISHED_ARTICLE_SELECT = `
+  SELECT a.id AS id, a.story_id AS storyId, a.status AS status,
+         a.published_revision_id AS publishedRevisionId,
+         a.updated_at AS updatedAt,
+         r.title AS title, r.summary AS summary
+  FROM articles a
+  JOIN article_revisions r ON r.id = a.published_revision_id
+`;
+
+const READER_VISIBLE_STATUSES: readonly ArticleStatus[] = [
+  "published",
+  "updated",
+  "corrected",
+];
+
+export async function getPublishedArticle(
+  db: D1Database,
+  id: string,
+): Promise<PublishedArticleRecord | undefined> {
+  const placeholders = READER_VISIBLE_STATUSES.map(
+    () => "?",
+  ).join(", ");
+  const row = await db
+    .prepare(
+      `${PUBLISHED_ARTICLE_SELECT} WHERE a.id = ? AND a.status IN (${placeholders})`,
+    )
+    .bind(id, ...READER_VISIBLE_STATUSES)
+    .first<PublishedArticleRowRaw>();
+  return row
+    ? {
+        ...row,
+        summary: row.summary ?? undefined,
+      }
+    : undefined;
+}
+
 export async function addRevision(
   db: D1Database,
   input: NewArticleRevision,
