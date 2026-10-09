@@ -5,6 +5,7 @@ import {
   deleteSource,
   getSource,
   listFeedsBySource,
+  listRawItemsByStatus,
   listSources,
   setFeedEnabled,
   setSourceAllowStatus,
@@ -27,6 +28,7 @@ import {
   validateCreateFeed,
   validateCreateSource,
   validatePagination,
+  validateRawItemStatus,
   validateUpdateFeed,
   validateUpdateSourceAllowStatus,
 } from "./validate.ts";
@@ -109,6 +111,32 @@ app.get("/healthz", (c) =>
     correlationId: c.get("correlationId"),
   }),
 );
+
+app.get("/raw-items", async (c) => {
+  const url = new URL(c.req.url);
+  const status = validateRawItemStatus(url.searchParams.get("status"));
+  if (!status.ok) {
+    throw badRequest(
+      "VALIDATION_FAILED",
+      "invalid status filter",
+      status.errors,
+    );
+  }
+  const pagination = validatePagination(url.searchParams);
+  if (!pagination.ok) {
+    throw badRequest(
+      "VALIDATION_FAILED",
+      "invalid pagination",
+      pagination.errors,
+    );
+  }
+  const page = await listRawItemsByStatus(
+    c.env.DB,
+    status.value,
+    pagination.value,
+  );
+  return c.json(page);
+});
 
 app.get("/sources", async (c) => {
   const url = new URL(c.req.url);
@@ -241,6 +269,7 @@ app.patch("/feeds/:id", async (c) => {
 });
 
 app.all("/sources", (c) => c.text("Method not allowed", 405));
+app.all("/raw-items", (c) => c.text("Method not allowed", 405));
 app.all("/sources/:id", (c) => c.text("Method not allowed", 405));
 app.all("/sources/:id/allow-status", (c) =>
   c.text("Method not allowed", 405),

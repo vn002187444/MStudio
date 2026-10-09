@@ -1,10 +1,18 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import type { D1Database } from "@cloudflare/workers-types";
 import type {
   ApiErrorResponse,
   FeedRecord,
+  RawItemRecord,
   SourceRecord,
 } from "@mstudio/contracts";
+import {
+  createFeed,
+  createRawItem,
+  createSource,
+  setRawItemStatus,
+} from "@mstudio/db";
 import { openMigratedTestDb } from "@mstudio/db/testing";
 import worker from "./index.ts";
 
@@ -18,6 +26,7 @@ function context(): TestContext {
 
 async function setup(): Promise<{
   env: Env;
+  db: D1Database;
   close(): void;
 }> {
   const { db, close } = await openMigratedTestDb();
@@ -26,7 +35,7 @@ async function setup(): Promise<{
     ENVIRONMENT: "test",
     LOG_LEVEL: "error",
   } as unknown as Env;
-  return { env, close };
+  return { env, db, close };
 }
 
 function request(
@@ -445,6 +454,169 @@ test("wrong method on /sources returns 405", async () => {
   try {
     const response = await worker.fetch(
       request("/sources", { method: "PUT" }),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 405);
+  } finally {
+    close();
+  }
+});
+
+const SEED_NOW = "2026-01-01T00:00:00.000Z";
+
+async function seedRawItem(
+  db: D1Database,
+  id: string,
+  status?: "normalized",
+): Promise<void> {
+  const sourceId = `source-${id}`;
+  const feedId = `feed-${id}`;
+  await createSource(db, {
+    id: sourceId,
+    name: `Source ${id}`,
+    originUrl: `https://source-${id}.example.com`,
+    kind: "rss",
+    now: SEED_NOW,
+  });
+  await createFeed(db, {
+    id: feedId,
+    sourceId,
+    url: `https://source-${id}.example.com/feed.xml`,
+    format: "rss",
+    now: SEED_NOW,
+  });
+  await createRawItem(db, {
+    id,
+    feedId,
+    sourceId,
+    externalId: `ext-${id}`,
+    url: `https://source-${id}.example.com/story`,
+    fetchedAt: SEED_NOW,
+    payloadHash: `hash-${id}`,
+  });
+  if (status) {
+    await setRawItemStatus(db, id, status);
+  }
+}
+
+test("GET /raw-items returns incoming items by default", async () => {
+  const { env, db, close } = await setup();
+  try {
+    await seedRawItem(db, "item-1");
+    const response = await worker.fetch(
+      request("/raw-items"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 200);
+    const page = (await response.json()) as {
+      rows: RawItemRecord[];
+      nextCursor?: unknown;
+    };
+    assert.equal(page.rows.length, 1);
+    assert.equal(page.rows[0].id, "item-1");
+    assert.equal(page.rows[0].status, "incoming");
+    assert.equal(page.nextCursor, undefined);
+  } finally {
+    close();
+  }
+});
+
+test("GET /raw-items filters by status", async () => {
+  const { env, db, close } = await setup();
+  try {
+    await seedRawItem(db, "item-1");
+    await seedRawItem(db, "item-2", "normalized");
+    const incoming = await worker.fetch(
+      request("/raw-items?status=incoming"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    const incomingPage = (await incoming.json()) as {
+      rows: RawItemRecord[];
+    };
+    assert.equal(incomingPage.rows.length, 1);
+    assert.equal(incomingPage.rows[0].id, "item-1");
+
+    const normalized = await worker.fetch(
+      request("/raw-items?status=normalized"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    const normalizedPage = (await normalized.json()) as {
+      rows: RawItemRecord[];
+    };
+    assert.equal(normalizedPage.rows.length, 1);
+    assert.equal(normalizedPage.rows[0].id, "item-2");
+    assert.equal(normalizedPage.rows[0].status, "normalized");
+  } finally {
+    close();
+  }
+});
+
+test("GET /raw-items rejects invalid status", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/raw-items?status=bogus"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 400);
+    const body = (await response.json()) as ApiErrorResponse;
+    assert.equal(body.error.code, "VALIDATION_FAILED");
+    assert.ok(body.error.details?.status);
+  } finally {
+    close();
+  }
+});
+
+test("GET /raw-items paginates with keyset cursor", async () => {
+  const { env, db, close } = await setup();
+  try {
+    await seedRawItem(db, "item-1");
+    await seedRawItem(db, "item-2");
+    await seedRawItem(db, "item-3");
+    const page1 = await worker.fetch(
+      request("/raw-items?limit=2"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    const first = (await page1.json()) as {
+      rows: RawItemRecord[];
+      nextCursor?: { createdAt: string; id: string };
+    };
+    assert.equal(first.rows.length, 2);
+    const cursor = first.nextCursor;
+    assert.ok(cursor);
+    const params = new URLSearchParams({
+      limit: "2",
+      cursor_created_at: cursor.createdAt,
+      cursor_id: cursor.id,
+    });
+    const page2 = await worker.fetch(
+      request(`/raw-items?${params}`),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    const second = (await page2.json()) as {
+      rows: RawItemRecord[];
+      nextCursor?: unknown;
+    };
+    assert.equal(second.rows.length, 1);
+    assert.equal(second.nextCursor, undefined);
+    assert.notEqual(first.rows[0].id, second.rows[0].id);
+  } finally {
+    close();
+  }
+});
+
+test("wrong method on /raw-items returns 405", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/raw-items", { method: "POST" }),
       env,
       context() as unknown as ExecutionContext,
     );

@@ -61,4 +61,5 @@ export type {
   SourceResponse,
   UpdateFeedRequest,
   UpdateSourceAllowStatusRequest,
+  RawItemListResponse,
 } from "./api.ts";

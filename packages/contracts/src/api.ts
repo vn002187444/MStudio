@@ -2,6 +2,7 @@ import type {
   AllowStatus,
   FeedFormat,
   FeedRecord,
+  RawItemRecord,
   RightsStatus,
   SourceKind,
   SourceRecord,
@@ -39,6 +40,8 @@ export interface FeedResponse extends FeedRecord {}
 export interface SourceListResponse extends PagedRows<SourceRecord> {}
 
 export interface FeedListResponse extends PagedRows<FeedRecord> {}
+
+export interface RawItemListResponse extends PagedRows<RawItemRecord> {}
 
 export interface ApiErrorResponse {
   error: {

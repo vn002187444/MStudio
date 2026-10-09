@@ -4,6 +4,7 @@ import type {
   CreateSourceRequest,
   FeedFormat,
   PageInput,
+  RawItemStatus,
   SourceKind,
   UpdateFeedRequest,
   UpdateSourceAllowStatusRequest,
@@ -31,6 +32,12 @@ const ALLOW_STATUSES: readonly AllowStatus[] = [
   "approved",
   "denied",
   "pending",
+];
+const RAW_ITEM_STATUSES: readonly RawItemStatus[] = [
+  "incoming",
+  "normalized",
+  "clustered",
+  "discarded",
 ];
 
 function isRecord(
@@ -263,4 +270,19 @@ export function validatePagination(
     return { ok: false, errors };
   }
   return { ok: true, value: { limit, cursor } };
+}
+
+export function validateRawItemStatus(
+  status: string | null,
+): ValidationResult<RawItemStatus> {
+  const value = status ?? "incoming";
+  if (!isEnumMember(value, RAW_ITEM_STATUSES)) {
+    return {
+      ok: false,
+      errors: {
+        status: [`must be one of: ${RAW_ITEM_STATUSES.join(", ")}`],
+      },
+    };
+  }
+  return { ok: true, value };
 }
