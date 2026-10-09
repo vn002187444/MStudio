@@ -12,6 +12,7 @@
     "test": "node --test src/*.test.ts"
   },
   "dependencies": {
+    "@mstudio/contracts": "workspace:*",
     "@mstudio/db": "workspace:*",
     "@mstudio/model-gateway": "workspace:*"
   },

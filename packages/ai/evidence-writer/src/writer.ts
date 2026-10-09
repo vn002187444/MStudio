@@ -1,11 +1,13 @@
 import type { D1Database } from "@cloudflare/workers-types";
+import type {
+  AgentRunRecord,
+  AgentRunSourceRef,
+} from "@mstudio/contracts";
 import {
   createAgentRun,
   markAgentRunFailed,
   markAgentRunRunning,
   markAgentRunSucceeded,
-  type AgentRunRecord,
-  type AgentRunSourceRef,
 } from "@mstudio/db";
 import {
   ModelGatewayError,

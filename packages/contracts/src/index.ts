@@ -1,4 +1,10 @@
 export type {
+  AgentRunRecord,
+  AgentRunSourceRef,
+  AgentRunStatus,
+  NewAgentRun,
+} from "./agent.ts";
+export type {
   AllowStatus,
   FeedFormat,
   JobStatus,
@@ -57,9 +63,9 @@ export type {
   FeedListResponse,
   FeedResponse,
   ListRequest,
+  RawItemListResponse,
   SourceListResponse,
   SourceResponse,
   UpdateFeedRequest,
   UpdateSourceAllowStatusRequest,
-  RawItemListResponse,
 } from "./api.ts";

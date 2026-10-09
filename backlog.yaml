@@ -180,7 +180,7 @@ sprints:
     goal: "Evidence -> AI Draft with traceable AgentRuns"
     tasks:
       - { id: MST-030, title: ModelGateway, owner: commandcode, priority: P0, paths: ["packages/ai/model-gateway/**"], depends_on: [MST-020], acceptance: [gemini_adapter, provider_neutral_interface, timeouts, usage_metadata], tests: [mock-provider-test], quota_impact: none }
-      - { id: MST-031, title: Evidence Verification Writer workflow, owner: commandcode, priority: P0, paths: ["packages/ai/**", "workers/intelligence/**"], depends_on: [MST-030], human_gate: editorial_ai, acceptance: [structured_outputs, source_refs, agentrun_persistence, retry_boundary], tests: [agent-contract-tests], quota_impact: medium }
+      - { id: MST-031, title: Evidence Verification Writer workflow, owner: commandcode, priority: P0, paths: ["packages/ai/**", "packages/db/**", "packages/contracts/**"], depends_on: [MST-030], human_gate: editorial_ai, acceptance: [structured_outputs, source_refs, agentrun_persistence, retry_boundary], tests: [agent-contract-tests], quota_impact: medium }
       - { id: MST-032, title: AI Desk and agent history, owner: opencode, priority: P1, paths: ["apps/studio/**"], depends_on: [MST-031], acceptance: [agent_status, history, failure_view, generate_draft_action], tests: [ui-smoke], quota_impact: low }
 
   - id: S04

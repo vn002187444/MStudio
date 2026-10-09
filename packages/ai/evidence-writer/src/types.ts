@@ -1,4 +1,4 @@
-import type { AgentRunSourceRef } from "@mstudio/db";
+import type { AgentRunSourceRef } from "@mstudio/contracts";
 
 export interface StructuredFact {
   text: string;

@@ -276,6 +276,9 @@ importers:
 
   packages/ai/evidence-writer:
     dependencies:
+      '@mstudio/contracts':
+        specifier: workspace:*
+        version: link:../../contracts
       '@mstudio/db':
         specifier: workspace:*
         version: link:../../db
