@@ -28,7 +28,7 @@ export function StudioNav() {
             <li key={item.label}>
               <span
                 aria-disabled="true"
-                style={{ color: "var(--gray)", display: "block", padding: "8px 12px" }}
+                style={{ color: "var(--white)", display: "block", opacity: 0.65, padding: "8px 12px" }}
               >
                 {item.label}
               </span>
