@@ -5,6 +5,7 @@ import type {
   ApiErrorResponse,
   FeedRecord,
   RawItemRecord,
+  ReaderEventMessage,
   SourceRecord,
 } from "@mstudio/contracts";
 import {
@@ -617,6 +618,160 @@ test("wrong method on /raw-items returns 405", async () => {
   try {
     const response = await worker.fetch(
       request("/raw-items", { method: "POST" }),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 405);
+  } finally {
+    close();
+  }
+});
+
+interface SentMessage {
+  body: ReaderEventMessage;
+}
+
+async function setupWithEventsQueue(
+  samplingRate = "1",
+): Promise<{
+  env: Env;
+  db: D1Database;
+  sent: SentMessage[];
+  close(): void;
+}> {
+  const { db, close } = await openMigratedTestDb();
+  const sent: SentMessage[] = [];
+  const env = {
+    DB: db,
+    ENVIRONMENT: "test",
+    LOG_LEVEL: "error",
+    READER_EVENT_SAMPLING_RATE: samplingRate,
+    EVENTS_QUEUE: {
+      sendBatch: async (messages: Iterable<SentMessage>) => {
+        sent.push(...messages);
+      },
+    },
+  } as unknown as Env;
+  return { env, db, sent, close };
+}
+
+test("POST /events accepts meaningful events and enqueues them", async () => {
+  const { env, sent, close } = await setupWithEventsQueue();
+  try {
+    const response = await worker.fetch(
+      request(
+        "/events",
+        jsonInit({
+          events: [
+            { eventType: "open_article", articleId: "a1", userId: "u1" },
+            { eventType: "follow_topic", topicId: "t1", userId: "u1" },
+          ],
+        }),
+      ),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 202);
+    const body = (await response.json()) as {
+      accepted: number;
+      sampledOut: number;
+    };
+    assert.equal(body.accepted, 2);
+    assert.equal(body.sampledOut, 0);
+    assert.equal(sent.length, 2);
+    assert.equal(sent[0].body.eventType, "open_article");
+    assert.equal(sent[0].body.articleId, "a1");
+    assert.equal(sent[0].body.userId, "u1");
+    assert.ok(sent[0].body.id);
+    assert.ok(sent[0].body.occurredAt);
+  } finally {
+    close();
+  }
+});
+
+test("POST /events samples micro-interactions out", async () => {
+  const { env, sent, close } = await setupWithEventsQueue("0");
+  try {
+    const response = await worker.fetch(
+      request(
+        "/events",
+        jsonInit({
+          events: [
+            { eventType: "open_article", articleId: "a1" },
+            { eventType: "click", articleId: "a1" },
+            { eventType: "scroll", articleId: "a1" },
+          ],
+        }),
+      ),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 202);
+    const body = (await response.json()) as {
+      accepted: number;
+      sampledOut: number;
+    };
+    assert.equal(body.accepted, 1);
+    assert.equal(body.sampledOut, 2);
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].body.eventType, "open_article");
+  } finally {
+    close();
+  }
+});
+
+test("POST /events rejects events without a target", async () => {
+  const { env, close } = await setupWithEventsQueue();
+  try {
+    const response = await worker.fetch(
+      request(
+        "/events",
+        jsonInit({
+          events: [{ eventType: "open_article" }],
+        }),
+      ),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 400);
+    const body = (await response.json()) as ApiErrorResponse;
+    assert.equal(body.error.code, "VALIDATION_FAILED");
+    assert.ok(body.error.details?.["events[0].target"]);
+  } finally {
+    close();
+  }
+});
+
+test("POST /events works without a queue binding", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request(
+        "/events",
+        jsonInit({
+          events: [{ eventType: "open_article", articleId: "a1" }],
+        }),
+      ),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 202);
+    const body = (await response.json()) as {
+      accepted: number;
+      sampledOut: number;
+    };
+    assert.equal(body.accepted, 1);
+    assert.equal(body.sampledOut, 0);
+  } finally {
+    close();
+  }
+});
+
+test("wrong method on /events returns 405", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/events", { method: "GET" }),
       env,
       context() as unknown as ExecutionContext,
     );

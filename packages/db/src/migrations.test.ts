@@ -22,6 +22,8 @@ test("migrations create the core and story domain tables", async () => {
       "feeds",
       "jobs",
       "raw_items",
+      "reader_events",
+      "reader_profiles",
       "sources",
       "stories",
       "story_entities",
@@ -58,6 +60,8 @@ test("migrations create the documented hot-query indexes", async () => {
       "idx_raw_items_feed_fetched",
       "idx_raw_items_payload_hash",
       "idx_raw_items_status_created",
+      "idx_reader_events_article",
+      "idx_reader_events_user",
       "idx_story_entities_entity",
       "idx_story_sources_story",
     ]);

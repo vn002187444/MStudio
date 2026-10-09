@@ -5,6 +5,7 @@ import type {
   FeedFormat,
   PageInput,
   RawItemStatus,
+  ReaderEventInput,
   SourceKind,
   UpdateFeedRequest,
   UpdateSourceAllowStatusRequest,
@@ -285,4 +286,89 @@ export function validateRawItemStatus(
     };
   }
   return { ok: true, value };
+}
+
+const MAX_READER_EVENTS = 100;
+
+function hasEventTarget(event: Record<string, unknown>): boolean {
+  return (
+    isNonEmptyString(event.articleId) ||
+    isNonEmptyString(event.topicId) ||
+    isNonEmptyString(event.url)
+  );
+}
+
+function validateReaderEvent(
+  event: unknown,
+): ValidationResult<ReaderEventInput> {
+  const errors: ValidationErrors = {};
+  if (!isRecord(event)) {
+    return { ok: false, errors: { event: ["must be an object"] } };
+  }
+  if (!isNonEmptyString(event.eventType)) {
+    pushError(errors, "eventType", "must be a non-empty string");
+  }
+  if (!hasEventTarget(event)) {
+    pushError(
+      errors,
+      "target",
+      "must provide articleId, topicId, or url",
+    );
+  }
+  if (event.userId !== undefined && !isNonEmptyString(event.userId)) {
+    pushError(errors, "userId", "must be a non-empty string when provided");
+  }
+  for (const field of ["articleId", "topicId", "url"] as const) {
+    if (event[field] !== undefined && !isNonEmptyString(event[field])) {
+      pushError(errors, field, "must be a non-empty string when provided");
+    }
+  }
+  if (
+    event.occurredAt !== undefined &&
+    !isNonEmptyString(event.occurredAt)
+  ) {
+    pushError(errors, "occurredAt", "must be a non-empty string when provided");
+  }
+  if (Object.keys(errors).length > 0) {
+    return { ok: false, errors };
+  }
+  return { ok: true, value: event as unknown as ReaderEventInput };
+}
+
+export function validateReaderEvents(
+  body: unknown,
+): ValidationResult<ReaderEventInput[]> {
+  if (!isRecord(body)) {
+    return {
+      ok: false,
+      errors: { body: ["must be an object with an events array"] },
+    };
+  }
+  const events = body.events;
+  if (!Array.isArray(events) || events.length === 0) {
+    return { ok: false, errors: { events: ["must be a non-empty array"] } };
+  }
+  const errors: ValidationErrors = {};
+  const parsed: ReaderEventInput[] = [];
+  events.forEach((event, index) => {
+    const validation = validateReaderEvent(event);
+    if (validation.ok) {
+      parsed.push(validation.value);
+    } else {
+      for (const [field, messages] of Object.entries(validation.errors)) {
+        errors[`events[${index}].${field}`] = messages;
+      }
+    }
+  });
+  if (events.length > MAX_READER_EVENTS) {
+    pushError(
+      errors,
+      "events",
+      `must contain at most ${MAX_READER_EVENTS} events`,
+    );
+  }
+  if (Object.keys(errors).length > 0) {
+    return { ok: false, errors };
+  }
+  return { ok: true, value: parsed };
 }

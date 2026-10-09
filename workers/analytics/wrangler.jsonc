@@ -1,0 +1,48 @@
+{
+  "name": "mstudio-analytics",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-08",
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "LOG_LEVEL": "info",
+    "QUOTA_MODE": "NORMAL"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mstudio_dev",
+      "database_id": "local-dev-placeholder"
+    }
+  ],
+  "queues": {
+    "consumers": [
+      {
+        "queue": "mstudio-events",
+        "max_batch_size": 100,
+        "max_retries": 3
+      }
+    ]
+  },
+  "env": {
+    "dev": {
+      "name": "mstudio-analytics-dev",
+      "vars": {
+        "ENVIRONMENT": "dev",
+        "LOG_LEVEL": "debug"
+      }
+    },
+    "staging": {
+      "name": "mstudio-analytics-staging",
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}

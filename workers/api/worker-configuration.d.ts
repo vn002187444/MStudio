@@ -5,6 +5,8 @@ interface __BaseEnv_Env {
 	DB: D1Database;
 	ENVIRONMENT: "dev";
 	LOG_LEVEL: "debug";
+	EVENTS_QUEUE?: Queue;
+	READER_EVENT_SAMPLING_RATE?: string;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {

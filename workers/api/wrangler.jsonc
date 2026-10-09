@@ -4,7 +4,8 @@
   "compatibility_date": "2026-10-08",
   "vars": {
     "ENVIRONMENT": "dev",
-    "LOG_LEVEL": "debug"
+    "LOG_LEVEL": "debug",
+    "READER_EVENT_SAMPLING_RATE": "0.05"
   },
   "d1_databases": [
     {
@@ -12,5 +13,13 @@
       "database_name": "mstudio_dev",
       "database_id": "local-dev-placeholder"
     }
-  ]
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "EVENTS_QUEUE",
+        "queue": "mstudio-events"
+      }
+    ]
+  }
 }
