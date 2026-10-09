@@ -286,9 +286,57 @@ h3 {
   margin: 0;
 }
 
+:target {
+  scroll-margin-top: var(--header-offset);
+}
+
+/* ---- Article + category templates (MST-042) ---- */
+
+.article-main {
+  margin: 0 auto;
+  max-width: 720px;
+  padding: 24px 16px 48px;
+}
+
+.article-hero-slot {
+  aspect-ratio: 16 / 9;
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 24px;
+  color: var(--gray);
+}
+
+.source-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.skeleton-pulse {
+  animation: skeleton-pulse var(--motion-duration-slow) var(--motion-ease-standard) infinite alternate;
+  background: var(--border);
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-pulse {
+  from {
+    opacity: 0.6;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Đặt cuối file để thắng cascade: reduced-motion tắt pulse (PLAN ### Motion). */
 @media (prefers-reduced-motion: reduce) {
-  /* Targeted only: no global !important kill-switch (PLAN ### Motion).
-     Skeleton placeholders become static; no decorative motion exists in v1. */
   .skeleton-pulse {
     animation: none;
   }
@@ -296,8 +344,4 @@ h3 {
   html {
     scroll-behavior: auto;
   }
-}
-
-:target {
-  scroll-margin-top: var(--header-offset);
 }
