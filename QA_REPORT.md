@@ -44,3 +44,10 @@ Trích 8 ý mới (không trùng `PLAN.md`) từ proposal của Jules, đã đ�
 - **FU-03 nuqs**: đồng bộ state filter/search CMS lên URL param để share link giữa các editor.
 - **FU-04 Không React Query** trong App Router trừ khi cần client polling; dùng native fetch + cache tags + Server Actions (tiết kiệm JS client, bảo vệ INP).
 - **FU-05 Tiptap/Lexical**: headless editor cho blocks Quote/Fact-Claim/Timeline phục vụ CMS AI-driven (liên quan follow-up MST-040).
+
+## 6. Gaps phát hiện khi re-evaluate (09-10-2026, đã kiểm chứng độc lập)
+- **G-01 `.gitignore` thiếu `.env*`**: chỉ có `.dev.vars`. Chưa có secret nào bị track (scan 186 files sạch), nhưng phải vá trước khi repo public/rộng hơn. → FU-08.
+- **G-02 Stray marker trong nhánh MST-062**: 1 dòng `>>>>>>>` sót từ rebase, đã dọn trong lúc merge (`05cdce1`), `git diff --check` + `git grep` sạch. → Resolved, không cần task.
+- **G-03 Backlog thiếu Auth/RBAC + category expansion**: QC phát hiện từ trước, `PLAN.md` đã yêu cầu RBAC (mục Security) nhưng chưa có task thực thi. → FU-10, FU-11.
+- **G-04 Scheduler concurrency treo quyết định**: 2 biến thể (`Promise.all` / `allSettled`) đổi hành vi ingest hot path + quota burst risk, chưa merge. Bench file đã lấy vào main. → FU-12.
+- **G-05 Deploy kẹt**: cần CF credentials + `wrangler queue create mstudio-events` + deploy api/analytics + D1 migrations 0001–0006. Chưa có deploy runbook chuẩn. → FU-13, FU-14.

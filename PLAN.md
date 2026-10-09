@@ -467,6 +467,16 @@ Acceptance pass; relevant tests/typecheck/lint pass; no secrets; no unrelated di
 ## 90-day delivery
 Sprint 1 Foundation/RSS -> Sprint 2 Story Intelligence -> Sprint 3 AI Pipeline -> Sprint 4 Editorial/Publishing -> Sprint 5 Search/SEO -> Sprint 6 Personalization/Hardening -> beta/quota tuning buffer.
 
+## Follow-up tasks (QA re-evaluation 2026-10-09)
+Nối tiếp FU-01..FU-07 trong `QA_REPORT.md` §5. Mỗi task nhỏ, một owner, xong là đóng.
+
+- **FU-08 .gitignore hardening** (owner: jules): thêm `.env*`, `*.pem`, `*.key` vào `.gitignore`; verify không có secret tracked. Acceptance: `git ls-files` sạch + fresh clone không lộ secret mẫu. Tests: secret-scan. Quota: none.
+- **FU-10 Auth/RBAC backlog draft** (owner: commandcode, human_gate: editorial/architecture): draft task Worker auth (session, roles Admin/Editor/Reviewer/SEO/Analyst theo mục Security), rate-limit sensitive APIs, audit log. Acceptance: task YAML duyệt bởi Human. Không code khi chưa duyệt scope.
+- **FU-11 Category expansion draft** (owner: human phân công sau draft): draft taxonomy mở rộng + migration + UI category template đi kèm. Acceptance: Human duyệt phạm vi trước khi tách MST task.
+- **FU-12 Scheduler concurrency eval + ADR** (owner: commandcode, Human quyết): benchmark 3 phương án (tuần tự hiện tại / `Promise.all` / `allSettled`) trên ingest — đo D1 write contention, fetch burst, queue lag, quota impact; viết ADR chọn 1. Các nhánh `MST-007-perf` / `MST-123-optimize` giữ làm tham chiếu tới khi ADR xong. Acceptance: ADR merged + branch thua đóng.
+- **FU-13 Deploy runbook** (owner: jules): doc chuẩn các bước `wrangler queue create mstudio-events`, deploy api/analytics, `d1 migrations apply 0001–0006`, verify `/healthz` + `/recommendations`. Acceptance: người khác làm theo runbook pass từ đầu tới cuối.
+- **FU-14 CF credentials + deploy execution** (owner: human + commandcode): Human cấp credentials; cmdc chạy runbook FU-13 lên môi trường thật, báo cáo quota impact thực tế. Acceptance: API/analytics live, queue hoạt động, `/articles/:id` trả published article.
+
 ## Final principles
 1. Trust over volume.
 2. Free tier is architecture.
