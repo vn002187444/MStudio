@@ -7,7 +7,7 @@ const items = [
   { href: "/", label: "Overview" },
   { href: "/newsroom/incoming", label: "Incoming" },
   { href: "#", label: "Story Clusters", disabled: true },
-  { href: "#", label: "Research Desk", disabled: true },
+  { href: "/newsroom/research", label: "Research Desk" },
   { href: "#", label: "Drafts", disabled: true },
   { href: "#", label: "Needs Review", disabled: true },
   { href: "#", label: "Sources", disabled: true },

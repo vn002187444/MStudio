@@ -28,6 +28,25 @@ button:focus-visible {
   background: var(--ink-900);
 }
 
+.desk-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+.desk-pane {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+
+@media (min-width: 1100px) {
+  .desk-grid {
+    grid-template-columns: 1fr 1.5fr 1fr;
+  }
+}
+
 body {
   margin: 0;
 }
