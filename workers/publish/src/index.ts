@@ -10,6 +10,7 @@ import {
   TransitionError,
 } from "@mstudio/db";
 import { getCorrelationId } from "@mstudio/observability";
+import { buildSitemapEvent, canonicalizeUrl } from "@mstudio/seo";
 
 type AppEnv = {
   Bindings: Env;
@@ -108,7 +109,18 @@ app.post("/articles/:id/publish", async (c) => {
   }
   try {
     const result = await publishArticle(c.env.DB, id, revisionId);
-    return c.json(result, result.alreadyPublished ? 200 : 201);
+    if (result.alreadyPublished) {
+      return c.json(result, 200);
+    }
+    const url = canonicalizeUrl(
+      `${c.env.SITE_URL}/articles/${id}`,
+    );
+    const sitemapEvent = buildSitemapEvent(
+      "article_published",
+      url,
+      result.article.updatedAt,
+    );
+    return c.json({ ...result, sitemapEvent }, 201);
   } catch (error) {
     if (error instanceof TransitionError) {
       return c.json(

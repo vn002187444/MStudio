@@ -43,6 +43,14 @@ export type {
   NormalizedFeedItem,
 } from "./queue.ts";
 export type {
+  ArticleJsonLd,
+  ArticleSeoInput,
+  NewsSitemapEntry,
+  SitemapEntry,
+  SitemapEvent,
+  SitemapEventKind,
+} from "./seo.ts";
+export type {
   ApiErrorResponse,
   CreateFeedRequest,
   CreateSourceRequest,

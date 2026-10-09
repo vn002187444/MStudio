@@ -7,6 +7,7 @@
     "@mstudio/contracts": "workspace:*",
     "@mstudio/db": "workspace:*",
     "@mstudio/observability": "workspace:*",
+    "@mstudio/seo": "workspace:*",
     "hono": "^4.13.13"
   },
   "scripts": {

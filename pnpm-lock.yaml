@@ -348,6 +348,19 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
+  packages/seo:
+    dependencies:
+      '@mstudio/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+    devDependencies:
+      '@types/node':
+        specifier: ^26.6.4
+        version: 26.6.4
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+
   packages/ui: {}
 
   workers/api:
@@ -461,6 +474,9 @@ importers:
       '@mstudio/observability':
         specifier: workspace:*
         version: link:../../packages/observability
+      '@mstudio/seo':
+        specifier: workspace:*
+        version: link:../../packages/seo
       hono:
         specifier: ^4.13.13
         version: 4.13.13

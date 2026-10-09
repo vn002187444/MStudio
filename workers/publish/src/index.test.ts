@@ -23,6 +23,7 @@ async function setup(): Promise<{
     DB: db,
     ENVIRONMENT: "test",
     LOG_LEVEL: "error",
+    SITE_URL: "https://news.example.com",
   } as unknown as Env;
   return { env, db, close };
 }
@@ -92,10 +93,21 @@ test("publish is idempotent over HTTP", async () => {
     const firstBody = (await first.json()) as {
       alreadyPublished: boolean;
       article: { status: string; publishedRevisionId: string };
+      sitemapEvent?: {
+        kind: string;
+        url: string;
+        lastmod: string;
+      };
     };
     assert.equal(firstBody.alreadyPublished, false);
     assert.equal(firstBody.article.status, "published");
     assert.equal(firstBody.article.publishedRevisionId, revisionId);
+    assert.equal(firstBody.sitemapEvent?.kind, "article_published");
+    assert.equal(
+      firstBody.sitemapEvent?.url,
+      `https://news.example.com/articles/${articleId}`,
+    );
+    assert.ok(firstBody.sitemapEvent?.lastmod);
 
     const second = await worker.fetch(
       request(`/articles/${articleId}/publish`, jsonInit({ revisionId })),
