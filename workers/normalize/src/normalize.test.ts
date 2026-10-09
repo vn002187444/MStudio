@@ -223,7 +223,8 @@ test("processNormalizeMessage creates raw items from R2 content", async () => {
     assert.deepEqual(outcome, { created: 2, duplicates: 0 });
     const page = await listRawItemsByFeed(db, "feed-one");
     assert.equal(page.rows.length, 2);
-    const first = page.rows[0];
+    const sortedRows = [...page.rows].sort((a, b) => a.url.localeCompare(b.url));
+    const first = sortedRows[0];
     assert.equal(first.feedId, "feed-one");
     assert.equal(first.sourceId, "source-one");
     assert.equal(first.status, "incoming");

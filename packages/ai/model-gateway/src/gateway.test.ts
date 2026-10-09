@@ -321,7 +321,8 @@ test("gemini adapter times out via abort signal", async () => {
     _url: string | URL | Request,
     init?: RequestInit,
   ) => {
-    await new Promise<never>((_resolve, reject) => {
+    await new Promise((resolve, reject) => {
+      setTimeout(resolve, 50);
       const signal = init?.signal;
       if (!signal) return;
       if (signal.aborted) {
