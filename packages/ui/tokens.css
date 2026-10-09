@@ -43,7 +43,8 @@
   --z-overlay: 100;
   --z-modal: 200;
 
-  --header-offset: 88px;
+  /* Mobile-first base, computed from stylesheet geometry; verify in browser. */
+  --header-offset: 97px;
 
   --max-content-width: 1280px;
   --font-sans:

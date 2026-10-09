@@ -11,24 +11,13 @@ export default function IncomingError({
 }) {
   return (
     <main>
-      <h1 style={{ fontSize: 28, margin: "0 0 8px" }}>Incoming</h1>
+      <h1 style={{ fontSize: "var(--text-3xl)", margin: "0 0 8px" }}>Incoming</h1>
       <div role="alert" style={{ background: "var(--white)", border: "1px solid var(--breaking-red)", borderRadius: "var(--radius-md)", padding: 24 }}>
-        <h2 style={{ fontSize: 16, margin: "0 0 4px" }}>Không tải được tin incoming</h2>
+        <h2 style={{ fontSize: "var(--text-base)", margin: "0 0 4px" }}>Không tải được tin incoming</h2>
         <p style={{ color: "var(--gray)", margin: "0 0 16px" }}>
           Đã xảy ra lỗi khi tải hàng đợi. Vui lòng thử lại.
         </p>
-        <button
-          onClick={() => reset()}
-          style={{
-            background: "var(--black)",
-            border: "none",
-            borderRadius: "var(--radius-sm)",
-            color: "var(--white)",
-            cursor: "pointer",
-            padding: "8px 16px",
-          }}
-          type="button"
-        >
+        <button className="btn-primary" onClick={() => reset()} type="button">
           Thử lại
         </button>
       </div>

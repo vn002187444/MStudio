@@ -49,7 +49,7 @@ export const tokens = {
     overlay: 100,
     modal: 200,
   },
-  headerOffset: "88px",
+  headerOffset: "97px",
   maxContentWidth: "1280px",
   fontSans:
     'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',

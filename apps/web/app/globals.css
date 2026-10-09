@@ -54,7 +54,7 @@ h3 {
   padding: 8px 16px;
   position: absolute;
   top: 8px;
-  z-index: 100;
+  z-index: var(--z-overlay);
 }
 
 .skip-link:focus-visible {
@@ -75,12 +75,12 @@ h3 {
   color: var(--white);
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: var(--z-sticky);
 }
 
 .trending-strip {
   align-items: center;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--ink-800);
   display: flex;
   gap: 12px;
   margin: 0 auto;
@@ -89,8 +89,8 @@ h3 {
 }
 
 .trending-label {
-  color: var(--breaking-red);
-  font-size: 12px;
+  color: var(--white);
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.06em;
   margin: 0;
@@ -107,7 +107,7 @@ h3 {
 }
 
 .trending-list a {
-  font-size: 13px;
+  font-size: var(--text-sm);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -152,7 +152,8 @@ h3 {
 }
 
 .desktop-nav a:hover {
-  background: #1c1c1c;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .mobile-bar {
@@ -160,17 +161,22 @@ h3 {
   display: flex;
   justify-content: space-between;
   padding: 12px 16px;
+  position: relative;
 }
 
 .mobile-menu summary {
   align-items: center;
-  border: 1px solid #3a3a3a;
+  border: 1px solid var(--ink-700);
   border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   list-style: none;
   min-height: 44px;
   padding: 6px 12px;
+}
+
+.mobile-menu summary:hover {
+  border-color: var(--white);
 }
 
 .mobile-menu nav {
@@ -201,6 +207,10 @@ h3 {
 }
 
 @media (min-width: 768px) {
+  :root {
+    --header-offset: 84px;
+  }
+
   .desktop-bar {
     display: flex;
   }
@@ -210,14 +220,14 @@ h3 {
   }
 }
 
-.mobile-bar {
-  position: relative;
-}
-
 .home-main {
   margin: 0 auto;
   max-width: var(--max-content-width);
   padding: 24px 16px 48px;
+}
+
+.home-main h2 {
+  font-size: var(--text-2xl);
 }
 
 .hero-grid {
@@ -289,5 +299,5 @@ h3 {
 }
 
 :target {
-  scroll-margin-top: 88px;
+  scroll-margin-top: var(--header-offset);
 }
