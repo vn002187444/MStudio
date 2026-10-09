@@ -3,6 +3,7 @@ import {
   createFeed,
   createSource,
   deleteSource,
+  getPublishedArticle,
   getSource,
   listFeedsBySource,
   listRawItemsByStatus,
@@ -11,15 +12,13 @@ import {
   setSourceAllowStatus,
 } from "@mstudio/db";
 import {
-  isMeaningfulReaderEventType,
-  type ReaderEventInput,
   type ReaderEventMessage,
+  type ReaderEventsIngestResponse,
 } from "@mstudio/contracts";
 import type {
   ApiErrorResponse,
   CreateFeedRequest,
   FeedRecord,
-  ReaderEventsIngestResponse,
   SourceRecord,
   UpdateFeedRequest,
   UpdateSourceAllowStatusRequest,
@@ -34,6 +33,10 @@ import {
   buildRecommendations,
   DEFAULT_RECOMMENDATION_LIMIT,
 } from "./recommendations.ts";
+import {
+  readerEventSamplingRate,
+  partitionReaderEvents,
+} from "./reader-events.ts";
 import {
   validateCreateFeed,
   validateCreateSource,
@@ -92,39 +95,6 @@ function errorResponse(error: ApiError): Response {
   };
   if (error.details) body.details = error.details;
   return Response.json({ error: body }, { status: error.status });
-}
-
-export const DEFAULT_READER_EVENT_SAMPLING_RATE = 0.05;
-
-export function readerEventSamplingRate(
-  env: { READER_EVENT_SAMPLING_RATE?: string },
-): number {
-  const raw = env.READER_EVENT_SAMPLING_RATE;
-  if (raw === undefined || raw.trim() === "") {
-    return DEFAULT_READER_EVENT_SAMPLING_RATE;
-  }
-  const parsed = Number.parseFloat(raw);
-  if (!Number.isFinite(parsed)) {
-    return DEFAULT_READER_EVENT_SAMPLING_RATE;
-  }
-  return Math.min(1, Math.max(0, parsed));
-}
-
-export function partitionReaderEvents(
-  events: ReaderEventInput[],
-  samplingRate: number,
-  random: () => number = Math.random,
-): { accepted: ReaderEventInput[]; sampledOut: number } {
-  const accepted: ReaderEventInput[] = [];
-  let sampledOut = 0;
-  for (const event of events) {
-    if (isMeaningfulReaderEventType(event.eventType) || random() < samplingRate) {
-      accepted.push(event);
-    } else {
-      sampledOut += 1;
-    }
-  }
-  return { accepted, sampledOut };
 }
 
 type AppEnv = {
@@ -241,6 +211,18 @@ app.get("/recommendations", async (c) => {
     limit: limit ?? DEFAULT_RECOMMENDATION_LIMIT,
   });
   return c.json({ candidates });
+});
+
+app.get("/articles/:id", async (c) => {
+  const id = c.req.param("id");
+  const article = await getPublishedArticle(c.env.DB, id);
+  if (!article) {
+    throw notFound(
+      "ARTICLE_NOT_FOUND",
+      `article ${id} not found or not published`,
+    );
+  }
+  return c.json({ article });
 });
 
 app.get("/sources", async (c) => {
@@ -379,6 +361,7 @@ app.all("/events", (c) => c.text("Method not allowed", 405));
 app.all("/recommendations", (c) =>
   c.text("Method not allowed", 405),
 );
+app.all("/articles/:id", (c) => c.text("Method not allowed", 405));
 app.all("/sources/:id", (c) => c.text("Method not allowed", 405));
 app.all("/sources/:id/allow-status", (c) =>
   c.text("Method not allowed", 405),
