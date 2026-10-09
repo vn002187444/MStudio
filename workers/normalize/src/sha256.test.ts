@@ -21,3 +21,9 @@ test("sha256Hex computes the correct hash for string with special characters", a
     .then(digest => Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join(""));
   assert.equal(hash, expected);
 });
+
+test("sha256Hex is deterministic", async () => {
+  const result1 = await sha256Hex("test string");
+  const result2 = await sha256Hex("test string");
+  assert.equal(result1, result2);
+});
