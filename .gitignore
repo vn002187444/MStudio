@@ -3,4 +3,7 @@ dist/
 .wrangler/
 .cloudflare/
 .dev.vars
+.env*
+*.pem
+*.key
 *.tsbuildinfo
