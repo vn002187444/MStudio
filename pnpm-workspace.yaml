@@ -1,7 +1,18 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "packages/ai/*"
   - "workers/*"
+
+# Sync the Cloudflare dev runtime across vite-plugin and wrangler.
+# @cloudflare/vite-plugin's beta pins an old miniflare/workerd whose
+# workerd supports max compat date 2026-09-28, but our apps target
+# 2026-10-07. Forcing the newest runtime (which wrangler already
+# uses) keeps every worker + app on one workerd binary.
+overrides:
+  miniflare: 5.20261006.0-alpha
+  workerd: 1.20261006.1
+
 minimumReleaseAgeExclude:
   - "@cloudflare/workers-types@5.20261008.1"
 allowBuilds:
