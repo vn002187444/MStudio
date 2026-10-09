@@ -166,6 +166,9 @@ overrides:
   miniflare: 5.20261006.0-alpha
   workerd: 1.20261006.1
 
+patchedDependencies:
+  '@cloudflare/workers-types': f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67
+
 importers:
 
   .: {}
@@ -288,7 +291,7 @@ importers:
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261008.1
-        version: 5.20261008.1
+        version: 5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67)
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
@@ -334,7 +337,7 @@ importers:
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261008.1
-        version: 5.20261008.1
+        version: 5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67)
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
@@ -383,7 +386,7 @@ importers:
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261008.1
-        version: 5.20261008.1
+        version: 5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67)
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
@@ -392,7 +395,7 @@ importers:
         version: 7.0.2
       wrangler:
         specifier: ^4.148.0
-        version: 4.148.0(@cloudflare/workers-types@5.20261008.1)(@types/node@26.6.4)
+        version: 4.148.0(@cloudflare/workers-types@5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67))(@types/node@26.6.4)
 
   workers/ingest:
     dependencies:
@@ -405,7 +408,7 @@ importers:
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261008.1
-        version: 5.20261008.1
+        version: 5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67)
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
@@ -414,7 +417,7 @@ importers:
         version: 7.0.2
       wrangler:
         specifier: ^4.148.0
-        version: 4.148.0(@cloudflare/workers-types@5.20261008.1)(@types/node@26.6.4)
+        version: 4.148.0(@cloudflare/workers-types@5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67))(@types/node@26.6.4)
 
   workers/intelligence:
     dependencies:
@@ -430,7 +433,7 @@ importers:
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261008.1
-        version: 5.20261008.1
+        version: 5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67)
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
@@ -439,7 +442,7 @@ importers:
         version: 7.0.2
       wrangler:
         specifier: ^4.148.0
-        version: 4.148.0(@cloudflare/workers-types@5.20261008.1)(@types/node@26.6.4)
+        version: 4.148.0(@cloudflare/workers-types@5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67))(@types/node@26.6.4)
 
   workers/normalize:
     dependencies:
@@ -455,7 +458,7 @@ importers:
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261008.1
-        version: 5.20261008.1
+        version: 5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67)
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
@@ -464,7 +467,7 @@ importers:
         version: 7.0.2
       wrangler:
         specifier: ^4.148.0
-        version: 4.148.0(@cloudflare/workers-types@5.20261008.1)(@types/node@26.6.4)
+        version: 4.148.0(@cloudflare/workers-types@5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67))(@types/node@26.6.4)
 
   workers/publish:
     dependencies:
@@ -486,7 +489,7 @@ importers:
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261008.1
-        version: 5.20261008.1
+        version: 5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67)
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
@@ -495,7 +498,7 @@ importers:
         version: 7.0.2
       wrangler:
         specifier: ^4.148.0
-        version: 4.148.0(@cloudflare/workers-types@5.20261008.1)(@types/node@26.6.4)
+        version: 4.148.0(@cloudflare/workers-types@5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67))(@types/node@26.6.4)
 
 packages:
 
@@ -2425,7 +2428,7 @@ snapshots:
 
   '@cloudflare/workers-response-store@1.0.1': {}
 
-  '@cloudflare/workers-types@5.20261008.1': {}
+  '@cloudflare/workers-types@5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67)': {}
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
@@ -3844,7 +3847,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20261006.1
       '@cloudflare/workerd-windows-64': 1.20261006.1
 
-  wrangler@4.148.0(@cloudflare/workers-types@5.20261008.1)(@types/node@26.6.4):
+  wrangler@4.148.0(@cloudflare/workers-types@5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67))(@types/node@26.6.4):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.5.0
       '@cloudflare/unenv-preset': 2.16.2(unenv@2.0.0-rc.24)(workerd@1.20261006.1)
@@ -3855,7 +3858,7 @@ snapshots:
       unenv: 2.0.0-rc.24
       workerd: 1.20261006.1
     optionalDependencies:
-      '@cloudflare/workers-types': 5.20261008.1
+      '@cloudflare/workers-types': 5.20261008.1(patch_hash=f8ecdd43969631656070e1bd6733365e08b49fb35c5359f4bfe0b68484a74b67)
       fsevents: 2.3.3
     transitivePeerDependencies:
       - '@types/node'

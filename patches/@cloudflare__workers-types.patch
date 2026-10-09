@@ -1,0 +1,52 @@
+diff --git a/experimental/index.d.ts b/experimental/index.d.ts
+index 95a0bdffc86171cb89a4f0d1456683802a999b24..bc3668078bf6d5852db4da7752b3d48dab597dc8 100755
+--- a/experimental/index.d.ts
++++ b/experimental/index.d.ts
+@@ -14376,7 +14376,7 @@ interface BasicImageTransformations {
+    *   in combination with the properties above
+    * - border - this will automatically trim the surroundings of an image based on
+    *   it's color. It consists of three properties:
+-   *    - color: rgb or hex representation of the color you wish to trim (todo: verify the rgba bit)
++   *    - color: rgba, rgb or hex representation of the color you wish to trim
+    *    - tolerance: difference from color to treat as color
+    *    - keep: the number of pixels of border to keep
+    */
+diff --git a/experimental/index.ts b/experimental/index.ts
+index b7f60360b78e694706370b8c4259cd513cfaff59..2be6dcdb6edf07c1183cf815936f6c57b5fad2a6 100755
+--- a/experimental/index.ts
++++ b/experimental/index.ts
+@@ -14395,7 +14395,7 @@ export interface BasicImageTransformations {
+    *   in combination with the properties above
+    * - border - this will automatically trim the surroundings of an image based on
+    *   it's color. It consists of three properties:
+-   *    - color: rgb or hex representation of the color you wish to trim (todo: verify the rgba bit)
++   *    - color: rgba, rgb or hex representation of the color you wish to trim
+    *    - tolerance: difference from color to treat as color
+    *    - keep: the number of pixels of border to keep
+    */
+diff --git a/index.d.ts b/index.d.ts
+index 54342d33c14cf6db899ae70a5175559793f2b490..b2d832af578c2e805d303910e0f6be11b33d5987 100755
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -14028,7 +14028,7 @@ interface BasicImageTransformations {
+    *   in combination with the properties above
+    * - border - this will automatically trim the surroundings of an image based on
+    *   it's color. It consists of three properties:
+-   *    - color: rgb or hex representation of the color you wish to trim (todo: verify the rgba bit)
++   *    - color: rgba, rgb or hex representation of the color you wish to trim
+    *    - tolerance: difference from color to treat as color
+    *    - keep: the number of pixels of border to keep
+    */
+diff --git a/index.ts b/index.ts
+index ab1d7eadd08241067caa6000791a884e4408324c..39c4debe9401a78e425e215d4c048dcb17886222 100755
+--- a/index.ts
++++ b/index.ts
+@@ -14047,7 +14047,7 @@ export interface BasicImageTransformations {
+    *   in combination with the properties above
+    * - border - this will automatically trim the surroundings of an image based on
+    *   it's color. It consists of three properties:
+-   *    - color: rgb or hex representation of the color you wish to trim (todo: verify the rgba bit)
++   *    - color: rgba, rgb or hex representation of the color you wish to trim
+    *    - tolerance: difference from color to treat as color
+    *    - keep: the number of pixels of border to keep
+    */

@@ -18,3 +18,5 @@ minimumReleaseAgeExclude:
 allowBuilds:
   esbuild: true
   workerd: true
+patchedDependencies:
+  '@cloudflare/workers-types': patches/@cloudflare__workers-types.patch
