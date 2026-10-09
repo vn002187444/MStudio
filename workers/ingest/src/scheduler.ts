@@ -163,34 +163,38 @@ export async function runScheduler(
   do {
     const page = await listApprovedFeeds(db, pageSize, cursor);
     result.feeds += page.feeds.length;
-    for (const feed of page.feeds) {
-      const fetchedAt = new Date().toISOString();
-      try {
-        const outcome = await processFeed(feed, env, {
-          fetchTimeoutMs: options.fetchTimeoutMs,
-        });
-        if (outcome === "duplicate") {
-          result.duplicates += 1;
-        } else {
-          result.enqueued += 1;
+
+    await Promise.allSettled(
+      page.feeds.map(async (feed) => {
+        const fetchedAt = new Date().toISOString();
+        try {
+          const outcome = await processFeed(feed, env, {
+            fetchTimeoutMs: options.fetchTimeoutMs,
+          });
+          if (outcome === "duplicate") {
+            result.duplicates += 1;
+          } else {
+            result.enqueued += 1;
+          }
+          await updateFeedFetchResult(db, feed.id, { fetchedAt });
+        } catch (error) {
+          result.failed += 1;
+          const message =
+            error instanceof Error ? error.message : "unknown error";
+          logger.error("feed_fetch_failed", {
+            feedId: feed.id,
+            url: feed.url,
+            code: "FETCH_FAILED",
+            message,
+          });
+          await updateFeedFetchResult(db, feed.id, {
+            fetchedAt,
+            error: message,
+          });
         }
-        await updateFeedFetchResult(db, feed.id, { fetchedAt });
-      } catch (error) {
-        result.failed += 1;
-        const message =
-          error instanceof Error ? error.message : "unknown error";
-        logger.error("feed_fetch_failed", {
-          feedId: feed.id,
-          url: feed.url,
-          code: "FETCH_FAILED",
-          message,
-        });
-        await updateFeedFetchResult(db, feed.id, {
-          fetchedAt,
-          error: message,
-        });
-      }
-    }
+      })
+    );
+
     cursor = page.nextCursor;
   } while (cursor);
   logger.info("scheduler_complete", {
