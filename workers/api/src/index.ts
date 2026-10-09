@@ -1,3 +1,4 @@
+import { Hono } from "hono";
 import {
   createFeed,
   createSource,
@@ -11,7 +12,6 @@ import {
 import type {
   ApiErrorResponse,
   CreateFeedRequest,
-  CreateSourceRequest,
   FeedRecord,
   SourceRecord,
   UpdateFeedRequest,
@@ -19,7 +19,7 @@ import type {
 } from "@mstudio/contracts";
 import {
   createLogger,
-  withCorrelationId,
+  getCorrelationId,
   type LogLevel,
   type Logger,
 } from "@mstudio/observability";
@@ -80,23 +80,52 @@ function errorResponse(error: ApiError): Response {
   return Response.json({ error: body }, { status: error.status });
 }
 
-async function listSourcesHandler(
-  url: URL,
-  db: Env["DB"],
-): Promise<Response> {
+type AppEnv = {
+  Bindings: Env;
+  Variables: {
+    correlationId: string;
+    logger: Logger;
+  };
+};
+
+const app = new Hono<AppEnv>();
+
+app.use("*", async (c, next) => {
+  const correlationId = getCorrelationId(c.req.raw);
+  const logger = createLogger({
+    environment: c.env.ENVIRONMENT,
+    logLevel: (c.env.LOG_LEVEL ?? "info") as LogLevel,
+    correlationId,
+  });
+  c.set("correlationId", correlationId);
+  c.set("logger", logger);
+  await next();
+});
+
+app.get("/healthz", (c) =>
+  c.json({
+    ok: true,
+    environment: c.env.ENVIRONMENT,
+    correlationId: c.get("correlationId"),
+  }),
+);
+
+app.get("/sources", async (c) => {
+  const url = new URL(c.req.url);
   const pagination = validatePagination(url.searchParams);
   if (!pagination.ok) {
-    throw badRequest("VALIDATION_FAILED", "invalid pagination", pagination.errors);
+    throw badRequest(
+      "VALIDATION_FAILED",
+      "invalid pagination",
+      pagination.errors,
+    );
   }
-  const page = await listSources(db, pagination.value);
-  return Response.json(page);
-}
+  const page = await listSources(c.env.DB, pagination.value);
+  return c.json(page);
+});
 
-async function createSourceHandler(
-  request: Request,
-  db: Env["DB"],
-): Promise<Response> {
-  const body = await readJson(request);
+app.post("/sources", async (c) => {
+  const body = await readJson(c.req.raw);
   const validation = validateCreateSource(body);
   if (!validation.ok) {
     throw badRequest(
@@ -105,30 +134,25 @@ async function createSourceHandler(
       validation.errors,
     );
   }
-  const source: SourceRecord = await createSource(db, {
+  const source: SourceRecord = await createSource(c.env.DB, {
     ...validation.value,
     id: crypto.randomUUID(),
   });
-  return Response.json(source, { status: 201 });
-}
+  return c.json(source, 201);
+});
 
-async function getSourceHandler(
-  id: string,
-  db: Env["DB"],
-): Promise<Response> {
-  const source = await getSource(db, id);
+app.get("/sources/:id", async (c) => {
+  const id = c.req.param("id");
+  const source = await getSource(c.env.DB, id);
   if (!source) {
     throw notFound("SOURCE_NOT_FOUND", `source ${id} not found`);
   }
-  return Response.json(source);
-}
+  return c.json(source);
+});
 
-async function updateSourceAllowStatusHandler(
-  id: string,
-  request: Request,
-  db: Env["DB"],
-): Promise<Response> {
-  const body = await readJson(request);
+app.patch("/sources/:id/allow-status", async (c) => {
+  const id = c.req.param("id");
+  const body = await readJson(c.req.raw);
   const validation = validateUpdateSourceAllowStatus(body);
   if (!validation.ok) {
     throw badRequest(
@@ -138,34 +162,29 @@ async function updateSourceAllowStatusHandler(
     );
   }
   const input: UpdateSourceAllowStatusRequest = validation.value;
-  const source = await setSourceAllowStatus(db, id, input.allowStatus);
+  const source = await setSourceAllowStatus(c.env.DB, id, input.allowStatus);
   if (!source) {
     throw notFound("SOURCE_NOT_FOUND", `source ${id} not found`);
   }
-  return Response.json(source);
-}
+  return c.json(source);
+});
 
-async function deleteSourceHandler(
-  id: string,
-  db: Env["DB"],
-): Promise<Response> {
-  const deleted = await deleteSource(db, id);
+app.delete("/sources/:id", async (c) => {
+  const id = c.req.param("id");
+  const deleted = await deleteSource(c.env.DB, id);
   if (!deleted) {
     throw notFound("SOURCE_NOT_FOUND", `source ${id} not found`);
   }
-  return new Response(null, { status: 204 });
-}
+  return c.body(null, 204);
+});
 
-async function createFeedHandler(
-  sourceId: string,
-  request: Request,
-  db: Env["DB"],
-): Promise<Response> {
-  const source = await getSource(db, sourceId);
+app.post("/sources/:id/feeds", async (c) => {
+  const sourceId = c.req.param("id");
+  const source = await getSource(c.env.DB, sourceId);
   if (!source) {
     throw notFound("SOURCE_NOT_FOUND", `source ${sourceId} not found`);
   }
-  const body = await readJson(request);
+  const body = await readJson(c.req.raw);
   const validation = validateCreateFeed(body);
   if (!validation.ok) {
     throw badRequest(
@@ -175,37 +194,36 @@ async function createFeedHandler(
     );
   }
   const input: CreateFeedRequest = validation.value;
-  const feed: FeedRecord = await createFeed(db, {
+  const feed: FeedRecord = await createFeed(c.env.DB, {
     ...input,
     id: crypto.randomUUID(),
     sourceId,
   });
-  return Response.json(feed, { status: 201 });
-}
+  return c.json(feed, 201);
+});
 
-async function listFeedsBySourceHandler(
-  sourceId: string,
-  url: URL,
-  db: Env["DB"],
-): Promise<Response> {
-  const source = await getSource(db, sourceId);
+app.get("/sources/:id/feeds", async (c) => {
+  const sourceId = c.req.param("id");
+  const source = await getSource(c.env.DB, sourceId);
   if (!source) {
     throw notFound("SOURCE_NOT_FOUND", `source ${sourceId} not found`);
   }
+  const url = new URL(c.req.url);
   const pagination = validatePagination(url.searchParams);
   if (!pagination.ok) {
-    throw badRequest("VALIDATION_FAILED", "invalid pagination", pagination.errors);
+    throw badRequest(
+      "VALIDATION_FAILED",
+      "invalid pagination",
+      pagination.errors,
+    );
   }
-  const page = await listFeedsBySource(db, sourceId, pagination.value);
-  return Response.json(page);
-}
+  const page = await listFeedsBySource(c.env.DB, sourceId, pagination.value);
+  return c.json(page);
+});
 
-async function updateFeedHandler(
-  id: string,
-  request: Request,
-  db: Env["DB"],
-): Promise<Response> {
-  const body = await readJson(request);
+app.patch("/feeds/:id", async (c) => {
+  const id = c.req.param("id");
+  const body = await readJson(c.req.raw);
   const validation = validateUpdateFeed(body);
   if (!validation.ok) {
     throw badRequest(
@@ -215,125 +233,38 @@ async function updateFeedHandler(
     );
   }
   const input: UpdateFeedRequest = validation.value;
-  const feed = await setFeedEnabled(db, id, input.enabled);
+  const feed = await setFeedEnabled(c.env.DB, id, input.enabled);
   if (!feed) {
     throw notFound("FEED_NOT_FOUND", `feed ${id} not found`);
   }
-  return Response.json(feed);
-}
+  return c.json(feed);
+});
 
-const SOURCE_ID_PATTERN = /^\/sources\/([^/]+)$/;
-const SOURCE_ALLOW_STATUS_PATTERN = /^\/sources\/([^/]+)\/allow-status$/;
-const SOURCE_FEEDS_PATTERN = /^\/sources\/([^/]+)\/feeds$/;
-const FEED_ID_PATTERN = /^\/feeds\/([^/]+)$/;
+app.all("/sources", (c) => c.text("Method not allowed", 405));
+app.all("/sources/:id", (c) => c.text("Method not allowed", 405));
+app.all("/sources/:id/allow-status", (c) =>
+  c.text("Method not allowed", 405),
+);
+app.all("/sources/:id/feeds", (c) => c.text("Method not allowed", 405));
+app.all("/feeds/:id", (c) => c.text("Method not allowed", 405));
 
-async function route(
-  request: Request,
-  url: URL,
-  db: Env["DB"],
-): Promise<Response> {
-  const path = url.pathname;
-  const method = request.method;
+app.notFound((c) => c.text("Not found", 404));
 
-  if (path === "/sources") {
-    if (method === "GET") {
-      return listSourcesHandler(url, db);
-    }
-    if (method === "POST") {
-      return createSourceHandler(request, db);
-    }
-    return new Response("Method not allowed", { status: 405 });
+app.onError((error, c) => {
+  const logger = c.get("logger");
+  const path = new URL(c.req.url).pathname;
+  if (error instanceof ApiError) {
+    logger?.warn("request_rejected", { path, code: error.code });
+    return errorResponse(error);
   }
+  logger?.error("request_failed", { path, code: "INTERNAL_ERROR" });
+  return errorResponse(
+    new ApiError(
+      "INTERNAL_ERROR",
+      500,
+      error instanceof Error ? error.message : "unknown error",
+    ),
+  );
+});
 
-  const allowStatusMatch = SOURCE_ALLOW_STATUS_PATTERN.exec(path);
-  if (allowStatusMatch) {
-    const id = decodeURIComponent(allowStatusMatch[1]);
-    if (method === "PATCH") {
-      return updateSourceAllowStatusHandler(id, request, db);
-    }
-    return new Response("Method not allowed", { status: 405 });
-  }
-
-  const feedsMatch = SOURCE_FEEDS_PATTERN.exec(path);
-  if (feedsMatch) {
-    const id = decodeURIComponent(feedsMatch[1]);
-    if (method === "GET") {
-      return listFeedsBySourceHandler(id, url, db);
-    }
-    if (method === "POST") {
-      return createFeedHandler(id, request, db);
-    }
-    return new Response("Method not allowed", { status: 405 });
-  }
-
-  const sourceMatch = SOURCE_ID_PATTERN.exec(path);
-  if (sourceMatch) {
-    const id = decodeURIComponent(sourceMatch[1]);
-    if (method === "GET") {
-      return getSourceHandler(id, db);
-    }
-    if (method === "DELETE") {
-      return deleteSourceHandler(id, db);
-    }
-    return new Response("Method not allowed", { status: 405 });
-  }
-
-  const feedMatch = FEED_ID_PATTERN.exec(path);
-  if (feedMatch) {
-    const id = decodeURIComponent(feedMatch[1]);
-    if (method === "PATCH") {
-      return updateFeedHandler(id, request, db);
-    }
-    return new Response("Method not allowed", { status: 405 });
-  }
-
-  return new Response("Not found", { status: 404 });
-}
-
-export default {
-  async fetch(
-    request: Request,
-    env: Env,
-    ctx: ExecutionContext,
-  ): Promise<Response> {
-    ctx.waitUntil(Promise.resolve());
-    const { request: tagged, correlationId } = withCorrelationId(request);
-    const logger: Logger = createLogger({
-      environment: env.ENVIRONMENT,
-      logLevel: (env.LOG_LEVEL ?? "info") as LogLevel,
-      correlationId,
-    });
-    const url = new URL(tagged.url);
-
-    if (url.pathname === "/healthz") {
-      return Response.json({
-        ok: true,
-        environment: env.ENVIRONMENT,
-        correlationId,
-      });
-    }
-
-    try {
-      return await route(tagged, url, env.DB);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        logger.warn("request_rejected", {
-          path: url.pathname,
-          code: error.code,
-        });
-        return errorResponse(error);
-      }
-      logger.error("request_failed", {
-        path: url.pathname,
-        code: "INTERNAL_ERROR",
-      });
-      return errorResponse(
-        new ApiError(
-          "INTERNAL_ERROR",
-          500,
-          error instanceof Error ? error.message : "unknown error",
-        ),
-      );
-    }
-  },
-};
+export default app;
