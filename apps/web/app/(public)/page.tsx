@@ -1,39 +1,58 @@
 /**
- * Trang chủ editorial shell (MST-012).
- * Hero + secondary rail, latest feed, sidebar modules — nội dung bài thật ở MST-042.
+ * MStudio Channel — trang chủ public (MST-001 foundation placeholder).
+ * Server Component. Nội dung biên tập đầy đủ thuộc về MST-012 / MST-042.
  */
+const sections = [
+  "Thế giới",
+  "Công nghệ",
+  "AI Channel",
+  "Giải trí",
+  "Khám phá",
+  "Đời sống",
+  "Góc Tối",
+];
+
 export default function PublicHomePage() {
   return (
-    <main className="home-main" id="main-content">
-      <h1 className="visually-hidden">MStudio Channel — trang chủ</h1>
-
-      <section aria-labelledby="hero-heading" className="hero-grid">
-        <article className="hero-main">
-          <h2 id="hero-heading">Tin nổi bật</h2>
-          <p role="status">Bài viết xuất bản (MST-042) sẽ hiển thị tại đây.</p>
-        </article>
-        <aside aria-label="Tin thứ cấp" className="hero-rail">
-          <h2>Tin thứ cấp</h2>
-          <p role="status">Rail thứ cấp sẽ hiển thị khi có bài xuất bản.</p>
-        </aside>
-      </section>
-
-      <div className="home-columns">
-        <section aria-labelledby="latest-heading">
-          <h2 id="latest-heading">Mới nhất</h2>
-          <p role="status">Feed mới nhất sẽ hiển thị khi có bài xuất bản (MST-042).</p>
-        </section>
-        <aside aria-label="Modules sidebar" className="home-sidebar">
-          <section aria-labelledby="topics-heading">
-            <h2 id="topics-heading">Chủ đề theo dõi</h2>
-            <p role="status">Follow/Hide (MST-062) sẽ kích hoạt module này.</p>
-          </section>
-          <section aria-labelledby="picks-heading">
-            <h2 id="picks-heading">Lựa chọn biên tập</h2>
-            <p role="status">Editorial picks sẽ hiển thị khi có bài xuất bản.</p>
-          </section>
-        </aside>
-      </div>
+    <main
+      style={{
+        margin: "0 auto",
+        maxWidth: "var(--max-content-width)",
+        padding: "32px 16px",
+      }}
+    >
+      <h1 style={{ fontSize: 32, lineHeight: 1.25, margin: "0 0 8px" }}>
+        MStudio Channel
+      </h1>
+      <p style={{ color: "var(--gray)", margin: "0 0 24px" }}>
+        Nền tảng tin tức evidence-first — web foundation (MST-001) đã boot thành công.
+      </p>
+      <nav aria-label="Chuyên mục">
+        <ul
+          style={{
+            display: "grid",
+            gap: 8,
+            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+            listStyle: "none",
+            margin: 0,
+            padding: 0,
+          }}
+        >
+          {sections.map((section) => (
+            <li
+              key={section}
+              style={{
+                background: "var(--white)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-md)",
+                padding: "12px 16px",
+              }}
+            >
+              {section}
+            </li>
+          ))}
+        </ul>
+      </nav>
     </main>
   );
 }

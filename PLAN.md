@@ -31,6 +31,7 @@ Taxonomy:
 ## UI/UX specification
 ### Brand
 Black & White editorial. 85-90% diện tích monochrome, accent dùng có chủ đích.
+breaking-red chỉ cho breaking/urgent editorial state thực sự. Đang nóng là trending/ranking state, mặc định monochrome. Không dùng màu đỏ chỉ để tăng CTR.
 
 ```css
 --black:#090909;
@@ -40,6 +41,9 @@ Black & White editorial. 85-90% diện tích monochrome, accent dùng có chủ 
 --soft:#F6F7F9;
 --gray:#667085;
 --border:#E3E3E3;
+--ink-700:#3A3A3A;
+--ink-800:#2A2A2A;
+--ink-900:#1C1C1C;
 --ai-blue:#2563EB;
 --breaking-red:#D92D20;
 --crypto-green:#16A36A;
@@ -52,6 +56,30 @@ Black & White editorial. 85-90% diện tích monochrome, accent dùng có chủ 
 - Desktop max content khoảng 1200-1280px.
 - Article giữ line length đọc được, không kéo full viewport.
 - Shared radius/border/spacing tokens, tránh magic numbers.
+- Tokenize repeated/shared design decisions. One-off values có nguồn gốc rõ ràng từ intrinsic layout hoặc calculation được phép giữ local. Không tạo token chỉ để thay tên cho một magic number.
+
+Type scale (headline editorial lớn hơn định nghĩa riêng trong typography spec, không tự sinh 40/48/56/...):
+```css
+--text-xs:12px;
+--text-sm:13px;
+--text-base:16px;
+--text-lg:18px;
+--text-xl:20px;
+--text-2xl:24px;
+--text-3xl:28px;
+--text-4xl:32px;
+```
+
+### Layout primitives
+```css
+--z-base:0;
+--z-raised:10;
+--z-sticky:50;
+--z-overlay:100;
+--z-modal:200;
+--header-offset:97px;
+```
+Component dùng z-index theo vai trò (semantic), không ghi số trực tiếp. `--header-offset` phụ thuộc breakpoint nên token phải override theo breakpoint, không dùng một con số đo thủ công.
 
 ### Desktop
 Sticky header, concise nav, trending strip, editorial hero + secondary rail, latest feed, sidebar modules, source-count metadata gần story meta.
