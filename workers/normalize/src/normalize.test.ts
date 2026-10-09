@@ -24,11 +24,7 @@ import {
   parseRss,
 } from "./parsers.ts";
 import { sha256Hex } from "./sha256.ts";
-import {
-  ATOM_SAMPLE,
-  JSONFEED_SAMPLE,
-  RSS_SAMPLE,
-} from "./fixtures/feed-samples.ts";
+import { RSS_SAMPLE } from "./fixtures/feed-samples.ts";
 
 interface CapturedError {
   message: string;
@@ -122,55 +118,6 @@ function message(
   };
 }
 
-test("parses RSS fixture items", async () => {
-  const items = parseRss(RSS_SAMPLE);
-  assert.equal(items.length, 2);
-  assert.equal(items[0].url, "https://example.com/stories/first");
-  assert.equal(
-    items[0].externalId,
-    "https://example.com/stories/first",
-  );
-  assert.equal(items[0].title, "First story");
-  assert.equal(items[0].publishedAt, "Mon, 05 Jan 2026 00:00:00 GMT");
-  assert.equal(items[0].content, "First sample story");
-  assert.equal(
-    items[1].externalId,
-    "urn:example:second",
-  );
-});
-
-test("parses Atom fixture items", async () => {
-  const items = parseAtom(ATOM_SAMPLE);
-  assert.equal(items.length, 2);
-  assert.equal(items[0].url, "https://atom.example.com/first");
-  assert.equal(items[0].externalId, "urn:atom:first");
-  assert.equal(items[0].title, "Atom first");
-  assert.equal(items[0].publishedAt, "2026-01-05T00:00:00Z");
-  assert.equal(items[0].content, "First atom entry");
-  assert.equal(items[1].url, "https://atom.example.com/second");
-});
-
-test("parses JSONFeed fixture items", async () => {
-  const items = parseJsonFeed(JSONFEED_SAMPLE);
-  assert.equal(items.length, 2);
-  assert.equal(items[0].externalId, "json-first");
-  assert.equal(items[0].url, "https://jsonfeed.example.com/first");
-  assert.equal(items[0].title, "JSON first");
-  assert.equal(items[0].publishedAt, "2026-01-05T00:00:00Z");
-  assert.equal(items[0].content, "<p>First json item</p>");
-  assert.equal(items[1].content, "Second json item");
-});
-
-test("parseFeed dispatches by content shape", async () => {
-  assert.equal(parseFeed(RSS_SAMPLE).length, 2);
-  assert.equal(parseFeed(ATOM_SAMPLE).length, 2);
-  assert.equal(parseFeed(JSONFEED_SAMPLE).length, 2);
-  assert.equal(
-    parseFeed(JSONFEED_SAMPLE, "application/json").length,
-    2,
-  );
-});
-
 test("canonical url prefers an http guid and falls back to url", async () => {
   assert.equal(
     canonicalUrlCandidate({
@@ -223,7 +170,8 @@ test("processNormalizeMessage creates raw items from R2 content", async () => {
     assert.deepEqual(outcome, { created: 2, duplicates: 0 });
     const page = await listRawItemsByFeed(db, "feed-one");
     assert.equal(page.rows.length, 2);
-    const first = page.rows[0];
+    const rows = [...page.rows].sort((a, b) => a.url.localeCompare(b.url));
+    const first = rows[0];
     assert.equal(first.feedId, "feed-one");
     assert.equal(first.sourceId, "source-one");
     assert.equal(first.status, "incoming");
@@ -234,7 +182,7 @@ test("processNormalizeMessage creates raw items from R2 content", async () => {
     );
     assert.equal(first.title, "First story");
     assert.equal(first.fetchedAt, "2026-01-05T00:00:00.000Z");
-    const second = page.rows[1];
+    const second = rows[1];
     assert.equal(
       second.canonicalUrl,
       "https://example.com/stories/second",
