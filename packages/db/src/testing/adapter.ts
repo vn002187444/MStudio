@@ -38,50 +38,34 @@ function toStatement(
     bind(...values: unknown[]) {
       return toStatement(stmt, [...params, ...values]);
     },
-    first<T = unknown>(): Promise<T | null> {
-      try {
-        const row = stmt.get(...params) as T | undefined;
-        return Promise.resolve(row ? ({ ...row } as T) : null);
-      } catch (error) {
-        return Promise.reject(error);
-      }
+    async first<T = unknown>(): Promise<T | null> {
+      const row = stmt.get(...params) as T | undefined;
+      return row ? ({ ...row } as T) : null;
     },
-    all<T = unknown>(): Promise<D1Result<T>> {
-      try {
-        const rows = (
-          stmt.all(...params) as Record<string, unknown>[]
-        ).map((row) => ({ ...row })) as T[];
-        return Promise.resolve({
-          success: true,
-          meta: d1Meta(),
-          results: rows,
-        });
-      } catch (error) {
-        return Promise.reject(error);
-      }
+    async all<T = unknown>(): Promise<D1Result<T>> {
+      const rows = (
+        stmt.all(...params) as Record<string, unknown>[]
+      ).map((row) => ({ ...row })) as T[];
+      return {
+        success: true,
+        meta: d1Meta(),
+        results: rows,
+      };
     },
-    run<T = unknown>(): Promise<D1Result<T>> {
-      try {
-        const { changes, lastInsertRowid } = stmt.run(...params);
-        const numericChanges = Number(changes);
-        return Promise.resolve({
-          success: true,
-          meta: d1Meta(numericChanges, Number(lastInsertRowid)),
-          results: [],
-        });
-      } catch (error) {
-        return Promise.reject(error);
-      }
+    async run<T = unknown>(): Promise<D1Result<T>> {
+      const { changes, lastInsertRowid } = stmt.run(...params);
+      const numericChanges = Number(changes);
+      return {
+        success: true,
+        meta: d1Meta(numericChanges, Number(lastInsertRowid)),
+        results: [],
+      };
     },
-    raw<T = unknown[]>(): Promise<T[]> {
-      try {
-        const rows = (
-          stmt.all(...params) as Record<string, unknown>[]
-        ).map((row) => ({ ...row })) as T[];
-        return Promise.resolve(rows);
-      } catch (error) {
-        return Promise.reject(error);
-      }
+    async raw<T = unknown[]>(): Promise<T[]> {
+      const rows = (
+        stmt.all(...params) as Record<string, unknown>[]
+      ).map((row) => ({ ...row })) as T[];
+      return rows;
     },
   };
   // Structural test double for the abstract D1PreparedStatement:
@@ -110,13 +94,9 @@ export function openTestDatabase(): TestDatabase {
         statements.map((statement) => statement.run() as Promise<D1Result<T>>),
       );
     },
-    exec(query: string): Promise<D1ExecResult> {
-      try {
-        sqlite.exec(query);
-        return Promise.resolve({ count: 0, duration: 0 });
-      } catch (error) {
-        return Promise.reject(error);
-      }
+    async exec(query: string): Promise<D1ExecResult> {
+      sqlite.exec(query);
+      return { count: 0, duration: 0 };
     },
   };
   return { db: db as unknown as D1Database, close: () => sqlite.close() };
