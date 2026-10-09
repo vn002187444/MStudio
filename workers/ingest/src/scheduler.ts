@@ -198,9 +198,14 @@ export async function runScheduler(
   do {
     const page = await listApprovedFeeds(db, pageSize, cursor);
     result.feeds += page.feeds.length;
-    for (const feed of page.feeds) {
-      await processSingleFeed(feed, env, db, logger, options, result);
-    }
+    // Concurrent per-page fetch (FU-12 ADR option A). processSingleFeed
+    // never rejects (per-feed try/catch); allSettled documents the
+    // failure-isolation intent.
+    await Promise.allSettled(
+      page.feeds.map((feed) =>
+        processSingleFeed(feed, env, db, logger, options, result),
+      ),
+    );
     cursor = page.nextCursor;
   } while (cursor);
   logger.info("scheduler_complete", {
