@@ -11,7 +11,7 @@ const items = [
   { href: "#", label: "Drafts", disabled: true },
   { href: "#", label: "Needs Review", disabled: true },
   { href: "#", label: "Sources", disabled: true },
-  { href: "#", label: "AI Desk", disabled: true },
+  { href: "/ai-desk", label: "AI Desk" },
   { href: "#", label: "SEO & Discovery", disabled: true },
   { href: "#", label: "Audience", disabled: true },
   { href: "#", label: "Media", disabled: true },
