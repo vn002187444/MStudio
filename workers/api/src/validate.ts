@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type {
   AllowStatus,
   CreateFeedRequest,
@@ -17,222 +18,146 @@ export type ValidationResult<T> =
   | { ok: true; value: T }
   | { ok: false; errors: ValidationErrors };
 
-const SOURCE_KINDS: readonly SourceKind[] = [
+const SOURCE_KINDS = [
   "rss",
   "sitemap",
   "api",
   "manual",
-];
-const FEED_FORMATS: readonly FeedFormat[] = [
+] as const;
+const FEED_FORMATS = [
   "rss",
   "atom",
   "jsonfeed",
   "sitemap",
-];
-const ALLOW_STATUSES: readonly AllowStatus[] = [
+] as const;
+const ALLOW_STATUSES = [
   "approved",
   "denied",
   "pending",
-];
-const RAW_ITEM_STATUSES: readonly RawItemStatus[] = [
+] as const;
+const RAW_ITEM_STATUSES = [
   "incoming",
   "normalized",
   "clustered",
   "discarded",
-];
+] as const;
+const RIGHTS_STATUSES = ["clear", "licensed", "unknown"] as const;
 
-function isRecord(
-  value: unknown,
-): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-function isEnumMember<T extends string>(
-  value: unknown,
-  members: readonly T[],
-): value is T {
-  return typeof value === "string" && members.includes(value as T);
-}
-
-function isHttpUrl(value: unknown): value is string {
-  if (typeof value !== "string") return false;
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:";
-  } catch {
-    return false;
+function mapZodError(error: z.ZodError): ValidationErrors {
+  const errs: ValidationErrors = {};
+  for (const issue of error.issues) {
+    const path = issue.path.join(".");
+    const p = path === "" ? "body" : path;
+    if (!errs[p]) {
+      errs[p] = [];
+    }
+    errs[p].push(issue.message);
   }
+  return errs;
 }
 
-function pushError(
-  errors: ValidationErrors,
-  field: string,
-  message: string,
-): void {
-  const existing = errors[field] ?? [];
-  existing.push(message);
-  errors[field] = existing;
-}
+const createSourceSchema = z.object({
+  name: z.string({ message: "required non-empty string" }).trim().min(1, "required non-empty string").max(200, "must be at most 200 characters"),
+  originUrl: z.string({ message: "required http(s) URL" }).refine((val) => {
+    try {
+      const u = new URL(val);
+      return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch { return false; }
+  }, "required http(s) URL"),
+  kind: z.enum(SOURCE_KINDS, { message: `required one of: ${SOURCE_KINDS.join(", ")}` }),
+  rightsStatus: z.enum(RIGHTS_STATUSES, { message: "optional one of: clear, licensed, unknown" }).optional(),
+  allowStatus: z.enum(ALLOW_STATUSES, { message: `optional one of: ${ALLOW_STATUSES.join(", ")}` }).optional()
+}).strict();
 
 export function validateCreateSource(
   body: unknown,
 ): ValidationResult<CreateSourceRequest> {
-  const errors: ValidationErrors = {};
-  if (!isRecord(body)) {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
     return {
       ok: false,
       errors: { body: ["expected a JSON object"] },
     };
   }
-  if (!isNonEmptyString(body.name)) {
-    pushError(errors, "name", "required non-empty string");
-  } else if (body.name.length > 200) {
-    pushError(errors, "name", "must be at most 200 characters");
+
+  const result = createSourceSchema.safeParse(body);
+
+  if (!result.success) {
+    return { ok: false, errors: mapZodError(result.error) };
   }
-  if (!isHttpUrl(body.originUrl)) {
-    pushError(errors, "originUrl", "required http(s) URL");
-  }
-  if (!isEnumMember(body.kind, SOURCE_KINDS)) {
-    pushError(
-      errors,
-      "kind",
-      `required one of: ${SOURCE_KINDS.join(", ")}`,
-    );
-  }
-  if (
-    body.rightsStatus !== undefined &&
-    !isEnumMember(body.rightsStatus, ["clear", "licensed", "unknown"] as const)
-  ) {
-    pushError(
-      errors,
-      "rightsStatus",
-      "optional one of: clear, licensed, unknown",
-    );
-  }
-  if (
-    body.allowStatus !== undefined &&
-    !isEnumMember(body.allowStatus, ALLOW_STATUSES)
-  ) {
-    pushError(
-      errors,
-      "allowStatus",
-      `optional one of: ${ALLOW_STATUSES.join(", ")}`,
-    );
-  }
-  if (Object.keys(errors).length > 0) {
-    return { ok: false, errors };
-  }
-  return {
-    ok: true,
-    value: {
-      name: body.name as string,
-      originUrl: body.originUrl as string,
-      kind: body.kind as SourceKind,
-      rightsStatus: body.rightsStatus as
-        | CreateSourceRequest["rightsStatus"]
-        | undefined,
-      allowStatus: body.allowStatus as
-        | CreateSourceRequest["allowStatus"]
-        | undefined,
-    },
-  };
+
+  return { ok: true, value: result.data as CreateSourceRequest };
 }
+
+const createFeedSchema = z.object({
+  url: z.string({ message: "required http(s) URL" }).refine((val) => {
+    try {
+      const u = new URL(val);
+      return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch { return false; }
+  }, "required http(s) URL"),
+  format: z.enum(FEED_FORMATS, { message: `required one of: ${FEED_FORMATS.join(", ")}` }),
+  fetchIntervalSeconds: z.number({ message: "optional integer between 60 and 86400" })
+    .int("optional integer between 60 and 86400")
+    .min(60, "optional integer between 60 and 86400")
+    .max(86400, "optional integer between 60 and 86400")
+    .optional(),
+});
 
 export function validateCreateFeed(
   body: unknown,
 ): ValidationResult<CreateFeedRequest> {
-  const errors: ValidationErrors = {};
-  if (!isRecord(body)) {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
     return {
       ok: false,
       errors: { body: ["expected a JSON object"] },
     };
   }
-  if (!isHttpUrl(body.url)) {
-    pushError(errors, "url", "required http(s) URL");
+
+  const result = createFeedSchema.safeParse(body);
+  if (!result.success) {
+    return { ok: false, errors: mapZodError(result.error) };
   }
-  if (!isEnumMember(body.format, FEED_FORMATS)) {
-    pushError(
-      errors,
-      "format",
-      `required one of: ${FEED_FORMATS.join(", ")}`,
-    );
-  }
-  if (
-    body.fetchIntervalSeconds !== undefined &&
-    (typeof body.fetchIntervalSeconds !== "number" ||
-      !Number.isInteger(body.fetchIntervalSeconds) ||
-      body.fetchIntervalSeconds < 60 ||
-      body.fetchIntervalSeconds > 86400)
-  ) {
-    pushError(
-      errors,
-      "fetchIntervalSeconds",
-      "optional integer between 60 and 86400",
-    );
-  }
-  if (Object.keys(errors).length > 0) {
-    return { ok: false, errors };
-  }
-  return {
-    ok: true,
-    value: {
-      url: body.url as string,
-      format: body.format as FeedFormat,
-      fetchIntervalSeconds: body.fetchIntervalSeconds as
-        | number
-        | undefined,
-    },
-  };
+  return { ok: true, value: result.data as CreateFeedRequest };
 }
+
+const updateSourceAllowStatusSchema = z.object({
+  allowStatus: z.enum(ALLOW_STATUSES, { message: `required one of: ${ALLOW_STATUSES.join(", ")}` }),
+});
 
 export function validateUpdateSourceAllowStatus(
   body: unknown,
 ): ValidationResult<UpdateSourceAllowStatusRequest> {
-  const errors: ValidationErrors = {};
-  if (!isRecord(body)) {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
     return {
       ok: false,
       errors: { body: ["expected a JSON object"] },
     };
   }
-  if (!isEnumMember(body.allowStatus, ALLOW_STATUSES)) {
-    pushError(
-      errors,
-      "allowStatus",
-      `required one of: ${ALLOW_STATUSES.join(", ")}`,
-    );
+  const result = updateSourceAllowStatusSchema.safeParse(body);
+  if (!result.success) {
+    return { ok: false, errors: mapZodError(result.error) };
   }
-  if (Object.keys(errors).length > 0) {
-    return { ok: false, errors };
-  }
-  return {
-    ok: true,
-    value: { allowStatus: body.allowStatus as AllowStatus },
-  };
+  return { ok: true, value: result.data as UpdateSourceAllowStatusRequest };
 }
+
+const updateFeedSchema = z.object({
+  enabled: z.boolean({ message: "required boolean" }),
+});
 
 export function validateUpdateFeed(
   body: unknown,
 ): ValidationResult<UpdateFeedRequest> {
-  const errors: ValidationErrors = {};
-  if (!isRecord(body)) {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
     return {
       ok: false,
       errors: { body: ["expected a JSON object"] },
     };
   }
-  if (typeof body.enabled !== "boolean") {
-    pushError(errors, "enabled", "required boolean");
+  const result = updateFeedSchema.safeParse(body);
+  if (!result.success) {
+    return { ok: false, errors: mapZodError(result.error) };
   }
-  if (Object.keys(errors).length > 0) {
-    return { ok: false, errors };
-  }
-  return { ok: true, value: { enabled: body.enabled as boolean } };
+  return { ok: true, value: result.data as UpdateFeedRequest };
 }
 
 export function validatePagination(
@@ -248,7 +173,7 @@ export function validatePagination(
       parsed < 1 ||
       parsed > 100
     ) {
-      pushError(errors, "limit", "integer between 1 and 100");
+      errors["limit"] = ["integer between 1 and 100"];
     } else {
       limit = parsed;
     }
@@ -258,11 +183,7 @@ export function validatePagination(
   let cursor: PageInput["cursor"];
   if (cursorCreatedAt !== null || cursorId !== null) {
     if (cursorCreatedAt === null || cursorId === null) {
-      pushError(
-        errors,
-        "cursor",
-        "cursor_created_at and cursor_id must be provided together",
-      );
+      errors["cursor"] = ["cursor_created_at and cursor_id must be provided together"];
     } else {
       cursor = { createdAt: cursorCreatedAt, id: cursorId };
     }
@@ -312,7 +233,8 @@ export function validateRawItemStatus(
   status: string | null,
 ): ValidationResult<RawItemStatus> {
   const value = status ?? "incoming";
-  if (!isEnumMember(value, RAW_ITEM_STATUSES)) {
+  const result = z.enum(RAW_ITEM_STATUSES, { message: `must be one of: ${RAW_ITEM_STATUSES.join(", ")}` }).safeParse(value);
+  if (!result.success) {
     return {
       ok: false,
       errors: {
@@ -320,7 +242,7 @@ export function validateRawItemStatus(
       },
     };
   }
-  return { ok: true, value };
+  return { ok: true, value: result.data as RawItemStatus };
 }
 
 const MAX_READER_EVENTS = 100;
