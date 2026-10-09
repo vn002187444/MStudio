@@ -22,6 +22,24 @@ definition_of_done:
   - quota_impact_reported
   - human_review_required
 
+human_gates:
+  schema:
+    task: MST-004
+    approved_by: human-lead
+    approved_at: "2026-10-09"
+  schema_and_evidence_semantics:
+    task: MST-020
+    approved_by: human-lead
+    approved_at: "2026-10-09"
+  editorial_ai:
+    task: MST-031
+    approved_by: human-lead
+    approved_at: "2026-10-09"
+  publishing:
+    task: MST-041
+    approved_by: human-lead
+    approved_at: "2026-10-09"
+
 # Bắt buộc: agent load các skills này qua skill tool trước khi làm task.
 task_skills:
   MST-001: [nextjs-on-cloudflare, frontend-ui-engineering, vercel-react-best-practices]
