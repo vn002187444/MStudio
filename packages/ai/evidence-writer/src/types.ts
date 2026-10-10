@@ -34,6 +34,6 @@ export interface WriterOptions {
 
 export const DEFAULT_WRITER_OPTIONS: WriterOptions = {
   promptVersion: "ev1",
-  model: "gemini-2.0-flash",
+  model: "gemini-3.1-flash-lite",
   maxAttempts: 3,
 };

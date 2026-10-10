@@ -296,9 +296,10 @@ async:
 semantic:
   vector: Cloudflare Vectorize
 
-ai:
-  gateway: ModelGateway
-  initial_provider: Gemini
+ ai:
+   gateway: ModelGateway
+   initial_provider: Gemini
+   default_model: gemini-3.1-flash-lite (Human 10-10-2026, cho mọi tác vụ draft/summary/SEO/linking)
 ```
 
 Rules:

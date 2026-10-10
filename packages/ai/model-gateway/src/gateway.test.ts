@@ -16,7 +16,7 @@ import type {
 } from "./types.ts";
 
 const REQUEST: ModelRequest = {
-  model: "gemini-2.0-flash",
+  model: "gemini-3.1-flash-lite",
   prompt: "Summarize the evidence",
   systemPrompt: "You are an evidence desk assistant",
   maxOutputTokens: 512,
@@ -181,7 +181,7 @@ test("gemini adapter sends the expected request shape", async () => {
   assert.equal(calls.length, 1);
   assert.equal(
     calls[0].url,
-    `${GEMINI_DEFAULT_BASE_URL}/v1beta/models/gemini-2.0-flash:generateContent`,
+    `${GEMINI_DEFAULT_BASE_URL}/v1beta/models/gemini-3.1-flash-lite:generateContent`,
   );
   assert.equal(
     calls[0].init?.method,
