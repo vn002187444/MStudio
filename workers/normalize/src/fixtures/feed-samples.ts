@@ -20,6 +20,22 @@ export const RSS_SAMPLE = `<?xml version="1.0" encoding="UTF-8"?>
   </channel>
 </rss>`;
 
+export const RSS_IMAGE_SAMPLE = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Image News</title>
+    <link>https://example.com</link>
+    <item>
+      <title>Image story</title>
+      <link>https://example.com/stories/image</link>
+      <guid>https://example.com/stories/image</guid>
+      <pubDate>Mon, 05 Jan 2026 00:00:00 GMT</pubDate>
+      <description>Story with a hero image</description>
+      <enclosure url="https://img.example.com/hero.jpg" type="image/jpeg" length="123" />
+    </item>
+  </channel>
+</rss>`;
+
 export const ATOM_SAMPLE = `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Atom News</title>

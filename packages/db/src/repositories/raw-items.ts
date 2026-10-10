@@ -33,6 +33,7 @@ export interface NewRawItem {
   publishedAt?: string;
   fetchedAt: string;
   payloadHash: string;
+  imageUrl?: string;
 }
 
 const RAW_ITEM_SELECT = `
@@ -67,8 +68,8 @@ export async function createRawItems(
       .prepare(
         `INSERT OR IGNORE INTO raw_items
          (id, feed_id, source_id, external_id, url, canonical_url, title,
-          published_at, fetched_at, payload_hash, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'incoming', ?)`
+          published_at, fetched_at, payload_hash, status, created_at, image_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'incoming', ?, ?)`
       )
       .bind(
         input.id,
@@ -81,7 +82,8 @@ export async function createRawItems(
         input.publishedAt ?? null,
         input.fetchedAt,
         input.payloadHash,
-        now
+        now,
+        input.imageUrl ?? null
       )
   );
 
@@ -122,8 +124,8 @@ export async function createRawItem(
     .prepare(
       `INSERT OR IGNORE INTO raw_items
          (id, feed_id, source_id, external_id, url, canonical_url, title,
-          published_at, fetched_at, payload_hash, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'incoming', ?)`,
+          published_at, fetched_at, payload_hash, status, created_at, image_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'incoming', ?, ?)`,
     )
     .bind(
       input.id,
@@ -137,6 +139,7 @@ export async function createRawItem(
       input.fetchedAt,
       input.payloadHash,
       now,
+      input.imageUrl ?? null,
     )
     .run();
 

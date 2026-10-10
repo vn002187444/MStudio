@@ -24,7 +24,7 @@ import {
   parseRss,
 } from "./parsers.ts";
 import { sha256Hex } from "./sha256.ts";
-import { RSS_SAMPLE } from "./fixtures/feed-samples.ts";
+import { RSS_IMAGE_SAMPLE, RSS_SAMPLE } from "./fixtures/feed-samples.ts";
 
 interface CapturedError {
   message: string;
@@ -34,15 +34,19 @@ interface CapturedError {
 interface CapturingLogger extends Logger {
   errors: CapturedError[];
   infos: CapturedError[];
+  warns: CapturedError[];
 }
 
 function capturingLogger(): CapturingLogger {
   const errors: CapturedError[] = [];
   const infos: CapturedError[] = [];
+  const warns: CapturedError[] = [];
   const noop = () => {};
   return {
     debug: noop,
-    warn: noop,
+    warn: (message, data) => {
+      warns.push({ message, data: data ?? {} });
+    },
     info: (message, data) => {
       infos.push({ message, data: data ?? {} });
     },
@@ -51,6 +55,7 @@ function capturingLogger(): CapturingLogger {
     },
     errors,
     infos,
+    warns,
   };
 }
 
@@ -89,12 +94,17 @@ async function setup(): Promise<{
   return { env, db, close, logger, r2, objects };
 }
 
-async function seedFeedPair(db: D1Database, id: string): Promise<void> {
+async function seedFeedPair(
+  db: D1Database,
+  id: string,
+  rightsStatus?: "clear" | "licensed",
+): Promise<void> {
   await createSource(db, {
     id: `source-${id}`,
     name: `Source ${id}`,
     originUrl: `https://source-${id}.example.com`,
     kind: "rss",
+    ...(rightsStatus ? { rightsStatus } : {}),
     now: "2026-01-01T00:00:00.000Z",
   });
   await createFeed(db, {
@@ -265,6 +275,158 @@ test("queue handler retries failed messages", async () => {
     await worker.queue(batch, env, {} as ExecutionContext);
     assert.deepEqual(acks, []);
     assert.deepEqual(retries, [0]);
+  } finally {
+    close();
+  }
+});
+
+test("persists image_url extracted from feed enclosures", async () => {
+  const { env, db, close, logger, objects } = await setup();
+  try {
+    await seedFeedPair(db, "img");
+    const hash = await sha256Hex(RSS_IMAGE_SAMPLE);
+    objects.set(hash, RSS_IMAGE_SAMPLE);
+    const outcome = await processNormalizeMessage(
+      message("feed-img", hash),
+      env,
+      logger,
+    );
+    assert.deepEqual(outcome, { created: 1, duplicates: 0 });
+    const row = await db
+      .prepare(
+        "SELECT image_url FROM raw_items WHERE feed_id = ?",
+      )
+      .bind("feed-img")
+      .first<{ image_url: string | null }>();
+    assert.equal(
+      row?.image_url,
+      "https://img.example.com/hero.jpg",
+    );
+  } finally {
+    close();
+  }
+});
+
+test("rehosts images to R2 when source rights are clear", async () => {
+  const { env, db, close, logger, objects } = await setup();
+  try {
+    await seedFeedPair(db, "media", "clear");
+    const hash = await sha256Hex(RSS_IMAGE_SAMPLE);
+    objects.set(hash, RSS_IMAGE_SAMPLE);
+    const fetched: string[] = [];
+    const fetchImage = async (
+      url: string,
+    ): Promise<Response> => {
+      fetched.push(url);
+      return new Response(new ArrayBuffer(4), {
+        status: 200,
+      });
+    };
+    const outcome = await processNormalizeMessage(
+      message("feed-media", hash),
+      env,
+      logger,
+      { fetchImage },
+    );
+    assert.deepEqual(outcome, { created: 1, duplicates: 0 });
+    assert.deepEqual(fetched, [
+      "https://img.example.com/hero.jpg",
+    ]);
+    const expectedKey = `media/${await sha256Hex("https://img.example.com/hero.jpg")}.jpg`;
+    assert.ok(objects.has(expectedKey));
+    const assets = await db
+      .prepare(
+        "SELECT origin_url, r2_key, rights_status FROM media_assets",
+      )
+      .all<{
+        origin_url: string;
+        r2_key: string;
+        rights_status: string;
+      }>();
+    assert.equal(assets.results.length, 1);
+    assert.equal(
+      assets.results[0].origin_url,
+      "https://img.example.com/hero.jpg",
+    );
+    assert.equal(assets.results[0].r2_key, expectedKey);
+    assert.equal(assets.results[0].rights_status, "clear");
+  } finally {
+    close();
+  }
+});
+
+test("unknown source rights keep the hotlink without rehosting", async () => {
+  const { env, db, close, logger, objects } = await setup();
+  try {
+    await seedFeedPair(db, "unknown");
+    const hash = await sha256Hex(RSS_IMAGE_SAMPLE);
+    objects.set(hash, RSS_IMAGE_SAMPLE);
+    let fetched = false;
+    const outcome = await processNormalizeMessage(
+      message("feed-unknown", hash),
+      env,
+      logger,
+      {
+        fetchImage: async (): Promise<Response> => {
+          fetched = true;
+          return new Response(new ArrayBuffer(4), {
+            status: 200,
+          });
+        },
+      },
+    );
+    assert.deepEqual(outcome, { created: 1, duplicates: 0 });
+    assert.equal(fetched, false);
+    assert.equal(objects.size, 1);
+    const assets = await db
+      .prepare(
+        "SELECT COUNT(*) AS count FROM media_assets",
+      )
+      .first<{ count: number }>();
+    assert.equal(assets?.count, 0);
+    const row = await db
+      .prepare(
+        "SELECT image_url FROM raw_items WHERE feed_id = ?",
+      )
+      .bind("feed-unknown")
+      .first<{ image_url: string | null }>();
+    assert.equal(
+      row?.image_url,
+      "https://img.example.com/hero.jpg",
+    );
+  } finally {
+    close();
+  }
+});
+
+test("rehost failure does not fail normalization", async () => {
+  const { env, db, close, logger, objects } = await setup();
+  try {
+    await seedFeedPair(db, "failing", "licensed");
+    const hash = await sha256Hex(RSS_IMAGE_SAMPLE);
+    objects.set(hash, RSS_IMAGE_SAMPLE);
+    const outcome = await processNormalizeMessage(
+      message("feed-failing", hash),
+      env,
+      logger,
+      {
+        fetchImage: async (): Promise<Response> =>
+          new Response("not found", { status: 404 }),
+      },
+    );
+    assert.deepEqual(outcome, { created: 1, duplicates: 0 });
+    assert.equal(objects.size, 1);
+    assert.ok(
+      logger.warns.some(
+        (entry) => entry.message === "media_rehost_failed",
+      ),
+    );
+    const assets = await db
+      .prepare(
+        "SELECT COUNT(*) AS count FROM media_assets",
+      )
+      .first<{ count: number }>();
+    assert.equal(assets?.count, 0);
   } finally {
     close();
   }
