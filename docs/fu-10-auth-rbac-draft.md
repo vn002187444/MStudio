@@ -41,6 +41,8 @@ OAuth/SSO, 2FA, API keys cho đối tác, UI quản trị user (làm sau khi CMS
   quota_impact: low
 ```
 
-## Acceptance của FU-10 (draft)
-- [ ] Human duyệt thiết kế + ma trận quyền
-- [ ] CommandCode nhận task, tách code sau
+## Human decisions (10-10-2026, delegated to OpenCode on project reality)
+1. Ma trận quyền: GIỮ như draft (Editor+ accept/reject+publish; Reviewer duyệt publish; Admin sources+roles; SEO sitemap; Analyst đọc metrics).
+2. Session: D1 opaque token SHA-256 (không JWT — ít dep, đủ dùng, hợp free-tier).
+3. Rate-limit 60 req/phút/IP cho write endpoints — OK.
+→ Status: APPROVED, chuyển sang implement (migration sessions+audit_log + Hono middleware + tests).

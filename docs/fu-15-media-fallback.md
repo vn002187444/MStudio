@@ -14,7 +14,7 @@
    story id + typography, đúng `visual_effects_v1`, không ảnh thật.
 
 ## Còn lại (cmdc + Human)
-- **Migration 0007 draft** (chưa apply, cần Human gate schema):
+- **Migration 0008 draft** (chưa apply, cần Human gate schema; đánh số 0008 vì 0007 dành cho auth FU-10):
   ```sql
   ALTER TABLE raw_items ADD COLUMN image_url TEXT;
   CREATE TABLE media_assets (
