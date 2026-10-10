@@ -12,4 +12,6 @@ export interface NormalizedFeedItem {
   title?: string;
   publishedAt?: string;
   payloadHash: string;
+  /** Tầng A media fallback (FU-15): URL ảnh gốc từ feed, chỉ http(s). */
+  imageUrl?: string;
 }

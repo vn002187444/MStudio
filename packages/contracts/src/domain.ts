@@ -47,6 +47,8 @@ export interface RawItemRecord {
   payloadHash: string;
   status: RawItemStatus;
   createdAt: string;
+  /** Tầng A media fallback (FU-15): URL ảnh gốc từ feed, chỉ http(s). */
+  imageUrl?: string;
 }
 
 export interface JobRecord {
