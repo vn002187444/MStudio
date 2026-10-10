@@ -1,12 +1,14 @@
-import { primaryNav, trendingTopics } from "./taxonomy";
+import { fetchPrimaryNav, trendingTopics } from "./taxonomy";
 
 /**
  * Site header (MST-012 editorial shell).
  * - Desktop: sticky header + trending strip + full taxonomy nav.
  * - Mobile: compact bar + menu <details> (native, keyboard-accessible, no JS).
+ * - Nav items từ DB (MST-072), fallback hardcode khi API lỗi.
  * Server Component.
  */
-export function SiteHeader() {
+export async function SiteHeader() {
+  const primaryNav = await fetchPrimaryNav();
   return (
     <header className="site-header">
       <div className="trending-strip">
