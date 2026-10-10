@@ -55,16 +55,20 @@ jobs:
   frontend:
     needs: verify
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [web, studio]
+      fail-fast: false
     defaults:
       run:
-        working-directory: apps/web
+        working-directory: apps/${{ matrix.app }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: apps/${{ matrix.app }}/package-lock.json
       - run: npm ci
       - run: npm run build
       - run: npm run deploy
