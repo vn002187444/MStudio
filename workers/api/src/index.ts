@@ -4,6 +4,7 @@ import {
   createSource,
   deleteSource,
   getPublishedArticle,
+  getRawItem,
   getSource,
   listActiveCategories,
   listFeedsBySource,
@@ -44,6 +45,12 @@ import {
   rateLimit,
   requireRole,
 } from "./auth.ts";
+import {
+  buildDraftGateway,
+  acceptRawItem,
+  RawItemDecisionConflictError,
+  rejectRawItem,
+} from "./accept.ts";
 import {
   validateCreateFeed,
   validateCreateSource,
@@ -160,6 +167,71 @@ app.get("/raw-items", async (c) => {
   );
   return c.json(page);
 });
+
+app.post(
+  "/raw-items/:id/accept",
+  rateLimit(),
+  requireRole("admin", "editor", "reviewer"),
+  auditChanges("raw-item.accept"),
+  async (c) => {
+    const id = c.req.param("id");
+    const rawItem = await getRawItem(c.env.DB, id);
+    if (!rawItem) {
+      throw notFound("RAW_ITEM_NOT_FOUND", `raw item ${id} not found`);
+    }
+    try {
+      const result = await acceptRawItem(
+        {
+          db: c.env.DB,
+          rawBucket: c.env.RAW_BUCKET,
+          gateway: buildDraftGateway(c.env),
+          actor: c.get("session")?.userId ?? "unknown",
+          logger: c.get("logger"),
+        },
+        rawItem,
+      );
+      return c.json(result, result.created ? 201 : 200);
+    } catch (error) {
+      if (error instanceof RawItemDecisionConflictError) {
+        throw new ApiError("DECISION_CONFLICT", 409, error.message, {
+          decision: [error.decision.decision],
+        });
+      }
+      throw error;
+    }
+  },
+);
+
+app.post(
+  "/raw-items/:id/reject",
+  rateLimit(),
+  requireRole("admin", "editor", "reviewer"),
+  auditChanges("raw-item.reject"),
+  async (c) => {
+    const id = c.req.param("id");
+    const rawItem = await getRawItem(c.env.DB, id);
+    if (!rawItem) {
+      throw notFound("RAW_ITEM_NOT_FOUND", `raw item ${id} not found`);
+    }
+    try {
+      const result = await rejectRawItem(
+        {
+          db: c.env.DB,
+          actor: c.get("session")?.userId ?? "unknown",
+        },
+        rawItem,
+      );
+      return c.json(result, result.created ? 201 : 200);
+    } catch (error) {
+      if (error instanceof RawItemDecisionConflictError) {
+        throw new ApiError("DECISION_CONFLICT", 409, error.message, {
+          decision: [error.decision.decision],
+        });
+      }
+      throw error;
+    }
+  },
+);
 
 app.post("/events", async (c) => {
   const body = await readJson(c.req.raw);
@@ -395,6 +467,12 @@ app.patch(
 
 app.all("/sources", (c) => c.text("Method not allowed", 405));
 app.all("/raw-items", (c) => c.text("Method not allowed", 405));
+app.all("/raw-items/:id/accept", (c) =>
+  c.text("Method not allowed", 405),
+);
+app.all("/raw-items/:id/reject", (c) =>
+  c.text("Method not allowed", 405),
+);
 app.all("/events", (c) => c.text("Method not allowed", 405));
 app.all("/recommendations", (c) =>
   c.text("Method not allowed", 405),
