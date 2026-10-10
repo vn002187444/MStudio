@@ -16,6 +16,7 @@ test("migrations create the core and story domain tables", async () => {
       "agent_runs",
       "article_revisions",
       "articles",
+      "categories",
       "claims",
       "entities",
       "facts",
