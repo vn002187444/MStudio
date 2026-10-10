@@ -37,7 +37,7 @@ done
 ```
 Lưu ý config hiện tại:
 - `ENVIRONMENT`/`LOG_LEVEL` mặc định production cho ingest/normalize/intelligence/analytics.
-- `publish` còn `SITE_URL=https://news.example.com` placeholder → sửa trước khi deploy thật.
+- `publish` còn `SITE_URL=https://mstudio.minds.io.vn` placeholder → sửa trước khi deploy thật.
 - `api` dùng var `READER_EVENT_SAMPLING_RATE=0.05`.
 - Cron: ingest `*/5`, intelligence `*/15` — cân nhắc tắt cron ingest lần deploy đầu nếu chưa có feed thật.
 
