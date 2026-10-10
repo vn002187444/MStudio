@@ -1,0 +1,72 @@
+# GitHub => Cloudflare deploy (FU-14 automation).
+# Trigger: push to main or manual dispatch.
+# Required repo secret: CLOUDFLARE_API_TOKEN (Workers Edit, D1 Edit, R2 Edit, Queues Edit).
+# NOTE: D1 migrations are NOT run here (plain CREATE TABLE, not idempotent).
+# Apply new migrations manually per docs/fu-13-deploy-runbook.md.
+
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: 9db1a9ece3ede791fd3cfb5d13bd6765
+  MSTUDIO_API_URL: https://mstudio.minds.io.vn
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.10.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r typecheck
+      - run: pnpm -r test
+
+  backend:
+    needs: verify
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        worker: [ingest, normalize, intelligence, analytics, api, publish]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.10.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir workers/${{ matrix.worker }} exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+  frontend:
+    needs: verify
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
