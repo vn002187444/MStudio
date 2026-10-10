@@ -3,8 +3,8 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-10-08",
   "vars": {
-    "ENVIRONMENT": "dev",
-    "LOG_LEVEL": "debug",
+    "ENVIRONMENT": "production",
+    "LOG_LEVEL": "info",
     "READER_EVENT_SAMPLING_RATE": "0.05"
   },
   "d1_databases": [
