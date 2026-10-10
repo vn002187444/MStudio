@@ -10,6 +10,7 @@ import {
   listSources,
   setFeedEnabled,
   setSourceAllowStatus,
+  type SessionIdentity,
 } from "@mstudio/db";
 import {
   type ReaderEventMessage,
@@ -37,6 +38,11 @@ import {
   readerEventSamplingRate,
   partitionReaderEvents,
 } from "./reader-events.ts";
+import {
+  auditChanges,
+  rateLimit,
+  requireRole,
+} from "./auth.ts";
 import {
   validateCreateFeed,
   validateCreateSource,
@@ -97,11 +103,12 @@ function errorResponse(error: ApiError): Response {
   return Response.json({ error: body }, { status: error.status });
 }
 
-type AppEnv = {
+export type AppEnv = {
   Bindings: Env;
   Variables: {
     correlationId: string;
     logger: Logger;
+    session?: SessionIdentity;
   };
 };
 
@@ -239,7 +246,12 @@ app.get("/sources", async (c) => {
   return c.json(page);
 });
 
-app.post("/sources", async (c) => {
+app.post(
+  "/sources",
+  rateLimit(),
+  requireRole("admin"),
+  auditChanges("source.create"),
+  async (c) => {
   const body = await readJson(c.req.raw);
   const validation = validateCreateSource(body);
   if (!validation.ok) {
@@ -265,7 +277,12 @@ app.get("/sources/:id", async (c) => {
   return c.json(source);
 });
 
-app.patch("/sources/:id/allow-status", async (c) => {
+app.patch(
+  "/sources/:id/allow-status",
+  rateLimit(),
+  requireRole("admin"),
+  auditChanges("source.allow-status"),
+  async (c) => {
   const id = c.req.param("id");
   const body = await readJson(c.req.raw);
   const validation = validateUpdateSourceAllowStatus(body);
@@ -284,7 +301,12 @@ app.patch("/sources/:id/allow-status", async (c) => {
   return c.json(source);
 });
 
-app.delete("/sources/:id", async (c) => {
+app.delete(
+  "/sources/:id",
+  rateLimit(),
+  requireRole("admin"),
+  auditChanges("source.delete"),
+  async (c) => {
   const id = c.req.param("id");
   const deleted = await deleteSource(c.env.DB, id);
   if (!deleted) {
@@ -293,7 +315,12 @@ app.delete("/sources/:id", async (c) => {
   return c.body(null, 204);
 });
 
-app.post("/sources/:id/feeds", async (c) => {
+app.post(
+  "/sources/:id/feeds",
+  rateLimit(),
+  requireRole("admin"),
+  auditChanges("feed.create"),
+  async (c) => {
   const sourceId = c.req.param("id");
   const source = await getSource(c.env.DB, sourceId);
   if (!source) {
@@ -336,7 +363,12 @@ app.get("/sources/:id/feeds", async (c) => {
   return c.json(page);
 });
 
-app.patch("/feeds/:id", async (c) => {
+app.patch(
+  "/feeds/:id",
+  rateLimit(),
+  requireRole("admin"),
+  auditChanges("feed.update"),
+  async (c) => {
   const id = c.req.param("id");
   const body = await readJson(c.req.raw);
   const validation = validateUpdateFeed(body);
