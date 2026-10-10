@@ -14,6 +14,7 @@ import {
   createArticle,
   createFeed,
   createRawItem,
+  createSession,
   createSource,
   createStory,
   publishArticle,
@@ -35,6 +36,7 @@ async function setup(): Promise<{
   env: Env;
   db: D1Database;
   close(): void;
+  adminToken: string;
 }> {
   const { db, close } = await openMigratedTestDb();
   const env = {
@@ -42,14 +44,27 @@ async function setup(): Promise<{
     ENVIRONMENT: "test",
     LOG_LEVEL: "error",
   } as unknown as Env;
-  return { env, db, close };
+  const { token } = await createSession(db, {
+    userId: "admin-user",
+    role: "admin",
+    expiresAt: "2099-01-01T00:00:00.000Z",
+  });
+  return { env, db, close, adminToken: token };
 }
 
 function request(
   path: string,
   init?: RequestInit,
+  token?: string,
 ): Request {
-  return new Request(`https://api.example.com${path}`, init);
+  const headers = new Headers(init?.headers);
+  if (token) {
+    headers.set("authorization", `Bearer ${token}`);
+  }
+  return new Request(`https://api.example.com${path}`, {
+    ...init,
+    headers,
+  });
 }
 
 function jsonInit(body: unknown): RequestInit {
@@ -77,14 +92,14 @@ test("GET /healthz reports ok", async () => {
 });
 
 test("POST /sources creates a source", async () => {
-  const { env, close } = await setup();
+  const { env, close, adminToken } = await setup();
   try {
     const response = await worker.fetch(
       request("/sources", jsonInit({
         name: "Example News",
         originUrl: "https://example.com",
         kind: "rss",
-      })),
+      }), adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -101,14 +116,14 @@ test("POST /sources creates a source", async () => {
 });
 
 test("POST /sources rejects invalid kind with field errors", async () => {
-  const { env, close } = await setup();
+  const { env, close, adminToken } = await setup();
   try {
     const response = await worker.fetch(
       request("/sources", jsonInit({
         name: "Example News",
         originUrl: "not-a-url",
         kind: "newsletter",
-      })),
+      }), adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -123,14 +138,14 @@ test("POST /sources rejects invalid kind with field errors", async () => {
 });
 
 test("POST /sources rejects non-object body", async () => {
-  const { env, close } = await setup();
+  const { env, close, adminToken } = await setup();
   try {
     const response = await worker.fetch(
       request("/sources", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: "[1,2,3]",
-      }),
+      }, adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -143,7 +158,7 @@ test("POST /sources rejects non-object body", async () => {
 });
 
 test("GET /sources paginates with keyset cursor", async () => {
-  const { env, close } = await setup();
+  const { env, close, adminToken } = await setup();
   try {
     for (const index of [0, 1, 2]) {
       const response = await worker.fetch(
@@ -153,7 +168,7 @@ test("GET /sources paginates with keyset cursor", async () => {
             originUrl: `https://source-${index + 1}.example.com`,
             kind: "rss",
           }),
-        }),
+        }, adminToken),
         env,
         context() as unknown as ExecutionContext,
       );
@@ -210,14 +225,14 @@ test("GET /sources/:id returns 404 for missing source", async () => {
 });
 
 test("PATCH /sources/:id/allow-status updates status", async () => {
-  const { env, close } = await setup();
+  const { env, close, adminToken } = await setup();
   try {
     const created = await worker.fetch(
       request("/sources", jsonInit({
         name: "Example",
         originUrl: "https://example.com",
         kind: "rss",
-      })),
+      }), adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -227,7 +242,7 @@ test("PATCH /sources/:id/allow-status updates status", async () => {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ allowStatus: "approved" }),
-      }),
+      }, adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -240,14 +255,14 @@ test("PATCH /sources/:id/allow-status updates status", async () => {
 });
 
 test("PATCH /sources/:id/allow-status rejects invalid status", async () => {
-  const { env, close } = await setup();
+  const { env, close, adminToken } = await setup();
   try {
     const created = await worker.fetch(
       request("/sources", jsonInit({
         name: "Example",
         originUrl: "https://example.com",
         kind: "rss",
-      })),
+      }), adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -257,7 +272,7 @@ test("PATCH /sources/:id/allow-status rejects invalid status", async () => {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ allowStatus: "banned" }),
-      }),
+      }, adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -268,14 +283,14 @@ test("PATCH /sources/:id/allow-status rejects invalid status", async () => {
 });
 
 test("POST /sources/:id/feeds creates a feed", async () => {
-  const { env, close } = await setup();
+  const { env, close, adminToken } = await setup();
   try {
     const created = await worker.fetch(
       request("/sources", jsonInit({
         name: "Example",
         originUrl: "https://example.com",
         kind: "rss",
-      })),
+      }), adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -284,7 +299,7 @@ test("POST /sources/:id/feeds creates a feed", async () => {
       request(`/sources/${source.id}/feeds`, jsonInit({
         url: "https://example.com/feed.xml",
         format: "rss",
-      })),
+      }), adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -299,14 +314,14 @@ test("POST /sources/:id/feeds creates a feed", async () => {
 });
 
 test("GET /sources/:id/feeds paginates feeds", async () => {
-  const { env, close } = await setup();
+  const { env, close, adminToken } = await setup();
   try {
     const created = await worker.fetch(
       request("/sources", jsonInit({
         name: "Example",
         originUrl: "https://example.com",
         kind: "rss",
-      })),
+      }), adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -316,7 +331,7 @@ test("GET /sources/:id/feeds paginates feeds", async () => {
         request(`/sources/${source.id}/feeds`, jsonInit({
           url: `https://example.com/${index + 1}.xml`,
           format: "rss",
-        })),
+        }), adminToken),
         env,
         context() as unknown as ExecutionContext,
       );
@@ -339,14 +354,14 @@ test("GET /sources/:id/feeds paginates feeds", async () => {
 });
 
 test("PATCH /feeds/:id disables a feed", async () => {
-  const { env, close } = await setup();
+  const { env, close, adminToken } = await setup();
   try {
     const created = await worker.fetch(
       request("/sources", jsonInit({
         name: "Example",
         originUrl: "https://example.com",
         kind: "rss",
-      })),
+      }), adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -355,7 +370,7 @@ test("PATCH /feeds/:id disables a feed", async () => {
       request(`/sources/${source.id}/feeds`, jsonInit({
         url: "https://example.com/feed.xml",
         format: "rss",
-      })),
+      }), adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -365,7 +380,7 @@ test("PATCH /feeds/:id disables a feed", async () => {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ enabled: false }),
-      }),
+      }, adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -378,14 +393,14 @@ test("PATCH /feeds/:id disables a feed", async () => {
 });
 
 test("PATCH /feeds/:id rejects missing enabled field", async () => {
-  const { env, close } = await setup();
+  const { env, close, adminToken } = await setup();
   try {
     const response = await worker.fetch(
       request("/feeds/missing", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({}),
-      }),
+      }, adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -399,14 +414,14 @@ test("PATCH /feeds/:id rejects missing enabled field", async () => {
 });
 
 test("DELETE /sources/:id removes source and cascades feeds", async () => {
-  const { env, close } = await setup();
+  const { env, close, adminToken } = await setup();
   try {
     const created = await worker.fetch(
       request("/sources", jsonInit({
         name: "Example",
         originUrl: "https://example.com",
         kind: "rss",
-      })),
+      }), adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
@@ -415,12 +430,12 @@ test("DELETE /sources/:id removes source and cascades feeds", async () => {
       request(`/sources/${source.id}/feeds`, jsonInit({
         url: "https://example.com/feed.xml",
         format: "rss",
-      })),
+      }), adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
     const response = await worker.fetch(
-      request(`/sources/${source.id}`, { method: "DELETE" }),
+      request(`/sources/${source.id}`, { method: "DELETE" }, adminToken),
       env,
       context() as unknown as ExecutionContext,
     );
