@@ -18,3 +18,4 @@ export * from "./repositories/agent-runs.ts";
 export * from "./repositories/articles.ts";
 export * from "./repositories/auth.ts";
 export * from "./repositories/categories.ts";
+export * from "./repositories/media.ts";

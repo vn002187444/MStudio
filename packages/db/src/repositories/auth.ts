@@ -1,3 +1,5 @@
+import type { D1Database } from "@cloudflare/workers-types";
+
 export type Role = "admin" | "editor" | "reviewer" | "seo" | "analyst";
 
 const ROLES: readonly Role[] = [
