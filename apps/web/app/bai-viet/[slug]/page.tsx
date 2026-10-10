@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ArticleHero } from "../../../components/article/article-hero";
 import { SourceBlock } from "../../../components/article/source-block";
 
 /**
@@ -26,9 +27,7 @@ export default function ArticlePage() {
         Nguồn · thời gian xuất bản sẽ hiển thị cùng story meta (MST-041).
       </p>
 
-      <div aria-hidden="true" className="article-hero-slot" role="presentation">
-        <p role="status">Hero image (đúng aspect-ratio, credit/bản quyền) sẽ hiển thị tại đây.</p>
-      </div>
+      <ArticleHero seed="article-template" />
 
       <section aria-labelledby="article-summary-heading">
         <h2 id="article-summary-heading">Quick Summary</h2>

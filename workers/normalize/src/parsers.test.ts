@@ -234,3 +234,71 @@ test("parseFeed dispatches based on content types and heuristics", async () => {
   // Even if totally invalid, should try RSS and return empty
   assert.equal(parseFeed('totally random string').length, 0);
 });
+
+
+test("parseRss extracts enclosure image url", async () => {
+  const feed = `
+    <rss version="2.0">
+      <channel>
+        <item>
+          <link>https://example.com/a</link>
+          <enclosure url="https://img.example.com/a.jpg" type="image/jpeg" length="123" />
+        </item>
+        <item>
+          <link>https://example.com/b</link>
+          <enclosure url="https://example.com/b.mp3" type="audio/mpeg" length="1" />
+        </item>
+      </channel>
+    </rss>
+  `;
+  const items = parseRss(feed);
+  assert.equal(items[0].imageUrl, "https://img.example.com/a.jpg");
+  assert.equal(items[1].imageUrl, undefined);
+});
+
+test("parseRss extracts media:content and media:thumbnail", async () => {
+  const feed = `
+    <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+      <channel>
+        <item>
+          <link>https://example.com/c</link>
+          <media:content url="https://img.example.com/c.webp" medium="image" />
+          <media:thumbnail url="https://img.example.com/c-thumb.jpg" />
+        </item>
+        <item>
+          <link>https://example.com/d</link>
+          <media:content url="javascript:alert(1)" medium="image" />
+        </item>
+      </channel>
+    </rss>
+  `;
+  const items = parseRss(feed);
+  assert.equal(items[0].imageUrl, "https://img.example.com/c.webp");
+  assert.equal(items[1].imageUrl, undefined);
+});
+
+test("parseAtom extracts image link rel=enclosure", async () => {
+  const feed = `
+    <feed xmlns="http://www.w3.org/2005/Atom">
+      <entry>
+        <id>urn:e</id>
+        <link rel="alternate" href="https://example.com/e" />
+        <link rel="enclosure" type="image/png" href="https://img.example.com/e.png" />
+      </entry>
+    </feed>
+  `;
+  const items = parseAtom(feed);
+  assert.equal(items[0].imageUrl, "https://img.example.com/e.png");
+});
+
+test("parseJsonFeed picks http image only", async () => {
+  const json = JSON.stringify({
+    items: [
+      { url: "https://example.com/f", image: "https://img.example.com/f.jpg" },
+      { url: "https://example.com/g", image: "data:image/png;base64,xx" },
+    ],
+  });
+  const items = parseJsonFeed(json);
+  assert.equal(items[0].imageUrl, "https://img.example.com/f.jpg");
+  assert.equal(items[1].imageUrl, undefined);
+});

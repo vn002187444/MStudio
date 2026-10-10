@@ -4,6 +4,12 @@ export interface ParsedFeedItem {
   title?: string;
   publishedAt?: string;
   content?: string;
+  /**
+   * Tầng A media fallback (FU-15): URL ảnh gốc từ feed (enclosure /
+   * media:content / JSONFeed image). Chỉ http(s). FE hotlink kèm credit;
+   * tầng B (rehost R2) thay thế khi có media_assets.
+   */
+  imageUrl?: string;
 }
 
 export function parseFeed(
@@ -47,6 +53,7 @@ export function parseRss(content: string): ParsedFeedItem[] {
         description === undefined
           ? undefined
           : decodeEntities(description),
+      imageUrl: extractImageUrl(block),
     });
   }
   return items;
@@ -72,6 +79,7 @@ export function parseAtom(content: string): ParsedFeedItem[] {
         updated === undefined ? undefined : decodeEntities(updated),
       content:
         summary === undefined ? undefined : decodeEntities(summary),
+      imageUrl: extractImageUrl(block),
     });
   }
   return items;
@@ -87,6 +95,7 @@ export function parseJsonFeed(content: string): ParsedFeedItem[] {
       date_published?: string;
       content_html?: string;
       content_text?: string;
+      image?: string;
     }>;
   };
   return (parsed.items ?? [])
@@ -99,6 +108,7 @@ export function parseJsonFeed(content: string): ParsedFeedItem[] {
         title: item.title,
         publishedAt: item.date_published,
         content: item.content_html ?? item.content_text,
+        imageUrl: pickHttpUrl(item.image),
       };
     })
     .filter((item): item is ParsedFeedItem => item !== undefined);
@@ -114,6 +124,60 @@ function extractTag(
   );
   const match = pattern.exec(block);
   return match ? match[1].trim() : undefined;
+}
+
+/**
+ * Chỉ chấp nhận http(s) — chặn javascript:/data: ngay tại parser (tầng A FU-15).
+ */
+function pickHttpUrl(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const url = decodeEntities(raw.trim());
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return undefined;
+    }
+    return url;
+  } catch {
+    return undefined;
+  }
+}
+
+function attr(tag: string, name: string): string | undefined {
+  const match = new RegExp(
+    `${name}\\s*=\\s*["']([^"']+)["']`,
+    "i",
+  ).exec(tag);
+  return match ? match[1] : undefined;
+}
+
+/**
+ * Tầng A media fallback: lấy URL ảnh từ enclosure / media:content /
+ * media:thumbnail / Atom link rel=enclosure. Chỉ nhận type image/* hoặc
+ * medium="image" hoặc media:thumbnail (luôn là ảnh).
+ */
+function extractImageUrl(block: string): string | undefined {
+  const tags = block.match(/<(enclosure|media:content|media:thumbnail|link)\b[^>]*\/?>/gi) ?? [];
+  for (const tag of tags) {
+    const name = /^<(\S+)/.exec(tag)?.[1].toLowerCase() ?? "";
+    const type = attr(tag, "type") ?? "";
+    const medium = attr(tag, "medium") ?? "";
+    const rel = attr(tag, "rel") ?? "";
+    if (name === "media:thumbnail") {
+      const hit = pickHttpUrl(attr(tag, "url"));
+      if (hit) return hit;
+      continue;
+    }
+    if (name === "link" && rel.toLowerCase() !== "enclosure") continue;
+    if (
+      type.toLowerCase().startsWith("image/") ||
+      medium.toLowerCase() === "image"
+    ) {
+      const hit = pickHttpUrl(attr(tag, "url") ?? attr(tag, "href"));
+      if (hit) return hit;
+    }
+  }
+  return undefined;
 }
 
 function extractAlternateLink(block: string): string | undefined {
