@@ -5,7 +5,7 @@
   "vars": {
     "ENVIRONMENT": "production",
     "LOG_LEVEL": "info",
-    "SITE_URL": "https://mstudio.vn002187444.workers.dev"
+    "SITE_URL": "https://mstudio.minds.io.vn"
   },
   "d1_databases": [
     {
