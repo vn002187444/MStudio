@@ -476,6 +476,9 @@ Nối tiếp FU-01..FU-07 trong `QA_REPORT.md` §5. Mỗi task nhỏ, một owne
 - **FU-12 Scheduler concurrency eval + ADR** (owner: commandcode, Human quyết): benchmark 3 phương án (tuần tự hiện tại / `Promise.all` / `allSettled`) trên ingest — đo D1 write contention, fetch burst, queue lag, quota impact; viết ADR chọn 1. Các nhánh `MST-007-perf` / `MST-123-optimize` giữ làm tham chiếu tới khi ADR xong. Acceptance: ADR merged + branch thua đóng.
 - **FU-13 Deploy runbook** (owner: jules): doc chuẩn các bước `wrangler queue create mstudio-events`, deploy api/analytics, `d1 migrations apply 0001–0006`, verify `/healthz` + `/recommendations`. Acceptance: người khác làm theo runbook pass từ đầu tới cuối.
 - **FU-14 CF credentials + deploy execution** (owner: human + commandcode): Human cấp credentials; cmdc chạy runbook FU-13 lên môi trường thật, báo cáo quota impact thực tế. Acceptance: API/analytics live, queue hoạt động, `/articles/:id` trả published article.
+- **FU-16 Zod forms (APPROVED 10-10-2026, owner: opencode)**: chuẩn hóa validation form Studio/Web bằng Zod shared (tiếp nối `workers/api`). Acceptance: mọi form FE dùng schema Zod chung, test pass.
+- **FU-17 Auto internal-link (APPROVED 10-10-2026, owner: commandcode)**: AI quét Entity/Topic DB, tự chèn contextual anchor khi sinh bài. Acceptance: bài xuất bản có internal links + không chèn vào tin loại trừ (nếu có).
+- **FU-18 Category pha 2 rút gọn (APPROVED 10-10-2026)**: chỉ 4 mục — Kinh doanh, Sức khỏe, Giáo dục, Xe (bỏ Thể thao, Du lịch). MST-071 (cmdc) + MST-072 (opencode).
 
 ## Final principles
 1. Trust over volume.

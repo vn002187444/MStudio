@@ -46,3 +46,9 @@ OAuth/SSO, 2FA, API keys cho đối tác, UI quản trị user (làm sau khi CMS
 2. Session: D1 opaque token SHA-256 (không JWT — ít dep, đủ dùng, hợp free-tier).
 3. Rate-limit 60 req/phút/IP cho write endpoints — OK.
 → Status: APPROVED, chuyển sang implement (migration sessions+audit_log + Hono middleware + tests).
+
+## Human decisions 10-10-2026 (policy FU-02/06/07 + token)
+- **FU-02 Zod forms: CÓ** — chuẩn hóa validation form Studio/Web bằng Zod (giống API). Task mới cho opencode.
+- **FU-06 auto internal-link: CÓ** — AI tự chèn link entity vào bài.
+- **FU-07 review-gate: KHÔNG** — tin nhạy cảm/Góc Tối không bắt buộc Human duyệt (ghi nhận rủi ro editorial, Human chịu).
+- **CF token: KỆ** — giữ nguyên, không rotate (Human chấp nhận rủi ro shell history).

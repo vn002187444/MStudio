@@ -29,6 +29,6 @@ Giải trí, Khám phá, Đời sống, Góc Tối.
 3. Owner pha 1: commandcode (DB/API) + opencode (FE binding) — tách 2 task hay 1 task chung?
 
 ## Human decisions (10-10-2026)
-1. Pha 2: GIỮ cả 6 mục (Kinh doanh, Thể thao, Sức khỏe, Giáo dục, Du lịch, Xe) — cắt sau nếu editorial quá tải.
-2. `Góc Tối`: GIỮ tên + áp review-gate bắt buộc (theo FU-07).
+1. Pha 2: GIỮ 4 mục — Kinh doanh, Sức khỏe, Giáo dục, Xe. BỎ Thể thao, Du lịch (pha sau).
+2. `Góc Tối`: GIỮ tên, KHÔNG review-gate bắt buộc (Human 10-10-2026, override).
 3. Pha 1: TÁCH 2 task — MST-071 (cmdc: bảng categories + API) + MST-072 (opencode: FE binding + fallback hardcode).
