@@ -5,6 +5,7 @@ import {
   deleteSource,
   getPublishedArticle,
   getSource,
+  listActiveCategories,
   listFeedsBySource,
   listRawItemsByStatus,
   listSources,
@@ -232,6 +233,11 @@ app.get("/articles/:id", async (c) => {
   return c.json({ article });
 });
 
+app.get("/categories", async (c) => {
+  const categories = await listActiveCategories(c.env.DB);
+  return c.json({ categories });
+});
+
 app.get("/sources", async (c) => {
   const url = new URL(c.req.url);
   const pagination = validatePagination(url.searchParams);
@@ -394,6 +400,7 @@ app.all("/recommendations", (c) =>
   c.text("Method not allowed", 405),
 );
 app.all("/articles/:id", (c) => c.text("Method not allowed", 405));
+app.all("/categories", (c) => c.text("Method not allowed", 405));
 app.all("/sources/:id", (c) => c.text("Method not allowed", 405));
 app.all("/sources/:id/allow-status", (c) =>
   c.text("Method not allowed", 405),

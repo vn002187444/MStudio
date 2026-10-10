@@ -522,6 +522,48 @@ async function seedRawItem(
   }
 }
 
+test("GET /categories returns the seeded taxonomy", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/categories"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      categories: Array<{
+        slug: string;
+        labelVi: string;
+        sort: number;
+        status: string;
+      }>;
+    };
+    assert.equal(body.categories.length, 10);
+    assert.equal(body.categories[0].slug, "moi-nhat");
+    assert.equal(body.categories[0].labelVi, "Mới nhất");
+    assert.equal(body.categories[5].slug, "ai-channel");
+    assert.equal(body.categories[9].slug, "goc-toi");
+    assert.equal(body.categories[9].labelVi, "Góc Tối");
+  } finally {
+    close();
+  }
+});
+
+test("wrong method on /categories returns 405", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/categories", { method: "POST" }),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 405);
+  } finally {
+    close();
+  }
+});
+
 test("GET /raw-items returns incoming items by default", async () => {
   const { env, db, close } = await setup();
   try {
