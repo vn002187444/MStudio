@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { apiBaseUrl } from "../../../lib/api";
 import { ArticleHero } from "../../../components/article/article-hero";
 import { SourceBlock } from "../../../components/article/source-block";
 
@@ -16,10 +17,6 @@ interface PublishedArticle {
   summary?: string;
   updatedAt: string;
   createdAt: string;
-}
-
-function apiBaseUrl(): string {
-  return process.env.MSTUDIO_API_URL ?? "http://localhost:8787";
 }
 
 async function fetchArticle(

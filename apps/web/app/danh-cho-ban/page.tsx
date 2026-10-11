@@ -1,4 +1,5 @@
 import { primaryNav } from "../../components/navigation/taxonomy";
+import { apiBaseUrl } from "../../lib/api";
 import { FollowTopicButton, HideTopicButton } from "../../components/discovery/follow-controls";
 
 /**
@@ -23,10 +24,6 @@ const poolLabels: Record<RecommendationCandidate["pool"], string> = {
   followed: "Đang theo dõi",
   related: "Liên quan",
 };
-
-function apiBaseUrl(): string {
-  return process.env.MSTUDIO_API_URL ?? "http://localhost:8787";
-}
 
 async function fetchCandidates(): Promise<RecommendationCandidate[]> {
   const response = await fetch(`${apiBaseUrl()}/recommendations?limit=10`, {

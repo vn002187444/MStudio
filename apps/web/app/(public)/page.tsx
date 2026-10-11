@@ -1,3 +1,5 @@
+import { apiBaseUrl } from "../../lib/api";
+
 /**
  * Trang chủ editorial (MST-012 shell + MST-042 templates).
  * Dữ liệu bài published từ GET /articles (mới nhất trước).
@@ -15,10 +17,6 @@ interface PublishedArticle {
 interface ArticlesResponse {
   rows: PublishedArticle[];
   nextCursor?: { createdAt: string; id: string };
-}
-
-function apiBaseUrl(): string {
-  return process.env.MSTUDIO_API_URL ?? "http://localhost:8787";
 }
 
 async function fetchLatest(limit = 10): Promise<PublishedArticle[]> {

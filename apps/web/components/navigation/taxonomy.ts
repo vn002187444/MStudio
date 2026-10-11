@@ -33,9 +33,7 @@ interface CategoryApiRow {
   status: string;
 }
 
-function apiBaseUrl(): string {
-  return process.env.MSTUDIO_API_URL ?? "http://localhost:8787";
-}
+import { apiBaseUrl } from "../../lib/api";
 
 /**
  * MST-072: nav lấy từ GET /categories (DB-backed, MST-071), fallback về

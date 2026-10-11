@@ -3,6 +3,7 @@
  * Lý do: tránh CORS browser→workers/api, giữ API base URL phía server.
  * Chỉ forward eventType trong allowlist PLAN (follow/hide/share/save/...).
  */
+import { apiBaseUrl } from "../../../lib/api";
 const ALLOWED_EVENT_TYPES = new Set([
   "open_article",
   "meaningful_read",
@@ -11,10 +12,6 @@ const ALLOWED_EVENT_TYPES = new Set([
   "share",
   "save",
 ]);
-
-function apiBaseUrl(): string {
-  return process.env.MSTUDIO_API_URL ?? "http://localhost:8787";
-}
 
 interface IncomingEvent {
   eventType?: unknown;
