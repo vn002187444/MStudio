@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { parseSearchQuery } from "../../lib/validation";
 
 /**
  * Search UX (MST-051) — form GET giữ state trong URL (?q=), server-rendered.
@@ -17,7 +18,10 @@ export default async function SearchPage({
   searchParams?: Promise<Record<string, string | undefined>> | Record<string, string | undefined>;
 }) {
   const params = await Promise.resolve(searchParams ?? {});
-  const query = (params.q ?? "").trim();
+  const rawQuery = params.q ?? "";
+  const query = parseSearchQuery(rawQuery) ?? "";
+  const queryTooLong =
+    typeof rawQuery === "string" && rawQuery.trim().length > 200;
 
   return (
     <main className="home-main" id="main-content">
@@ -54,7 +58,9 @@ export default async function SearchPage({
         <h2 id="search-results-heading">Kết quả</h2>
         {query === "" ? (
           <p role="status" style={{ color: "var(--gray)" }}>
-            Nhập từ khóa ở trên để tìm kiếm.
+            {queryTooLong
+              ? "Từ khóa quá dài (tối đa 200 ký tự) — rút ngắn rồi tìm lại."
+              : "Nhập từ khóa ở trên để tìm kiếm."}
           </p>
         ) : (
           <p role="status" style={{ color: "var(--gray)" }}>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { firstError, sourceUrlSchema } from "../../lib/validation";
 
 /**
  * Article Editor (MST-040) — main canvas + inspector + desktop/mobile preview.
@@ -41,6 +42,7 @@ export default function EditorPage() {
   const [blocks, setBlocks] = useState<Block[]>([newBlock("paragraph")]);
   const [sources, setSources] = useState<string[]>([]);
   const [sourceInput, setSourceInput] = useState("");
+  const [sourceError, setSourceError] = useState<string | undefined>(undefined);
   const [preview, setPreview] = useState<PreviewMode>("desktop");
 
   function updateBlock(id: string, text: string) {
@@ -52,8 +54,13 @@ export default function EditorPage() {
   }
 
   function addSource() {
-    const url = sourceInput.trim();
-    if (!url) return;
+    const result = sourceUrlSchema.safeParse(sourceInput);
+    if (!result.success) {
+      setSourceError(firstError(result));
+      return;
+    }
+    setSourceError(undefined);
+    const url: string = result.data;
     setSources((current) => [...current, url]);
     setSourceInput("");
   }
@@ -154,6 +161,8 @@ export default function EditorPage() {
             <label htmlFor="editor-source" style={{ display: "block", marginBottom: 4 }}>Thêm nguồn (URL)</label>
             <div style={{ display: "flex", gap: 8 }}>
               <input
+                aria-describedby={sourceError ? "editor-source-error" : undefined}
+                aria-invalid={sourceError !== undefined}
                 id="editor-source"
                 onChange={(event) => setSourceInput(event.target.value)}
                 placeholder="https://…"
@@ -166,6 +175,11 @@ export default function EditorPage() {
                 Thêm
               </button>
             </div>
+            {sourceError ? (
+              <p id="editor-source-error" role="alert" style={{ color: "var(--breaking-red)", margin: "4px 0 0" }}>
+                {sourceError}
+              </p>
+            ) : null}
           </section>
         </div>
 
