@@ -344,6 +344,9 @@ importers:
 
   packages/observability:
     devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^5.20261008.1
+        version: 5.20261008.1
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4

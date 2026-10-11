@@ -4,7 +4,7 @@ import {
   withCorrelationId,
   type LogLevel,
 } from "@mstudio/observability";
-import { processEventBatch } from "./analytics.ts";
+import { countModelUsage, processEventBatch } from "./analytics.ts";
 
 export default {
   async fetch(
@@ -31,6 +31,21 @@ export default {
 
     if (tagged.method !== "GET" && tagged.method !== "HEAD") {
       return new Response("Method not allowed", { status: 405 });
+    }
+
+    if (url.pathname === "/internal/model-usage") {
+      const requestedWindow = Number(
+        url.searchParams.get("windowHours"),
+      );
+      const windowHours =
+        Number.isFinite(requestedWindow) && requestedWindow > 0
+          ? requestedWindow
+          : 24;
+      const modelUsage = await countModelUsage(
+        env.DB,
+        windowHours,
+      );
+      return Response.json({ modelUsage, windowHours });
     }
 
     logger.info("request", { path: url.pathname, method: tagged.method });

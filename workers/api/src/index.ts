@@ -27,8 +27,19 @@ import type {
   UpdateSourceAllowStatusRequest,
 } from "@mstudio/contracts";
 import {
+  InMemoryQuotaGuard,
+  type QuotaGuard,
+} from "@mstudio/observability";
+import {
+  createCountingD1,
+  createCountingQueueProducer,
   createLogger,
   getCorrelationId,
+  recordAnalyticsEvents,
+  recordWorkersRequest,
+  quotaModeFromEnv,
+  thresholdsFromEnv,
+  withCorrelationId,
   type LogLevel,
   type Logger,
 } from "@mstudio/observability";
@@ -117,8 +128,63 @@ export type AppEnv = {
     correlationId: string;
     logger: Logger;
     session?: SessionIdentity;
+    quotaGuard: QuotaGuard;
   };
 };
+
+// Module-level quota guard: cumulative usage survives across
+// requests within an isolate. Thresholds come from env, so a
+// changed QUOTA_GUARD_* fingerprint (config rollout, tests)
+// re-initializes the guard.
+const quotaGuardState: {
+  guard?: InMemoryQuotaGuard;
+  fingerprint?: string;
+} = {};
+
+function quotaGuardFor(env: Env): InMemoryQuotaGuard {
+  const envRecord = env as unknown as Record<
+    string,
+    string | undefined
+  >;
+  const fingerprint = JSON.stringify(
+    Object.fromEntries(
+      Object.entries(envRecord)
+        .filter(
+          ([key]) =>
+            key.startsWith("QUOTA_GUARD_") || key === "QUOTA_MODE",
+        )
+        .sort(),
+    ),
+  );
+  if (
+    !quotaGuardState.guard ||
+    fingerprint !== quotaGuardState.fingerprint
+  ) {
+    quotaGuardState.guard = new InMemoryQuotaGuard(
+      thresholdsFromEnv(envRecord),
+    );
+    quotaGuardState.fingerprint = fingerprint;
+  }
+  return quotaGuardState.guard;
+}
+
+// Wraps DB and queue bindings so every D1 read/write and
+// queue operation counts against the quota guard.
+function wrapWorkerEnv(env: Env): Env {
+  const guard = quotaGuardFor(env);
+  return {
+    ...env,
+    DB: createCountingD1(env.DB, guard),
+    ...(env.EVENTS_QUEUE
+      ? {
+          EVENTS_QUEUE: createCountingQueueProducer(
+            env.EVENTS_QUEUE,
+            guard,
+          ),
+        }
+      : {}),
+  } as Env;
+}
 
 const app = new Hono<AppEnv>();
 
@@ -129,8 +195,11 @@ app.use("*", async (c, next) => {
     logLevel: (c.env.LOG_LEVEL ?? "info") as LogLevel,
     correlationId,
   });
+  const quotaGuard = quotaGuardFor(c.env);
+  recordWorkersRequest(quotaGuard);
   c.set("correlationId", correlationId);
   c.set("logger", logger);
+  c.set("quotaGuard", quotaGuard);
   await next();
 });
 
@@ -244,6 +313,27 @@ app.post("/events", async (c) => {
     );
   }
   const events = validation.value;
+  const quotaGuard = c.get("quotaGuard");
+  const forcedMode = quotaModeFromEnv(
+    c.env as unknown as Record<string, string | undefined>,
+  );
+  const degraded =
+    forcedMode === "SAFE" || forcedMode === "STOP" ||
+    !quotaGuard.canPerform("analyticsEvents");
+  if (degraded) {
+    // SAFE and STOP drop analytics events first (PLAN.md:
+    // reduce analytics before crawl/reprocessing/embeddings);
+    // published content keeps being served.
+    recordAnalyticsEvents(quotaGuard, events.length);
+    c.get("logger")?.info("reader_events_dropped_quota", {
+      events: events.length,
+    });
+    const dropped: ReaderEventsIngestResponse = {
+      accepted: 0,
+      sampledOut: events.length,
+    };
+    return c.json(dropped, 202);
+  }
   const samplingRate = readerEventSamplingRate(c.env);
   const { accepted, sampledOut } = partitionReaderEvents(
     events,
@@ -505,4 +595,12 @@ app.onError((error, c) => {
   );
 });
 
-export default app;
+export default {
+  fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<Response> {
+    return Promise.resolve(app.fetch(request, wrapWorkerEnv(env), ctx));
+  },
+};

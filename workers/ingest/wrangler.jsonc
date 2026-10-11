@@ -10,7 +10,8 @@
   },
   "vars": {
     "ENVIRONMENT": "production",
-    "LOG_LEVEL": "info"
+    "LOG_LEVEL": "info",
+    "QUOTA_MODE": "NORMAL"
   },
   "d1_databases": [
     {

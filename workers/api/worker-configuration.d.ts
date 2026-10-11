@@ -9,6 +9,7 @@ interface __BaseEnv_Env {
 	LOG_LEVEL: "info";
 	READER_EVENT_SAMPLING_RATE: "0.05";
 	GEMINI_API_KEY: "";
+	QUOTA_MODE: "NORMAL";
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
@@ -21,7 +22,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "ENVIRONMENT" | "LOG_LEVEL" | "READER_EVENT_SAMPLING_RATE" | "GEMINI_API_KEY">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "ENVIRONMENT" | "LOG_LEVEL" | "READER_EVENT_SAMPLING_RATE" | "GEMINI_API_KEY" | "QUOTA_MODE">> {}
 }
 declare module "*.txt" {
 	const value: string;

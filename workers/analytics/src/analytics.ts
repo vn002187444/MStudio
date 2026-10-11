@@ -1,3 +1,4 @@
+import type { D1Database } from "@cloudflare/workers-types";
 import type { ReaderEventMessage } from "@mstudio/contracts";
 import { createReaderEvents, upsertReaderProfile } from "@mstudio/db";
 import { flagsFromEnv, type Logger, type QuotaMode } from "@mstudio/observability";
@@ -7,6 +8,27 @@ export interface AnalyticsOutcome {
   profilesUpdated: number;
   dropped: number;
   reason?: string;
+}
+
+/**
+ * Counts model usage (agent runs) within a rolling
+ * window — served on the internal /internal/model-usage
+ * endpoint for QuotaGuard's modelUsage metric.
+ */
+export async function countModelUsage(
+  db: D1Database,
+  windowHours: number,
+): Promise<number> {
+  const cutoff = new Date(
+    Date.now() - windowHours * 60 * 60 * 1000,
+  ).toISOString();
+  const row = await db
+    .prepare(
+      "SELECT COUNT(*) AS count FROM agent_runs WHERE created_at >= ?",
+    )
+    .bind(cutoff)
+    .first<{ count: number }>();
+  return row?.count ?? 0;
 }
 
 export function quotaModeFromEnv(
