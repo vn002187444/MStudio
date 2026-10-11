@@ -11,17 +11,18 @@ export const size = { width: 1200, height: 630 };
 
 let cachedFont: ArrayBuffer | undefined;
 
-async function interFont(): Promise<ArrayBuffer> {
-  if (!cachedFont) {
+async function interFont(): Promise<ArrayBuffer | undefined> {
+  if (cachedFont) return cachedFont;
+  try {
     const response = await fetch(
       "https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-700-normal.woff2",
     );
-    if (!response.ok) {
-      throw new Error(`font fetch ${response.status}`);
-    }
+    if (!response.ok) return undefined;
     cachedFont = await response.arrayBuffer();
+    return cachedFont;
+  } catch {
+    return undefined;
   }
-  return cachedFont;
 }
 
 interface PublishedArticle {
@@ -55,6 +56,7 @@ export default async function OgImage({
   const title = article?.title ?? "MStudio Channel";
   const summary = article?.summary ?? "Tin tức evidence-first, biên tập có kiểm chứng.";
 
+  const font = await interFont();
   return new ImageResponse(
     (
       <div
@@ -83,7 +85,7 @@ export default async function OgImage({
     ),
     {
       ...size,
-      fonts: [{ name: "Inter", data: await interFont(), weight: 700 }],
+      ...(font ? { fonts: [{ name: "Inter", data: font, weight: 700 as const }] } : {}),
     },
   );
 }
