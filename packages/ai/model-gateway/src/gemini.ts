@@ -52,7 +52,10 @@ export class GeminiAdapter implements ModelProvider {
     this.apiKey = options.apiKey;
     this.baseUrl =
       options.baseUrl ?? GEMINI_DEFAULT_BASE_URL;
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    // Bọc fetch: tham chiếu trần `fetch` mất `this` trên workerd
+    // (illegal invocation) — chỉ tái hiện ở runtime, tests Node vẫn xanh.
+    this.fetchImpl =
+      options.fetchImpl ?? ((...args: Parameters<typeof fetch>) => fetch(...args));
     this.timeoutMs =
       options.timeoutMs ?? GEMINI_DEFAULT_TIMEOUT_MS;
   }

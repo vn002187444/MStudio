@@ -112,14 +112,20 @@ app.post("/articles/:id/publish", async (c) => {
     if (result.alreadyPublished) {
       return c.json(result, 200);
     }
-    const url = canonicalizeUrl(
-      `${c.env.SITE_URL}/articles/${id}`,
-    );
-    const sitemapEvent = buildSitemapEvent(
-      "article_published",
-      url,
-      result.article.updatedAt,
-    );
+    // Sitemap event là side-effect: không được làm fail publish đã ghi DB.
+    let sitemapEvent: unknown = null;
+    try {
+      const siteUrl = c.env.SITE_URL;
+      if (!siteUrl) throw new Error("SITE_URL is not configured");
+      const url = canonicalizeUrl(`${siteUrl}/articles/${id}`);
+      sitemapEvent = buildSitemapEvent(
+        "article_published",
+        url,
+        result.article.updatedAt,
+      );
+    } catch {
+      sitemapEvent = null;
+    }
     return c.json({ ...result, sitemapEvent }, 201);
   } catch (error) {
     if (error instanceof TransitionError) {
