@@ -14,8 +14,7 @@ let cachedFont: ArrayBuffer | undefined;
 async function interFont(): Promise<ArrayBuffer> {
   if (!cachedFont) {
     const response = await fetch(
-      "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2",
-      { cf: { cacheTtl: 86400 } } as RequestInit,
+      "https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-700-normal.woff2",
     );
     if (!response.ok) {
       throw new Error(`font fetch ${response.status}`);
