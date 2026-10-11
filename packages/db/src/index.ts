@@ -17,6 +17,16 @@ export * from "./repositories/entities.ts";
 export * from "./repositories/agent-runs.ts";
 export * from "./repositories/articles.ts";
 export * from "./repositories/editorial-decisions.ts";
+export {
+  applyInternalLinks,
+  MAX_INTERNAL_LINKS,
+  resolveLinkCandidates,
+} from "./internal-links.ts";
+export type {
+  InternalLinkCandidate,
+  InternalLinkOptions,
+} from "./internal-links.ts";
+export type { AddRevisionOptions } from "./repositories/articles.ts";
 export * from "./repositories/auth.ts";
 export * from "./repositories/categories.ts";
 export * from "./repositories/media.ts";
