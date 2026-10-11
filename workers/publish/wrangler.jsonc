@@ -4,7 +4,8 @@
   "compatibility_date": "2026-10-08",
   "vars": {
     "ENVIRONMENT": "production",
-    "LOG_LEVEL": "info"
+    "LOG_LEVEL": "info",
+    "SITE_URL": "https://mstudio.minds.io.vn"
   },
   "d1_databases": [
     {
