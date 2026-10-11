@@ -321,6 +321,27 @@ h3 {
   padding: 0;
 }
 
+/* ---- Table of Contents (proposal §7): chỉ desktop, sticky ---- */
+
+.article-toc {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .article-toc {
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    display: block;
+    float: right;
+    margin: 0 0 16px 24px;
+    max-width: 260px;
+    padding: 16px;
+    position: sticky;
+    top: var(--header-offset);
+  }
+}
+
 .skeleton-pulse {
   animation: skeleton-pulse var(--motion-duration-slow) var(--motion-ease-standard) infinite alternate;
   background: var(--border);

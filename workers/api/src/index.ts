@@ -7,6 +7,7 @@ import {
   getRawItem,
   getSource,
   listActiveCategories,
+  listArticlesByStatus,
   listFeedsBySource,
   listPublishedArticles,
   listRawItemsByStatus,
@@ -19,6 +20,7 @@ import {
   type ReaderEventMessage,
   type ReaderEventsIngestResponse,
 } from "@mstudio/contracts";
+import { isArticleStatus } from "@mstudio/contracts";
 import type {
   ApiErrorResponse,
   CreateFeedRequest,
@@ -56,6 +58,7 @@ import {
   auditChanges,
   rateLimit,
   requireRole,
+  verifyBearer,
 } from "./auth.ts";
 import {
   buildDraftGateway,
@@ -394,7 +397,37 @@ app.get("/articles", async (c) => {
       pagination.errors,
     );
   }
-  const page = await listPublishedArticles(c.env.DB, pagination.value);
+  const statusParam = url.searchParams.get("status");
+  if (statusParam === null) {
+    const page = await listPublishedArticles(c.env.DB, pagination.value);
+    return c.json(page);
+  }
+  // Editorial queue (CMS nội bộ): yêu cầu Editor+ — reader surfaces
+  // không truyền status nên vẫn public như cũ.
+  const identity = await verifyBearer(
+    c.req.raw.headers.get("authorization"),
+    c.env.DB,
+  );
+  if (!identity) {
+    throw new ApiError("UNAUTHORIZED", 401, "bearer token required");
+  }
+  if (!["admin", "editor", "reviewer"].includes(identity.role)) {
+    throw new ApiError(
+      "FORBIDDEN",
+      403,
+      "requires role: admin, editor, reviewer",
+    );
+  }
+  if (!isArticleStatus(statusParam)) {
+    throw badRequest("VALIDATION_FAILED", "invalid article status", {
+      status: ["must be a valid article status"],
+    });
+  }
+  const page = await listArticlesByStatus(
+    c.env.DB,
+    statusParam,
+    pagination.value,
+  );
   return c.json(page);
 });
 

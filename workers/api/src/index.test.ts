@@ -1074,3 +1074,79 @@ test("wrong method on /articles/:id returns 405", async () => {
     close();
   }
 });
+
+test("GET /articles?status= requires a bearer token", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/articles?status=drafted"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 401);
+  } finally {
+    close();
+  }
+});
+
+test("GET /articles?status= rejects a non-editorial role", async () => {
+  const { env, db, close } = await setup();
+  try {
+    const { token } = await createSession(db, {
+      userId: "analyst-user",
+      role: "analyst",
+      expiresAt: "2099-01-01T00:00:00.000Z",
+    });
+    const response = await worker.fetch(
+      request("/articles?status=drafted", undefined, token),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 403);
+  } finally {
+    close();
+  }
+});
+
+test("GET /articles?status= rejects an unknown status", async () => {
+  const { env, close, adminToken } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/articles?status=bogus", undefined, adminToken),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 400);
+  } finally {
+    close();
+  }
+});
+
+test("GET /articles?status= lists the editorial queue for editors", async () => {
+  const { env, db, close, adminToken } = await setup();
+  try {
+    await createStory(db, {
+      id: "story-queue",
+      title: "Queue Story",
+      now: "2026-01-01T00:00:00.000Z",
+    });
+    await createArticle(db, {
+      id: "art-queue",
+      storyId: "story-queue",
+      now: "2026-01-01T00:00:00.000Z",
+    });
+    const response = await worker.fetch(
+      request("/articles?status=drafted", undefined, adminToken),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      rows: Array<{ id: string; status: string }>;
+    };
+    assert.ok(body.rows.some((row) => row.id === "art-queue"));
+    assert.ok(body.rows.every((row) => row.status === "drafted"));
+  } finally {
+    close();
+  }
+});

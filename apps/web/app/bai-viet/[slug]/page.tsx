@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { apiBaseUrl } from "../../../lib/api";
 import { ArticleHero } from "../../../components/article/article-hero";
+import {
+  extractHeadings,
+  TableOfContents,
+} from "../../../components/article/table-of-contents";
 import { SourceBlock } from "../../../components/article/source-block";
 
 /**
@@ -61,6 +65,38 @@ function renderBody(body: string): string[] {
     .filter((paragraph) => paragraph.length > 0);
 }
 
+function BodyWithToc({ body }: { body: string }) {
+  const headings = extractHeadings(body);
+  let headingCursor = 0;
+  const blocks = renderBody(body).map((paragraph, index) => {
+    const headingMatch = /^(#{2,3})\s+(.+)$/.exec(paragraph.trim());
+    if (headingMatch) {
+      const heading = headings[headingCursor];
+      headingCursor += 1;
+      if (!heading) return null;
+      return heading.level === 3 ? (
+        <h3 id={heading.id} key={index}>
+          {heading.text}
+        </h3>
+      ) : (
+        <h2 id={heading.id} key={index}>
+          {heading.text}
+        </h2>
+      );
+    }
+    return <p key={index}>{paragraph}</p>;
+  });
+  return (
+    <>
+      <TableOfContents headings={headings} />
+      <section aria-labelledby="article-body-heading">
+        <h2 id="article-body-heading">Nội dung</h2>
+        {blocks}
+      </section>
+    </>
+  );
+}
+
 export default async function ArticlePage({
   params,
 }: {
@@ -89,12 +125,7 @@ export default async function ArticlePage({
 
       <ArticleHero seed={article.id} />
 
-      <section aria-labelledby="article-body-heading">
-        <h2 id="article-body-heading">Nội dung</h2>
-        {renderBody(article.body).map((paragraph, index) => (
-          <p key={index}>{paragraph}</p>
-        ))}
-      </section>
+      <BodyWithToc body={article.body} />
 
       <SourceBlock sources={[]} />
 

@@ -1,7 +1,7 @@
 /**
- * Studio primary navigation (MST-005 placeholder).
- * Full Newsroom modules arrive in later tasks — only Overview and Incoming
- * have routes; the rest are disabled placeholders.
+ * Studio primary navigation.
+ * Newsroom review/publish/sources routes đã live; các module còn lại
+ * (clusters, drafts, SEO, audience, media, automation, settings) vẫn chờ.
  */
 const items = [
   { href: "/", label: "Overview" },
@@ -9,8 +9,9 @@ const items = [
   { href: "#", label: "Story Clusters", disabled: true },
   { href: "/newsroom/research", label: "Research Desk" },
   { href: "#", label: "Drafts", disabled: true },
-  { href: "#", label: "Needs Review", disabled: true },
-  { href: "#", label: "Sources", disabled: true },
+  { href: "/newsroom/needs-review", label: "Needs Review" },
+  { href: "/newsroom/published", label: "Published" },
+  { href: "/newsroom/sources", label: "Sources" },
   { href: "/ai-desk", label: "AI Desk" },
   { href: "#", label: "SEO & Discovery", disabled: true },
   { href: "#", label: "Audience", disabled: true },

@@ -4,6 +4,7 @@
  * cursor (created_at, id). Types dưới đây mirror packages/contracts (TODO:
  * import trực tiếp khi MST-002 wire workspace dep cho apps/studio).
  */
+import { AcceptRejectButtons, TokenGate } from "../../../components/cms-actions";
 interface KeysetCursor {
   createdAt: string;
   id: string;
@@ -124,6 +125,7 @@ export default async function IncomingPage({
       <p style={{ color: "var(--gray)", margin: "0 0 16px" }}>
         {incoming.rows.length} tin — nguồn, thời gian và trạng thái bên dưới.
       </p>
+      <TokenGate>
       <table style={{ borderCollapse: "collapse", width: "100%" }}>
         <caption style={{ textAlign: "left" }}>Tin incoming chờ xử lý</caption>
         <thead>
@@ -132,6 +134,7 @@ export default async function IncomingPage({
             <th scope="col" style={{ textAlign: "left" }}>Nguồn</th>
             <th scope="col" style={{ textAlign: "left" }}>Thời gian</th>
             <th scope="col" style={{ textAlign: "left" }}>Trạng thái</th>
+            <th scope="col" style={{ textAlign: "left" }}>Duyệt</th>
           </tr>
         </thead>
         <tbody>
@@ -145,10 +148,14 @@ export default async function IncomingPage({
               <td>{sourceNames.get(item.sourceId) ?? item.sourceId.slice(0, 8)}</td>
               <td>{formatTime(item.publishedAt ?? item.fetchedAt)}</td>
               <td>{item.status}</td>
+              <td>
+                <AcceptRejectButtons rawItemId={item.id} />
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      </TokenGate>
       {incoming.nextCursor ? (
         <p style={{ marginTop: 16 }}>
           <a className="btn-primary" href={nextPageHref(incoming.nextCursor)} style={{ textDecoration: "none" }}>

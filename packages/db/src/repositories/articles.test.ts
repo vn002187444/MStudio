@@ -5,6 +5,7 @@ import {
   createArticle,
   createStory,
   getArticle,
+  listArticlesByStatus,
   listPublishedArticles,
   listRevisions,
   publishArticle,
@@ -296,8 +297,7 @@ test("retraction is terminal", async () => {
   }
 });
 
-test("listPublishedArticles returns newest first with keyset pagination", async () => {
-  const { db, close } = await openMigratedTestDb();
+test("listPublishedArticles returns newest first with keyset pagination", async () => {  const { db, close } = await openMigratedTestDb();
   try {
     await createStory(db, { id: "story-1", title: "Story", now: NOW });
     const seeds = [
@@ -334,6 +334,46 @@ test("listPublishedArticles returns newest first with keyset pagination", async 
     assert.equal(page2.rows.length, 1);
     assert.equal(page2.rows[0].title, "First");
     assert.equal(page2.nextCursor, undefined);
+  } finally {
+    close();
+  }
+});
+
+test("listArticlesByStatus filters the editorial queue oldest first", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    await createStory(db, { id: "story-q", title: "Queue", now: NOW });
+    await createArticle(db, {
+      id: "draft-old",
+      storyId: "story-q",
+      status: "drafted",
+      now: NOW,
+    });
+    await createArticle(db, {
+      id: "draft-new",
+      storyId: "story-q",
+      status: "drafted",
+      now: LATER,
+    });
+    await createArticle(db, {
+      id: "review-1",
+      storyId: "story-q",
+      status: "human_review",
+      now: NOW,
+    });
+    const drafts = await listArticlesByStatus(db, "drafted", { limit: 1 });
+    assert.equal(drafts.rows.length, 1);
+    assert.equal(drafts.rows[0].id, "draft-old");
+    assert.ok(drafts.nextCursor);
+    const page2 = await listArticlesByStatus(db, "drafted", {
+      limit: 1,
+      cursor: drafts.nextCursor,
+    });
+    assert.equal(page2.rows.length, 1);
+    assert.equal(page2.rows[0].id, "draft-new");
+    const reviews = await listArticlesByStatus(db, "human_review");
+    assert.equal(reviews.rows.length, 1);
+    assert.equal(reviews.rows[0].id, "review-1");
   } finally {
     close();
   }

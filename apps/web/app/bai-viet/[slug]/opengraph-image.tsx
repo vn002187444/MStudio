@@ -1,0 +1,90 @@
+import { ImageResponse } from "@vercel/og";
+import { apiBaseUrl } from "../../../lib/api";
+
+/**
+ * OG image động cho bài viết (proposal §7): render từ tiêu đề + brand,
+ * monochrome editorial đúng tokens. Edge runtime (workerd).
+ */
+export const runtime = "edge";
+export const contentType = "image/png";
+export const size = { width: 1200, height: 630 };
+
+let cachedFont: ArrayBuffer | undefined;
+
+async function interFont(): Promise<ArrayBuffer> {
+  if (!cachedFont) {
+    const response = await fetch(
+      "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2",
+      { cf: { cacheTtl: 86400 } } as RequestInit,
+    );
+    if (!response.ok) {
+      throw new Error(`font fetch ${response.status}`);
+    }
+    cachedFont = await response.arrayBuffer();
+  }
+  return cachedFont;
+}
+
+interface PublishedArticle {
+  title: string;
+  summary?: string;
+}
+
+async function fetchTitle(slug: string): Promise<PublishedArticle | undefined> {
+  try {
+    const response = await fetch(
+      `${apiBaseUrl()}/articles/${encodeURIComponent(slug)}`,
+      { next: { revalidate: 300 } },
+    );
+    if (!response.ok) return undefined;
+    const payload = (await response.json()) as {
+      article?: PublishedArticle;
+    };
+    return payload.article;
+  } catch {
+    return undefined;
+  }
+}
+
+export default async function OgImage({
+  params,
+}: {
+  params: Promise<{ slug: string }> | { slug: string };
+}) {
+  const { slug } = await Promise.resolve(params);
+  const article = await fetchTitle(slug);
+  const title = article?.title ?? "MStudio Channel";
+  const summary = article?.summary ?? "Tin tức evidence-first, biên tập có kiểm chứng.";
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          alignItems: "flex-start",
+          background: "#090909",
+          color: "#FFFFFF",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          justifyContent: "space-between",
+          padding: 80,
+          width: "100%",
+        }}
+      >
+        <div style={{ color: "#FFFFFF", fontSize: 32, letterSpacing: 4 }}>
+          MSTUDIO CHANNEL
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.15 }}>
+            {title.length > 110 ? `${title.slice(0, 110)}…` : title}
+          </div>
+          <div style={{ color: "#E3E3E3", fontSize: 30 }}>{summary}</div>
+        </div>
+      </div>
+    ),
+    {
+      ...size,
+      fonts: [{ name: "Inter", data: await interFont(), weight: 700 }],
+    },
+  );
+}

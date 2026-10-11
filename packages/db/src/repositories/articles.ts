@@ -187,8 +187,38 @@ export async function listArticlesByStory(
   return paginate(results.map(toArticleRow), limit);
 }
 
-export interface PublishedArticleRecord {
-  id: string;
+/**
+ * Editorial queue (CMS): bài theo status, cũ nhất trước để duyệt.
+ * Keyset (created_at ASC, id ASC). Chỉ dùng nội bộ có auth — reader
+ * surfaces dùng listPublishedArticles.
+ */
+export async function listArticlesByStatus(
+  db: D1Database,
+  status: ArticleStatus,
+  input: PageInput = {},
+): Promise<PagedRows<ArticleRecord>> {
+  const limit = pageSize(input.limit);
+  const results = input.cursor
+    ? (
+        await db
+          .prepare(
+            `${ARTICLE_SELECT} WHERE status = ? AND (created_at, id) > (?, ?) ORDER BY created_at ASC, id ASC LIMIT ?`,
+          )
+          .bind(status, input.cursor.createdAt, input.cursor.id, limit + 1)
+          .all<ArticleRowRaw>()
+      ).results
+    : (
+        await db
+          .prepare(
+            `${ARTICLE_SELECT} WHERE status = ? ORDER BY created_at ASC, id ASC LIMIT ?`,
+          )
+          .bind(status, limit + 1)
+          .all<ArticleRowRaw>()
+      ).results;
+  return paginate(results.map(toArticleRow), limit);
+}
+
+export interface PublishedArticleRecord {  id: string;
   storyId: string;
   status: ArticleStatus;
   title: string;
