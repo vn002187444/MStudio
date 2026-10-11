@@ -52,9 +52,12 @@ export default async function OgImage({
   params: Promise<{ slug: string }> | { slug: string };
 }) {
   const { slug } = await Promise.resolve(params);
-  const article = await fetchTitle(slug);
-  const title = article?.title ?? "MStudio Channel";
-  const summary = article?.summary ?? "Tin tức evidence-first, biên tập có kiểm chứng.";
+  // Tạm thời: title tĩnh để cô lập lỗi 500 (nghi fetch `next:revalidate`
+  // trong route OG). Khôi phục fetchTitle khi route xanh.
+  const title = "MStudio Channel";
+  const summary: string | undefined = undefined;
+  void fetchTitle;
+  void slug;
 
   const font = await interFont();
   return new ImageResponse(
