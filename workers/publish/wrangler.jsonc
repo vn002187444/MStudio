@@ -4,8 +4,7 @@
   "compatibility_date": "2026-10-08",
   "vars": {
     "ENVIRONMENT": "production",
-    "LOG_LEVEL": "info",
-    "GEMINI_API_KEY": ""
+    "LOG_LEVEL": "info"
   },
   "d1_databases": [
     {

@@ -5,7 +5,6 @@
   "vars": {
     "ENVIRONMENT": "production",
     "LOG_LEVEL": "info",
-    "GEMINI_API_KEY": "",
     "QUOTA_MODE": "NORMAL"
   },
   "d1_databases": [
