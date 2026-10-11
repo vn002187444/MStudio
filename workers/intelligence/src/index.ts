@@ -2,7 +2,12 @@ import { listRawItemsByStatus } from "@mstudio/db";
 import type { PageInput } from "@mstudio/contracts";
 import {
   createLogger,
+  degradationForMode,
+  effectiveQuotaMode,
   flagsFromEnv,
+  InMemoryQuotaGuard,
+  quotaModeFromEnv,
+  thresholdsFromEnv,
   withCorrelationId,
   type LogLevel,
   type Logger,
@@ -27,10 +32,26 @@ export async function runClusteringStage(
   if (!db) {
     throw new Error("DB binding must be configured");
   }
-  const flags = flagsFromEnv(
-    env as unknown as Record<string, string | undefined>,
+  const envRecord = env as unknown as Record<
+    string,
+    string | undefined
+  >;
+  const guard = new InMemoryQuotaGuard(
+    thresholdsFromEnv(envRecord),
   );
-  const vectorizeEnabled = flags.vectorizeEnabled === true;
+  const mode = effectiveQuotaMode(
+    guard.mode(),
+    quotaModeFromEnv(envRecord),
+  );
+  const degradation = degradationForMode(mode);
+  const flags = flagsFromEnv(
+    envRecord,
+  );
+  // SAFE and STOP turn off the embeddings path (PLAN.md:
+  // reduce embeddings before crawl/reprocessing).
+  const vectorizeEnabled =
+    flags.vectorizeEnabled === true &&
+    !degradation.disableEmbeddings;
   const pageSize = options.pageSize ?? DEFAULT_CLUSTER_PAGE_SIZE;
   let itemsScanned = 0;
   let candidates = 0;
@@ -66,6 +87,7 @@ export async function runClusteringStage(
     candidates,
     clusteredItems,
     vectorizeEnabled,
+    quotaMode: mode,
   });
   return { itemsScanned, candidates, clusteredItems, vectorizeEnabled };
 }

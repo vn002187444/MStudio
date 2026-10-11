@@ -1,5 +1,15 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import { updateFeedFetchResult } from "@mstudio/db";
+import {
+  createCountingD1,
+  createCountingQueueProducer,
+  createCountingR2Bucket,
+  effectiveQuotaMode,
+  InMemoryQuotaGuard,
+  ingestThrottleForMode,
+  quotaModeFromEnv,
+  thresholdsFromEnv,
+} from "@mstudio/observability";
 import type { Logger } from "@mstudio/observability";
 
 export interface FetchableFeed {
@@ -187,7 +197,40 @@ export async function runScheduler(
   if (!db) {
     throw new Error("DB binding must be configured");
   }
-  const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
+  const envRecord = env as unknown as Record<
+    string,
+    string | undefined
+  >;
+  const guard = new InMemoryQuotaGuard(
+    thresholdsFromEnv(envRecord),
+  );
+  const mode = effectiveQuotaMode(
+    guard.mode(),
+    quotaModeFromEnv(envRecord),
+  );
+  const defaultPageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
+  const throttle = ingestThrottleForMode(mode, defaultPageSize);
+  if (throttle.skipAll) {
+    // STOP defers the whole run — the cron fires again
+    // next interval, nothing is lost.
+    logger.info("ingest_deferred_quota", { mode });
+    return { feeds: 0, enqueued: 0, duplicates: 0, failed: 0 };
+  }
+  // SAFE halves the feeds per run, loosening the effective
+  // ingest cadence; counting wrappers track D1/R2/queue
+  // usage against the guard within the run.
+  const pageSize = throttle.maxFeedsPerRun ?? defaultPageSize;
+  const countingDb = createCountingD1(db, guard);
+  const wrappedEnv = {
+    ...env,
+    DB: countingDb,
+    RAW_BUCKET: env.RAW_BUCKET
+      ? createCountingR2Bucket(env.RAW_BUCKET, guard)
+      : undefined,
+    NORMALIZE_QUEUE: env.NORMALIZE_QUEUE
+      ? createCountingQueueProducer(env.NORMALIZE_QUEUE, guard)
+      : undefined,
+  } as Env;
   const result: SchedulerResult = {
     feeds: 0,
     enqueued: 0,
@@ -196,16 +239,34 @@ export async function runScheduler(
   };
   let cursor: FeedCursor | undefined;
   do {
-    const page = await listApprovedFeeds(db, pageSize, cursor);
+    const page = await listApprovedFeeds(countingDb, pageSize, cursor);
     result.feeds += page.feeds.length;
     // Concurrent per-page fetch (FU-12 ADR option A). processSingleFeed
     // never rejects (per-feed try/catch); allSettled documents the
     // failure-isolation intent.
     await Promise.allSettled(
       page.feeds.map((feed) =>
-        processSingleFeed(feed, env, db, logger, options, result),
+        processSingleFeed(
+          feed,
+          wrappedEnv,
+          countingDb,
+          logger,
+          options,
+          result,
+        ),
       ),
     );
+    const currentMode = effectiveQuotaMode(
+      guard.mode(),
+      quotaModeFromEnv(envRecord),
+    );
+    if (ingestThrottleForMode(currentMode, pageSize).skipAll) {
+      logger.info("ingest_stopped_quota", {
+        mode: currentMode,
+        processed: result.feeds,
+      });
+      break;
+    }
     cursor = page.nextCursor;
   } while (cursor);
   logger.info("scheduler_complete", {
@@ -213,6 +274,7 @@ export async function runScheduler(
     enqueued: result.enqueued,
     duplicates: result.duplicates,
     failed: result.failed,
+    quotaMode: mode,
   });
   return result;
 }
