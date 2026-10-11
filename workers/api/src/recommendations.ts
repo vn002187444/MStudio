@@ -74,36 +74,33 @@ export async function buildRecommendations(
     ).toISOString();
   const poolFetchSize = limit * 3;
 
-  const profile = input.userId
-    ? await getReaderProfile(db, input.userId)
-    : undefined;
+  const [profile, freshIds, trending, related] = await Promise.all([
+    input.userId
+      ? getReaderProfile(db, input.userId)
+      : Promise.resolve(undefined),
+    listFreshArticleIds(db, poolFetchSize),
+    listTrendingArticles(db, since, poolFetchSize),
+    input.articleId
+      ? listRelatedArticles(db, input.articleId, poolFetchSize)
+      : Promise.resolve([]),
+  ]);
 
-  const freshIds = await listFreshArticleIds(db, poolFetchSize);
-  const trending = await listTrendingArticles(
-    db,
-    since,
-    poolFetchSize,
-  );
-  const followedIds = profile?.followedTopicIds.length
-    ? await listPublishedArticleIdsByEntities(
-        db,
-        profile.followedTopicIds,
-        poolFetchSize,
-      )
-    : [];
-  const related = input.articleId
-    ? await listRelatedArticles(db, input.articleId, poolFetchSize)
-    : [];
-
-  const hiddenArticleIds = profile?.hiddenTopicIds.length
-    ? new Set(
-        await listPublishedArticleIdsByEntities(
+  const [followedIds, hiddenArticleIds] = await Promise.all([
+    profile?.followedTopicIds.length
+      ? listPublishedArticleIdsByEntities(
+          db,
+          profile.followedTopicIds,
+          poolFetchSize,
+        )
+      : Promise.resolve([] as string[]),
+    profile?.hiddenTopicIds.length
+      ? listPublishedArticleIdsByEntities(
           db,
           profile.hiddenTopicIds,
           MAX_RECOMMENDATION_LIMIT,
-        ),
-      )
-    : new Set<string>();
+        ).then(ids => new Set(ids))
+      : Promise.resolve(new Set<string>()),
+  ]);
 
   const poolCandidates: PoolCandidate[] = [];
   followedIds.forEach((articleId, index) =>
