@@ -5,6 +5,15 @@ import type {
 import { validateTransition } from "@mstudio/contracts";
 import { paginate, pageSize } from "./pagination.ts";
 import type { PageInput, PagedRows } from "./pagination.ts";
+import {
+  applyInternalLinks,
+  resolveLinkCandidates,
+  type InternalLinkOptions,
+} from "../internal-links.ts";
+
+export interface AddRevisionOptions {
+  internalLinks?: InternalLinkOptions & { storyId: string };
+}
 
 export interface ArticleRecord {
   id: string;
@@ -237,9 +246,16 @@ export async function getPublishedArticle(
 export async function addRevision(
   db: D1Database,
   input: NewArticleRevision,
+  options: AddRevisionOptions = {},
 ): Promise<ArticleRevisionRecord> {
   const now = input.now ?? new Date().toISOString();
   const nextNumber = await nextRevisionNumber(db, input.articleId);
+  let body = input.body;
+  if (options.internalLinks) {
+    const { storyId, ...linkOptions } = options.internalLinks;
+    const candidates = await resolveLinkCandidates(db, storyId);
+    body = applyInternalLinks(body, candidates, linkOptions);
+  }
   await db
     .prepare(
       `INSERT INTO article_revisions
@@ -251,7 +267,7 @@ export async function addRevision(
       input.articleId,
       nextNumber,
       input.title,
-      input.body,
+      body,
       input.summary ?? null,
       now,
     )
