@@ -1038,6 +1038,29 @@ test("GET /articles/:id returns 404 for an unpublished article", async () => {
   }
 });
 
+test("GET /articles lists published articles newest first", async () => {
+  const { env, close } = await seedPublishedArticle();
+  try {
+    const response = await worker.fetch(
+      request("/articles?limit=10"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      rows: Array<{ id: string; title: string; body: string }>;
+      nextCursor?: { createdAt: string; id: string };
+    };
+    assert.equal(body.rows.length, 1);
+    assert.equal(body.rows[0].id, "art-1");
+    assert.equal(body.rows[0].title, "Published Title");
+    assert.equal(typeof body.rows[0].body, "string");
+    assert.equal(body.nextCursor, undefined);
+  } finally {
+    close();
+  }
+});
+
 test("wrong method on /articles/:id returns 405", async () => {
   const { env, close } = await seedPublishedArticle();
   try {

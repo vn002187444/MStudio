@@ -8,6 +8,7 @@ import {
   getSource,
   listActiveCategories,
   listFeedsBySource,
+  listPublishedArticles,
   listRawItemsByStatus,
   listSources,
   setFeedEnabled,
@@ -381,6 +382,20 @@ app.get("/recommendations", async (c) => {
     limit: limit ?? DEFAULT_RECOMMENDATION_LIMIT,
   });
   return c.json({ candidates });
+});
+
+app.get("/articles", async (c) => {
+  const url = new URL(c.req.url);
+  const pagination = validatePagination(url.searchParams);
+  if (!pagination.ok) {
+    throw badRequest(
+      "VALIDATION_FAILED",
+      "invalid articles query",
+      pagination.errors,
+    );
+  }
+  const page = await listPublishedArticles(c.env.DB, pagination.value);
+  return c.json(page);
 });
 
 app.get("/articles/:id", async (c) => {

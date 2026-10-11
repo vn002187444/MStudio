@@ -192,9 +192,11 @@ export interface PublishedArticleRecord {
   storyId: string;
   status: ArticleStatus;
   title: string;
+  body: string;
   summary?: string;
   publishedRevisionId: string;
   updatedAt: string;
+  createdAt: string;
 }
 
 interface PublishedArticleRowRaw {
@@ -202,16 +204,18 @@ interface PublishedArticleRowRaw {
   storyId: string;
   status: ArticleStatus;
   title: string;
+  body: string;
   summary: string | null;
   publishedRevisionId: string;
   updatedAt: string;
+  createdAt: string;
 }
 
 const PUBLISHED_ARTICLE_SELECT = `
   SELECT a.id AS id, a.story_id AS storyId, a.status AS status,
          a.published_revision_id AS publishedRevisionId,
-         a.updated_at AS updatedAt,
-         r.title AS title, r.summary AS summary
+         a.updated_at AS updatedAt, a.created_at AS createdAt,
+         r.title AS title, r.body AS body, r.summary AS summary
   FROM articles a
   JOIN article_revisions r ON r.id = a.published_revision_id
 `;
@@ -241,6 +245,57 @@ export async function getPublishedArticle(
         summary: row.summary ?? undefined,
       }
     : undefined;
+}
+
+/**
+ * Danh sách bài reader-visible, mới nhất trước (web homepage "Mới nhất").
+ * Keyset trên (updated_at DESC, id DESC); cursor tái dùng PageInput
+ * (createdAt mang updated_at của row cuối).
+ */
+export async function listPublishedArticles(
+  db: D1Database,
+  input: PageInput = {},
+): Promise<PagedRows<PublishedArticleRecord>> {
+  const limit = pageSize(input.limit);
+  const placeholders = READER_VISIBLE_STATUSES.map(
+    () => "?",
+  ).join(", ");
+  const base = `${PUBLISHED_ARTICLE_SELECT}
+    WHERE a.status IN (${placeholders})`;
+  const order = `ORDER BY a.updated_at DESC, a.id DESC LIMIT ${limit + 1}`;
+  const rows = input.cursor
+    ? (
+        await db
+          .prepare(
+            `${base} AND (a.updated_at, a.id) < (?, ?) ${order}`,
+          )
+          .bind(
+            ...READER_VISIBLE_STATUSES,
+            input.cursor.createdAt,
+            input.cursor.id,
+          )
+          .all<PublishedArticleRowRaw & { createdAt: string }>()
+      ).results
+    : (
+        await db
+          .prepare(`${base} ${order}`)
+          .bind(...READER_VISIBLE_STATUSES)
+          .all<PublishedArticleRowRaw & { createdAt: string }>()
+      ).results;
+  return paginate(
+    rows.map((row) => ({
+      id: row.id,
+      storyId: row.storyId,
+      status: row.status,
+      title: row.title,
+      body: row.body,
+      summary: row.summary ?? undefined,
+      publishedRevisionId: row.publishedRevisionId,
+      updatedAt: row.updatedAt,
+      createdAt: row.createdAt,
+    })),
+    limit,
+  );
 }
 
 export async function addRevision(

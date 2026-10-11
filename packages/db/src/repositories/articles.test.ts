@@ -5,6 +5,7 @@ import {
   createArticle,
   createStory,
   getArticle,
+  listPublishedArticles,
   listRevisions,
   publishArticle,
   PublishConflictError,
@@ -290,6 +291,49 @@ test("retraction is terminal", async () => {
     );
     const article = await getArticle(db, articleId);
     assert.equal(article?.status, "retracted");
+  } finally {
+    close();
+  }
+});
+
+test("listPublishedArticles returns newest first with keyset pagination", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    await createStory(db, { id: "story-1", title: "Story", now: NOW });
+    const seeds = [
+      { articleId: "a1", revId: "r1", title: "First", at: NOW },
+      { articleId: "a2", revId: "r2", title: "Second", at: LATER },
+    ];
+    for (const seed of seeds) {
+      await createArticle(db, {
+        id: seed.articleId,
+        storyId: "story-1",
+        now: seed.at,
+      });
+      await addRevision(db, {
+        id: seed.revId,
+        articleId: seed.articleId,
+        title: seed.title,
+        body: "Body",
+        now: seed.at,
+      });
+      for (const status of ["ai_qa", "auto_eligible", "scheduled"] as const) {
+        await transitionArticle(db, seed.articleId, status, seed.at);
+      }
+      await publishArticle(db, seed.articleId, seed.revId, seed.at);
+    }
+    await createArticle(db, { id: "a3", storyId: "story-1", now: LATER });
+    const page1 = await listPublishedArticles(db, { limit: 1 });
+    assert.equal(page1.rows.length, 1);
+    assert.equal(page1.rows[0].title, "Second");
+    assert.ok(page1.nextCursor);
+    const page2 = await listPublishedArticles(db, {
+      limit: 1,
+      cursor: page1.nextCursor,
+    });
+    assert.equal(page2.rows.length, 1);
+    assert.equal(page2.rows[0].title, "First");
+    assert.equal(page2.nextCursor, undefined);
   } finally {
     close();
   }
