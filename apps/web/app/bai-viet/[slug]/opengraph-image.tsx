@@ -1,65 +1,15 @@
 import { ImageResponse } from "@vercel/og";
-import { apiBaseUrl } from "../../../lib/api";
 
 /**
- * OG image động cho bài viết (proposal §7): render từ tiêu đề + brand,
- * monochrome editorial đúng tokens. Edge runtime (workerd).
+ * OG cho trang bài viết (proposal §7). Tạm dùng mẫu site-wide vì route
+ * OG động [slug] chưa chạy ổn trên vinext (500) — khôi phục dynamic khi
+ * vinext hỗ trợ. Trang bài vẫn có metadata title/description đầy đủ.
  */
 export const runtime = "edge";
 export const contentType = "image/png";
 export const size = { width: 1200, height: 630 };
 
-let cachedFont: ArrayBuffer | undefined;
-
-async function interFont(): Promise<ArrayBuffer | undefined> {
-  if (cachedFont) return cachedFont;
-  try {
-    const response = await fetch(
-      "https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-700-normal.woff2",
-    );
-    if (!response.ok) return undefined;
-    cachedFont = await response.arrayBuffer();
-    return cachedFont;
-  } catch {
-    return undefined;
-  }
-}
-
-interface PublishedArticle {
-  title: string;
-  summary?: string;
-}
-
-async function fetchTitle(slug: string): Promise<PublishedArticle | undefined> {
-  try {
-    const response = await fetch(
-      `${apiBaseUrl()}/articles/${encodeURIComponent(slug)}`,
-      { next: { revalidate: 300 } },
-    );
-    if (!response.ok) return undefined;
-    const payload = (await response.json()) as {
-      article?: PublishedArticle;
-    };
-    return payload.article;
-  } catch {
-    return undefined;
-  }
-}
-
-export default async function OgImage({
-  params,
-}: {
-  params: Promise<{ slug: string }> | { slug: string };
-}) {
-  const { slug } = await Promise.resolve(params);
-  // Tạm thời: title tĩnh để cô lập lỗi 500 (nghi fetch `next:revalidate`
-  // trong route OG). Khôi phục fetchTitle khi route xanh.
-  const title = "MStudio Channel";
-  const summary: string | undefined = undefined;
-  void fetchTitle;
-  void slug;
-
-  const font = await interFont();
+export default function OgImage() {
   return new ImageResponse(
     (
       <div
@@ -70,7 +20,7 @@ export default async function OgImage({
           display: "flex",
           flexDirection: "column",
           height: "100%",
-          justifyContent: "space-between",
+          justifyContent: "center",
           padding: 80,
           width: "100%",
         }}
@@ -78,17 +28,11 @@ export default async function OgImage({
         <div style={{ color: "#FFFFFF", fontSize: 32, letterSpacing: 4 }}>
           MSTUDIO CHANNEL
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.15 }}>
-            {title.length > 110 ? `${title.slice(0, 110)}…` : title}
-          </div>
-          <div style={{ color: "#E3E3E3", fontSize: 30 }}>{summary}</div>
+        <div style={{ fontSize: 56, fontWeight: 700, marginTop: 24 }}>
+          Tin tức evidence-first, biên tập có kiểm chứng.
         </div>
       </div>
     ),
-    {
-      ...size,
-      ...(font ? { fonts: [{ name: "Inter", data: font, weight: 700 as const }] } : {}),
-    },
+    { ...size },
   );
 }
