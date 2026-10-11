@@ -35,6 +35,12 @@ export type {
 } from "./story.ts";
 export type { Cursor, PageInput, PagedRows } from "./pagination.ts";
 export type { ArticleStatus } from "./publishing.ts";
+export type {
+  DraftSource,
+  RawItemAcceptResult,
+  RawItemDecision,
+  RawItemRejectResult,
+} from "./editorial.ts";
 export {
   ARTICLE_STATUSES,
   ARTICLE_TRANSITIONS,

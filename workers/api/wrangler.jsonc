@@ -5,13 +5,20 @@
   "vars": {
     "ENVIRONMENT": "production",
     "LOG_LEVEL": "info",
-    "READER_EVENT_SAMPLING_RATE": "0.05"
+    "READER_EVENT_SAMPLING_RATE": "0.05",
+    "GEMINI_API_KEY": ""
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "mstudio_dev",
       "database_id": "6cef0de8-cd16-4494-a809-d1d177be002e"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "RAW_BUCKET",
+      "bucket_name": "mstudio-raw"
     }
   ],
   "queues": {

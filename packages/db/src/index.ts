@@ -16,6 +16,7 @@ export * from "./repositories/claims.ts";
 export * from "./repositories/entities.ts";
 export * from "./repositories/agent-runs.ts";
 export * from "./repositories/articles.ts";
+export * from "./repositories/editorial-decisions.ts";
 export * from "./repositories/auth.ts";
 export * from "./repositories/categories.ts";
 export * from "./repositories/media.ts";

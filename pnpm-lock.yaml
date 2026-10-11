@@ -399,6 +399,12 @@ importers:
       '@mstudio/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@mstudio/evidence-writer':
+        specifier: workspace:*
+        version: link:../../packages/ai/evidence-writer
+      '@mstudio/model-gateway':
+        specifier: workspace:*
+        version: link:../../packages/ai/model-gateway
       '@mstudio/observability':
         specifier: workspace:*
         version: link:../../packages/observability

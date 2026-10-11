@@ -6,6 +6,8 @@
   "dependencies": {
     "@mstudio/contracts": "workspace:*",
     "@mstudio/db": "workspace:*",
+    "@mstudio/evidence-writer": "workspace:*",
+    "@mstudio/model-gateway": "workspace:*",
     "@mstudio/observability": "workspace:*",
     "hono": "^4.13.13",
     "zod": "^4.6.5"
