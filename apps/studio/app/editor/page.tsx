@@ -50,6 +50,7 @@ export default function EditorPage() {
   }
 
   function removeBlock(id: string) {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa khối này?")) return;
     setBlocks((current) => current.filter((block) => block.id !== id));
   }
 
