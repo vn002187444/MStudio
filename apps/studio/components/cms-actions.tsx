@@ -1,7 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { apiBaseUrl, ARTICLE_TRANSITIONS, publishBaseUrl } from "../lib/cms";
+import {
+  apiBaseUrl,
+  ARTICLE_TRANSITIONS,
+  publishBaseUrl,
+  type ArticleRow,
+  type ArticleStatus,
+  type KeysetCursor,
+} from "../lib/cms";
 
 const TOKEN_KEY = "mstudio-cms-token";
 
@@ -71,7 +78,7 @@ export function TokenField({
   );
 }
 
-async function authedFetch(
+export async function authedFetch(
   url: string,
   token: string,
   init?: RequestInit,
@@ -109,6 +116,39 @@ async function readError(response: Response): Promise<string> {
     return body.error?.message ?? body.error?.code ?? `HTTP ${response.status}`;
   } catch {
     return `HTTP ${response.status}`;
+  }
+}
+
+export interface ArticleQueuePage {
+  rows: ArticleRow[];
+  nextCursor?: KeysetCursor;
+  error?: string;
+}
+
+export async function fetchArticlesByStatus(
+  status: ArticleStatus,
+  token: string,
+): Promise<ArticleQueuePage> {
+  if (!token) return { rows: [] };
+  try {
+    const response = await authedFetch(
+      `${apiBaseUrl()}/articles?status=${status}&limit=50`,
+      token,
+      { cache: "no-store" },
+    );
+    if (!response.ok) {
+      return { rows: [], error: `HTTP ${response.status}` };
+    }
+    const payload = (await response.json()) as {
+      rows?: ArticleRow[];
+      nextCursor?: KeysetCursor;
+    };
+    return {
+      rows: Array.isArray(payload.rows) ? payload.rows : [],
+      nextCursor: payload.nextCursor,
+    };
+  } catch {
+    return { rows: [], error: "Không gọi được API" };
   }
 }
 

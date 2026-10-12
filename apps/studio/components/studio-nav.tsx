@@ -1,16 +1,19 @@
 /**
  * Studio primary navigation.
- * Newsroom review/publish/sources routes đã live; các module còn lại
- * (clusters, drafts, SEO, audience, media, automation, settings) vẫn chờ.
+ * Newsroom review/publish/sources + overview/clusters/drafts/scheduled/
+ * corrections đã live; SEO, audience, media, automation, settings vẫn chờ.
  */
 const items = [
-  { href: "/", label: "Overview" },
+  { href: "/", label: "Home" },
+  { href: "/overview", label: "Overview" },
   { href: "/newsroom/incoming", label: "Incoming" },
-  { href: "#", label: "Story Clusters", disabled: true },
+  { href: "/clusters", label: "Story Clusters" },
   { href: "/newsroom/research", label: "Research Desk" },
-  { href: "#", label: "Drafts", disabled: true },
+  { href: "/drafts", label: "Drafts" },
   { href: "/newsroom/needs-review", label: "Needs Review" },
+  { href: "/scheduled", label: "Scheduled" },
   { href: "/newsroom/published", label: "Published" },
+  { href: "/corrections", label: "Corrections" },
   { href: "/newsroom/sources", label: "Sources" },
   { href: "/ai-desk", label: "AI Desk" },
   { href: "#", label: "SEO & Discovery", disabled: true },

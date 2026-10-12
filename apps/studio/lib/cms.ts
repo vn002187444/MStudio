@@ -58,6 +58,17 @@ export interface ArticleListResponse {
   nextCursor?: KeysetCursor;
 }
 
+export interface PublishedArticleRow {
+  id: string;
+  storyId: string;
+  status: ArticleStatus;
+  title: string;
+  summary?: string;
+  publishedRevisionId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SourceRow {
   id: string;
   name: string;
