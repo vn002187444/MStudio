@@ -501,6 +501,9 @@ importers:
       '@mstudio/observability':
         specifier: workspace:*
         version: link:../../packages/observability
+      '@mstudio/quota-guard':
+        specifier: workspace:*
+        version: link:../../packages/quota-guard
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261008.1
