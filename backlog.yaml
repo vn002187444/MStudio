@@ -71,6 +71,18 @@ task_skills:
   MST-061: [workers-best-practices, performance-optimization, test-driven-development]
   MST-062: [frontend-ui-engineering, fixing-accessibility, web-perf]
   MST-063: [test-driven-development, documentation-and-adrs, shipping-and-launch]
+  MST-070: [frontend-ui-engineering, ui-styling, web-perf]
+  MST-071: [frontend-ui-engineering, ui-styling, design-system]
+  MST-072: [frontend-ui-engineering, ui-styling, fixing-accessibility]
+  MST-073: [frontend-ui-engineering, fixing-accessibility, web-perf]
+  MST-074: [frontend-ui-engineering, fixing-accessibility, web-perf]
+  MST-075: [frontend-ui-engineering, web-perf, fixing-accessibility]
+  MST-076: [workers-best-practices, performance-optimization, frontend-ui-engineering]
+  MST-077: [frontend-ui-engineering, web-perf, ui-styling]
+  MST-078: [seo-audit, fixing-metadata, workers-best-practices, api-and-interface-design]
+  MST-079: [frontend-ui-engineering, api-and-interface-design, workers-best-practices]
+  MST-080: [test-driven-development, documentation-and-adrs, debugging-and-error-recovery]
+  MST-081: [api-and-interface-design, workers-best-practices, test-driven-development]
 
 sprints:
   - id: S01
@@ -222,3 +234,116 @@ sprints:
       - { id: MST-061, title: Recommendation candidate service, owner: commandcode, priority: P0, paths: ["workers/**", "packages/db/**"], depends_on: [MST-060], acceptance: [fresh, trending, followed, related, diversity_guard], tests: [ranking-fixtures], quota_impact: medium }
       - { id: MST-062, title: For You Follow Hide UX, owner: opencode, priority: P0, paths: ["apps/web/**", "packages/ui/**"], depends_on: [MST-061], acceptance: [for_you_feed, follow, hide, reason_affordance, mobile_states], tests: [ui-smoke, a11y-smoke], quota_impact: low }
       - { id: MST-063, title: Beta regression and docs, owner: jules, priority: P1, paths: ["tests/**", "docs/**"], depends_on: [MST-052, MST-062], acceptance: [regression_suite, setup_docs, runbook_update], tests: [all-safe-tests], quota_impact: none }
+
+  - id: S07
+    goal: "Modern Editorial UI/UX, Mobile PWA, SEO/GEO/AEO & Studio CMS Upgrade"
+    tasks:
+      - id: MST-070
+        title: Typography Inter font integration (FU-19)
+        owner: opencode
+        priority: P0
+        paths: ["apps/web/**", "packages/ui/**"]
+        depends_on: []
+        acceptance: [inter_font_loaded_no_raw_fallback, typography_scale_synced]
+        tests: [render-test]
+        quota_impact: none
+      - id: MST-071
+        title: Design tokens and Material Design 3 grid (FU-20)
+        owner: opencode
+        priority: P0
+        paths: ["packages/ui/**", "apps/web/**"]
+        depends_on: [MST-070]
+        acceptance: [grid_12_8_4_defined, 8px_spacing_rhythm, tokens_consistent]
+        tests: [typecheck]
+        quota_impact: none
+      - id: MST-072
+        title: Editorial components library (FU-21)
+        owner: opencode
+        priority: P0
+        paths: ["apps/web/components/**", "packages/ui/**"]
+        depends_on: [MST-071]
+        acceptance: [lead_hero_card, news_card_thumbnails, source_trust_badge, quick_summary_box, timeline_block]
+        tests: [ui-smoke, a11y-smoke]
+        quota_impact: low
+      - id: MST-073
+        title: Homepage wireframe rebuild (FU-22)
+        owner: opencode
+        priority: P0
+        paths: ["apps/web/app/(public)/page.tsx"]
+        depends_on: [MST-072]
+        acceptance: [header_mstudio_brand_kept, hero_12_col_grid, featured_4_card_strip, main_feed_and_sidebar]
+        tests: [render-test, responsive-smoke]
+        quota_impact: low
+      - id: MST-074
+        title: Article reading page rebuild (FU-23)
+        owner: opencode
+        priority: P0
+        paths: ["apps/web/app/(public)/bai-viet/[slug]/**"]
+        depends_on: [MST-072]
+        acceptance: [prose_680_760px, hero_16_9, source_trust_badge, quick_summary, consensus_conflict_block, sources_list]
+        tests: [render-test, a11y-smoke]
+        quota_impact: low
+      - id: MST-075
+        title: Mobile App-like shell and PWA (FU-25)
+        owner: opencode
+        priority: P1
+        paths: ["apps/web/**"]
+        depends_on: [MST-073]
+        acceptance: [pwa_manifest_configured, ios_bottom_tab_bar, safe_area_insets, pull_to_refresh_gesture]
+        tests: [lighthouse-pwa, mobile-smoke]
+        quota_impact: none
+      - id: MST-076
+        title: Free utilities and public APIs integration (FU-26)
+        owner: commandcode
+        priority: P1
+        paths: ["apps/web/**", "workers/api/**"]
+        depends_on: [MST-073]
+        acceptance: [open_meteo_weather_zero_cost, coingecko_kv_cached_ticker, web_speech_tts_zero_cost, web_share_api]
+        tests: [api-test, ui-smoke]
+        quota_impact: low
+      - id: MST-077
+        title: Big-tech micro-interactions and smooth transitions (FU-27)
+        owner: opencode
+        priority: P1
+        paths: ["apps/web/**", "packages/ui/**"]
+        depends_on: [MST-073, MST-074]
+        acceptance: [slim_loading_bar_2px, reading_progress_bar, view_transitions_api_no_jank, spring_easing_60fps]
+        tests: [perf-smoke, visual-smoke]
+        quota_impact: none
+      - id: MST-078
+        title: SEO, GEO and AEO full optimization engine (FU-28)
+        owner: commandcode
+        priority: P0
+        paths: ["packages/seo/**", "apps/web/**", "packages/contracts/**"]
+        depends_on: [MST-074]
+        acceptance: [json_ld_news_article_rendered, speakable_schema_for_ai_overviews, llms_txt_endpoint, opengraph_article, semantic_slugs]
+        tests: [seo-tests, schema-tests]
+        quota_impact: none
+      - id: MST-079
+        title: Modern Studio CMS and Quality UX rebuild (FU-29)
+        owner: opencode
+        priority: P0
+        paths: ["apps/studio/**", "workers/api/**", "packages/contracts/**"]
+        depends_on: [MST-072]
+        acceptance: [quality_score_radar_dashboard, admin_pipeline_funnel, tiptap_full_blocks_editor, live_preview_sync, autosave_api]
+        tests: [studio-smoke, api-test]
+        quota_impact: low
+      - id: MST-080
+        title: UI, SEO, CMS integration regression and docs
+        owner: jules
+        priority: P1
+        paths: ["tests/**", "docs/**"]
+        depends_on: [MST-075, MST-078, MST-079, MST-081]
+        acceptance: [all_regression_pass, seo_geo_aeo_docs, mobile_pwa_runbook]
+        tests: [all-safe-tests]
+        quota_impact: none
+      - id: MST-081
+        title: Schema, CMS and Web Alignment Migration 0013 (FU-30)
+        owner: commandcode
+        priority: P0
+        paths: ["packages/db/**", "packages/contracts/**", "workers/api/**", "apps/studio/**", "apps/web/**"]
+        depends_on: [MST-071]
+        human_gate: schema
+        acceptance: [migration_0013_articles_seo_media_applied, api_returns_full_media_seo, cms_saves_all_seo_fields, web_uses_semantic_slug]
+        tests: [migration-test, repository-test, api-test]
+        quota_impact: low
