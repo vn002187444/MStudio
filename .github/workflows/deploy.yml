@@ -13,7 +13,7 @@ on:
 
 env:
   CLOUDFLARE_ACCOUNT_ID: 9db1a9ece3ede791fd3cfb5d13bd6765
-  MSTUDIO_API_URL: https://mstudio.minds.io.vn
+  MSTUDIO_API_URL: https://api.mstudio.minds.io.vn
 
 jobs:
   verify:
