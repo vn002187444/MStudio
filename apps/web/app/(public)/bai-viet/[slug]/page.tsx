@@ -21,6 +21,12 @@ interface PublishedArticle {
   summary?: string;
   updatedAt: string;
   createdAt: string;
+  sources?: Array<{
+    name: string;
+    originUrl: string;
+    rightsStatus: string;
+    role: string;
+  }>;
 }
 
 async function fetchArticle(
@@ -121,13 +127,29 @@ export default async function ArticlePage({
       ) : null}
       <p style={{ color: "var(--gray)", margin: "0 0 24px" }}>
         Cập nhật: {article.updatedAt.slice(0, 10)}
+        {article.sources && article.sources.length > 0
+          ? ` · ${article.sources.length} nguồn đối chiếu`
+          : ""}
       </p>
 
       <ArticleHero seed={article.id} />
 
+      {article.summary ? (
+        <section aria-labelledby="article-summary-heading" className="article-summary">
+          <h2 id="article-summary-heading">Tóm tắt nhanh</h2>
+          <p>{article.summary}</p>
+        </section>
+      ) : null}
+
       <BodyWithToc body={article.body} />
 
-      <SourceBlock sources={[]} />
+      <SourceBlock
+        sources={(article.sources ?? []).map((source) => ({
+          name: source.name,
+          originUrl: source.originUrl,
+          rightsStatus: source.rightsStatus,
+        }))}
+      />
 
       <p style={{ marginTop: 24 }}>
         <a href="/">← Trang chủ</a>

@@ -229,6 +229,22 @@ export interface PublishedArticleRecord {  id: string;
   createdAt: string;
 }
 
+/**
+ * Nguồn lineage cho trang bài viết: article -> story -> story_sources ->
+ * raw_item -> source (PLAN: Article truy ngược được StorySource/RawItem).
+ */
+export interface ArticleSourceLink {
+  name: string;
+  originUrl: string;
+  rightsStatus: string;
+  role: "primary" | "supporting" | "contradicting";
+}
+
+/** Detail record (GET /articles/:id) — thêm sources, không N+1 ở list. */
+export interface PublishedArticleDetailRecord extends PublishedArticleRecord {
+  sources: ArticleSourceLink[];
+}
+
 interface PublishedArticleRowRaw {
   id: string;
   storyId: string;
@@ -259,7 +275,7 @@ const READER_VISIBLE_STATUSES: readonly ArticleStatus[] = [
 export async function getPublishedArticle(
   db: D1Database,
   id: string,
-): Promise<PublishedArticleRecord | undefined> {
+): Promise<PublishedArticleDetailRecord | undefined> {
   const placeholders = READER_VISIBLE_STATUSES.map(
     () => "?",
   ).join(", ");
@@ -269,12 +285,33 @@ export async function getPublishedArticle(
     )
     .bind(id, ...READER_VISIBLE_STATUSES)
     .first<PublishedArticleRowRaw>();
-  return row
-    ? {
-        ...row,
-        summary: row.summary ?? undefined,
-      }
-    : undefined;
+  if (!row) return undefined;
+  // Lineage sources: story -> story_sources -> raw_items -> sources.
+  // Index theo story_id (story_sources PK/UNIQUE đầu là story_id) — một
+  // query nhỏ cho detail, không chạm list path.
+  const sourceRows = (
+    await db
+      .prepare(
+        `SELECT s.name AS name, s.origin_url AS originUrl,
+                s.rights_status AS rightsStatus, ss.role AS role
+         FROM story_sources ss
+         JOIN raw_items ri ON ri.id = ss.raw_item_id
+         JOIN sources s ON s.id = ri.source_id
+         WHERE ss.story_id = ?
+         ORDER BY CASE ss.role
+                    WHEN 'primary' THEN 0
+                    WHEN 'supporting' THEN 1
+                    ELSE 2
+                  END, s.name ASC`,
+      )
+      .bind(row.storyId)
+      .all<ArticleSourceLink>()
+  ).results;
+  return {
+    ...row,
+    summary: row.summary ?? undefined,
+    sources: sourceRows,
+  };
 }
 
 /**

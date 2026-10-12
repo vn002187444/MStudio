@@ -2,9 +2,14 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   addRevision,
+  addStorySource,
   createArticle,
+  createFeed,
+  createRawItem,
+  createSource,
   createStory,
   getArticle,
+  getPublishedArticle,
   listArticlesByStatus,
   listPublishedArticles,
   listRevisions,
@@ -374,6 +379,71 @@ test("listArticlesByStatus filters the editorial queue oldest first", async () =
     const reviews = await listArticlesByStatus(db, "human_review");
     assert.equal(reviews.rows.length, 1);
     assert.equal(reviews.rows[0].id, "review-1");
+  } finally {
+    close();
+  }
+});
+
+test("getPublishedArticle resolves source lineage via story_sources", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    // Chain: source -> feed -> raw_item -> story_source -> story -> article
+    await createSource(db, {
+      id: "src-1",
+      name: "Example News",
+      originUrl: "https://example.news",
+      kind: "rss",
+      rightsStatus: "clear",
+      now: NOW,
+    });
+    await createFeed(db, {
+      id: "feed-1",
+      sourceId: "src-1",
+      url: "https://example.news/rss",
+      format: "rss",
+      now: NOW,
+    });
+    await createRawItem(db, {
+      id: "raw-1",
+      feedId: "feed-1",
+      sourceId: "src-1",
+      url: "https://example.news/a",
+      fetchedAt: NOW,
+      payloadHash: "hash-1",
+    });
+    await createStory(db, { id: "story-src", title: "Story", now: NOW });
+    await addStorySource(db, {
+      id: "ss-1",
+      storyId: "story-src",
+      rawItemId: "raw-1",
+      role: "primary",
+      now: NOW,
+    });
+    await createArticle(db, { id: "a-src", storyId: "story-src", now: NOW });
+    await addRevision(db, {
+      id: "r-src",
+      articleId: "a-src",
+      title: "Title",
+      body: "Body",
+      now: NOW,
+    });
+    for (const status of ["ai_qa", "auto_eligible", "scheduled"] as const) {
+      await transitionArticle(db, "a-src", status, NOW);
+    }
+    await publishArticle(db, "a-src", "r-src", NOW);
+
+    const detail = await getPublishedArticle(db, "a-src");
+    assert.ok(detail);
+    assert.equal(detail.sources.length, 1);
+    assert.deepEqual(detail.sources[0], {
+      name: "Example News",
+      originUrl: "https://example.news",
+      rightsStatus: "clear",
+      role: "primary",
+    });
+    // Draft/unpublished article vẫn undefined (không leak lineage).
+    await createArticle(db, { id: "a-draft", storyId: "story-src", now: NOW });
+    assert.equal(await getPublishedArticle(db, "a-draft"), undefined);
   } finally {
     close();
   }

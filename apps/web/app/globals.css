@@ -312,6 +312,21 @@ h3 {
   color: var(--gray);
 }
 
+/* Quick Summary — PLAN mobile order: hero -> Quick Summary -> body. */
+.article-summary {
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--ink);
+  border-radius: var(--radius-md);
+  margin: 0 0 24px;
+  padding: 16px 20px;
+}
+
+.article-summary h2 {
+  font-size: var(--text-base);
+  margin: 0 0 8px;
+}
+
 .source-list {
   display: flex;
   flex-direction: column;
