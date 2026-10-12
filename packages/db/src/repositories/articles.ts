@@ -1,6 +1,10 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type {
+  ArticleRecord,
+  ArticleSourceLink,
   ArticleStatus,
+  PublishedArticleDetailRecord,
+  PublishedArticleRecord,
 } from "@mstudio/contracts";
 import {
   ARTICLE_STATUSES,
@@ -15,19 +19,15 @@ import {
   type InternalLinkOptions,
 } from "../internal-links.ts";
 
+export type {
+  ArticleRecord,
+  ArticleSourceLink,
+  PublishedArticleDetailRecord,
+  PublishedArticleRecord,
+};
+
 export interface AddRevisionOptions {
   internalLinks?: InternalLinkOptions & { storyId: string };
-}
-
-export interface ArticleRecord {
-  id: string;
-  storyId: string;
-  status: ArticleStatus;
-  currentRevisionId?: string;
-  publishedRevisionId?: string;
-  publishKey?: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface ArticleRevisionRecord {
@@ -44,6 +44,19 @@ export interface NewArticle {
   id: string;
   storyId: string;
   status?: ArticleStatus;
+  slug?: string;
+  categorySlug?: string;
+  heroImageUrl?: string;
+  videoUrl?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  canonicalUrl?: string;
+  ogImageUrl?: string;
+  keywords?: string;
+  sourceCount?: number;
+  qualityScore?: number;
+  isBreaking?: boolean;
+  isTrending?: boolean;
   now?: string;
 }
 
@@ -56,6 +69,22 @@ export interface NewArticleRevision {
   now?: string;
 }
 
+export interface UpdateArticleMetadataInput {
+  slug?: string;
+  categorySlug?: string;
+  heroImageUrl?: string;
+  videoUrl?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  canonicalUrl?: string;
+  ogImageUrl?: string;
+  keywords?: string;
+  sourceCount?: number;
+  qualityScore?: number;
+  isBreaking?: boolean;
+  isTrending?: boolean;
+}
+
 interface ArticleRowRaw {
   id: string;
   storyId: string;
@@ -63,6 +92,19 @@ interface ArticleRowRaw {
   currentRevisionId: string | null;
   publishedRevisionId: string | null;
   publishKey: string | null;
+  slug: string | null;
+  categorySlug: string | null;
+  heroImageUrl: string | null;
+  videoUrl: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImageUrl: string | null;
+  keywords: string | null;
+  sourceCount: number;
+  qualityScore: number | null;
+  isBreaking: number;
+  isTrending: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -82,6 +124,18 @@ const ARTICLE_SELECT = `
          current_revision_id AS currentRevisionId,
          published_revision_id AS publishedRevisionId,
          publish_key AS publishKey,
+         slug, category_slug AS categorySlug,
+         hero_image_url AS heroImageUrl,
+         video_url AS videoUrl,
+         meta_title AS metaTitle,
+         meta_description AS metaDescription,
+         canonical_url AS canonicalUrl,
+         og_image_url AS ogImageUrl,
+         keywords,
+         source_count AS sourceCount,
+         quality_score AS qualityScore,
+         is_breaking AS isBreaking,
+         is_trending AS isTrending,
          created_at AS createdAt, updated_at AS updatedAt
   FROM articles
 `;
@@ -98,6 +152,19 @@ function toArticleRow(row: ArticleRowRaw): ArticleRecord {
     currentRevisionId: row.currentRevisionId ?? undefined,
     publishedRevisionId: row.publishedRevisionId ?? undefined,
     publishKey: row.publishKey ?? undefined,
+    slug: row.slug ?? undefined,
+    categorySlug: row.categorySlug ?? undefined,
+    heroImageUrl: row.heroImageUrl ?? undefined,
+    videoUrl: row.videoUrl ?? undefined,
+    metaTitle: row.metaTitle ?? undefined,
+    metaDescription: row.metaDescription ?? undefined,
+    canonicalUrl: row.canonicalUrl ?? undefined,
+    ogImageUrl: row.ogImageUrl ?? undefined,
+    keywords: row.keywords ?? undefined,
+    qualityScore: row.qualityScore != null ? row.qualityScore : undefined,
+    sourceCount: Number(row.sourceCount ?? 0),
+    isBreaking: Boolean(row.isBreaking),
+    isTrending: Boolean(row.isTrending),
   };
 }
 
@@ -138,13 +205,30 @@ export async function createArticle(
   const now = input.now ?? new Date().toISOString();
   await db
     .prepare(
-      `INSERT INTO articles (id, story_id, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO articles (
+         id, story_id, status, slug, category_slug, hero_image_url, video_url,
+         meta_title, meta_description, canonical_url, og_image_url, keywords,
+         source_count, quality_score, is_breaking, is_trending, created_at, updated_at
+       )
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
       input.storyId,
       input.status ?? "drafted",
+      input.slug || null,
+      input.categorySlug || null,
+      input.heroImageUrl || null,
+      input.videoUrl || null,
+      input.metaTitle || null,
+      input.metaDescription || null,
+      input.canonicalUrl || null,
+      input.ogImageUrl || null,
+      input.keywords || null,
+      input.sourceCount ?? 0,
+      input.qualityScore ?? null,
+      input.isBreaking ? 1 : 0,
+      input.isTrending ? 1 : 0,
       now,
       now,
     )
@@ -152,6 +236,85 @@ export async function createArticle(
   const row = await getArticle(db, input.id);
   if (!row) throw new Error("article not found after insert");
   return row;
+}
+
+export async function updateArticleMetadata(
+  db: D1Database,
+  id: string,
+  input: UpdateArticleMetadataInput,
+  now = new Date().toISOString(),
+): Promise<ArticleRecord> {
+  const existing = await getArticle(db, id);
+  if (!existing) {
+    throw new Error(`article ${id} not found`);
+  }
+
+  const fields: string[] = ["updated_at = ?"];
+  const values: unknown[] = [now];
+
+  if (input.slug !== undefined) {
+    fields.push("slug = ?");
+    values.push(input.slug || null);
+  }
+  if (input.categorySlug !== undefined) {
+    fields.push("category_slug = ?");
+    values.push(input.categorySlug || null);
+  }
+  if (input.heroImageUrl !== undefined) {
+    fields.push("hero_image_url = ?");
+    values.push(input.heroImageUrl || null);
+  }
+  if (input.videoUrl !== undefined) {
+    fields.push("video_url = ?");
+    values.push(input.videoUrl || null);
+  }
+  if (input.metaTitle !== undefined) {
+    fields.push("meta_title = ?");
+    values.push(input.metaTitle || null);
+  }
+  if (input.metaDescription !== undefined) {
+    fields.push("meta_description = ?");
+    values.push(input.metaDescription || null);
+  }
+  if (input.canonicalUrl !== undefined) {
+    fields.push("canonical_url = ?");
+    values.push(input.canonicalUrl || null);
+  }
+  if (input.ogImageUrl !== undefined) {
+    fields.push("og_image_url = ?");
+    values.push(input.ogImageUrl || null);
+  }
+  if (input.keywords !== undefined) {
+    fields.push("keywords = ?");
+    values.push(input.keywords || null);
+  }
+  if (input.sourceCount !== undefined) {
+    fields.push("source_count = ?");
+    values.push(input.sourceCount);
+  }
+  if (input.qualityScore !== undefined) {
+    fields.push("quality_score = ?");
+    values.push(input.qualityScore ?? null);
+  }
+  if (input.isBreaking !== undefined) {
+    fields.push("is_breaking = ?");
+    values.push(input.isBreaking ? 1 : 0);
+  }
+  if (input.isTrending !== undefined) {
+    fields.push("is_trending = ?");
+    values.push(input.isTrending ? 1 : 0);
+  }
+
+  values.push(id);
+
+  await db
+    .prepare(`UPDATE articles SET ${fields.join(", ")} WHERE id = ?`)
+    .bind(...values)
+    .run();
+
+  const updated = await getArticle(db, id);
+  if (!updated) throw new Error(`article ${id} not found after metadata update`);
+  return updated;
 }
 
 export async function getArticle(
@@ -321,34 +484,6 @@ export async function listStoryAggregates(
   return rows.map(toStoryAggregate);
 }
 
-export interface PublishedArticleRecord {
-  id: string;
-  storyId: string;
-  status: ArticleStatus;
-  title: string;
-  body: string;
-  summary?: string;
-  publishedRevisionId: string;
-  updatedAt: string;
-  createdAt: string;
-}
-
-/**
- * Nguồn lineage cho trang bài viết: article -> story -> story_sources ->
- * raw_item -> source (PLAN: Article truy ngược được StorySource/RawItem).
- */
-export interface ArticleSourceLink {
-  name: string;
-  originUrl: string;
-  rightsStatus: string;
-  role: "primary" | "supporting" | "contradicting";
-}
-
-/** Detail record (GET /articles/:id) — thêm sources, không N+1 ở list. */
-export interface PublishedArticleDetailRecord extends PublishedArticleRecord {
-  sources: ArticleSourceLink[];
-}
-
 interface PublishedArticleRowRaw {
   id: string;
   storyId: string;
@@ -357,6 +492,19 @@ interface PublishedArticleRowRaw {
   body: string;
   summary: string | null;
   publishedRevisionId: string;
+  slug: string | null;
+  categorySlug: string | null;
+  heroImageUrl: string | null;
+  videoUrl: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImageUrl: string | null;
+  keywords: string | null;
+  sourceCount: number;
+  qualityScore: number | null;
+  isBreaking: number;
+  isTrending: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -364,6 +512,18 @@ interface PublishedArticleRowRaw {
 const PUBLISHED_ARTICLE_SELECT = `
   SELECT a.id AS id, a.story_id AS storyId, a.status AS status,
          a.published_revision_id AS publishedRevisionId,
+         a.slug AS slug, a.category_slug AS categorySlug,
+         a.hero_image_url AS heroImageUrl,
+         a.video_url AS videoUrl,
+         a.meta_title AS metaTitle,
+         a.meta_description AS metaDescription,
+         a.canonical_url AS canonicalUrl,
+         a.og_image_url AS ogImageUrl,
+         a.keywords AS keywords,
+         a.source_count AS sourceCount,
+         a.quality_score AS qualityScore,
+         a.is_breaking AS isBreaking,
+         a.is_trending AS isTrending,
          a.updated_at AS updatedAt, a.created_at AS createdAt,
          r.title AS title, r.body AS body, r.summary AS summary
   FROM articles a
@@ -378,16 +538,16 @@ const READER_VISIBLE_STATUSES: readonly ArticleStatus[] = [
 
 export async function getPublishedArticle(
   db: D1Database,
-  id: string,
+  identifier: string,
 ): Promise<PublishedArticleDetailRecord | undefined> {
   const placeholders = READER_VISIBLE_STATUSES.map(
     () => "?",
   ).join(", ");
   const row = await db
     .prepare(
-      `${PUBLISHED_ARTICLE_SELECT} WHERE a.id = ? AND a.status IN (${placeholders})`,
+      `${PUBLISHED_ARTICLE_SELECT} WHERE (a.id = ? OR a.slug = ?) AND a.status IN (${placeholders})`,
     )
-    .bind(id, ...READER_VISIBLE_STATUSES)
+    .bind(identifier, identifier, ...READER_VISIBLE_STATUSES)
     .first<PublishedArticleRowRaw>();
   if (!row) return undefined;
   // Lineage sources: story -> story_sources -> raw_items -> sources.
@@ -412,8 +572,28 @@ export async function getPublishedArticle(
       .all<ArticleSourceLink>()
   ).results;
   return {
-    ...row,
+    id: row.id,
+    storyId: row.storyId,
+    status: row.status,
+    title: row.title,
+    body: row.body,
     summary: row.summary ?? undefined,
+    publishedRevisionId: row.publishedRevisionId,
+    slug: row.slug ?? undefined,
+    categorySlug: row.categorySlug ?? undefined,
+    heroImageUrl: row.heroImageUrl ?? undefined,
+    videoUrl: row.videoUrl ?? undefined,
+    metaTitle: row.metaTitle ?? undefined,
+    metaDescription: row.metaDescription ?? undefined,
+    canonicalUrl: row.canonicalUrl ?? undefined,
+    ogImageUrl: row.ogImageUrl ?? undefined,
+    keywords: row.keywords ?? undefined,
+    sourceCount: Number(row.sourceCount ?? 0),
+    qualityScore: row.qualityScore != null ? row.qualityScore : undefined,
+    isBreaking: Boolean(row.isBreaking),
+    isTrending: Boolean(row.isTrending),
+    updatedAt: row.updatedAt,
+    createdAt: row.createdAt,
     sources: sourceRows,
   };
 }
@@ -421,19 +601,26 @@ export async function getPublishedArticle(
 /**
  * Danh sách bài reader-visible, mới nhất trước (web homepage "Mới nhất").
  * Keyset trên (updated_at DESC, id DESC); cursor tái dùng PageInput
- * (createdAt mang updated_at của row cuối).
+ * (createdAt mang updated_at của row cuối). Hỗ trợ lọc theo categorySlug.
  */
 export async function listPublishedArticles(
   db: D1Database,
-  input: PageInput = {},
+  input: PageInput & { categorySlug?: string } = {},
 ): Promise<PagedRows<PublishedArticleRecord>> {
   const limit = pageSize(input.limit);
   const placeholders = READER_VISIBLE_STATUSES.map(
     () => "?",
   ).join(", ");
-  const base = `${PUBLISHED_ARTICLE_SELECT}
+  let base = `${PUBLISHED_ARTICLE_SELECT}
     WHERE a.status IN (${placeholders})`;
-  const order = `ORDER BY a.updated_at DESC, a.id DESC LIMIT ${limit + 1}`;
+  const baseParams: unknown[] = [...READER_VISIBLE_STATUSES];
+
+  if (input.categorySlug) {
+    base += ` AND a.category_slug = ?`;
+    baseParams.push(input.categorySlug);
+  }
+
+  const order = `ORDER BY a.updated_at DESC, a.id DESC LIMIT ?`;
   const rows = input.cursor
     ? (
         await db
@@ -441,32 +628,54 @@ export async function listPublishedArticles(
             `${base} AND (a.updated_at, a.id) < (?, ?) ${order}`,
           )
           .bind(
-            ...READER_VISIBLE_STATUSES,
+            ...baseParams,
             input.cursor.createdAt,
             input.cursor.id,
+            limit + 1,
           )
-          .all<PublishedArticleRowRaw & { createdAt: string }>()
+          .all<PublishedArticleRowRaw>()
       ).results
     : (
         await db
           .prepare(`${base} ${order}`)
-          .bind(...READER_VISIBLE_STATUSES)
-          .all<PublishedArticleRowRaw & { createdAt: string }>()
+          .bind(...baseParams, limit + 1)
+          .all<PublishedArticleRowRaw>()
       ).results;
-  return paginate(
-    rows.map((row) => ({
-      id: row.id,
-      storyId: row.storyId,
-      status: row.status,
-      title: row.title,
-      body: row.body,
-      summary: row.summary ?? undefined,
-      publishedRevisionId: row.publishedRevisionId,
-      updatedAt: row.updatedAt,
-      createdAt: row.createdAt,
-    })),
-    limit,
-  );
+
+  const mapped = rows.map((row) => ({
+    id: row.id,
+    storyId: row.storyId,
+    status: row.status,
+    title: row.title,
+    body: row.body,
+    summary: row.summary ?? undefined,
+    publishedRevisionId: row.publishedRevisionId,
+    slug: row.slug ?? undefined,
+    categorySlug: row.categorySlug ?? undefined,
+    heroImageUrl: row.heroImageUrl ?? undefined,
+    videoUrl: row.videoUrl ?? undefined,
+    metaTitle: row.metaTitle ?? undefined,
+    metaDescription: row.metaDescription ?? undefined,
+    canonicalUrl: row.canonicalUrl ?? undefined,
+    ogImageUrl: row.ogImageUrl ?? undefined,
+    keywords: row.keywords ?? undefined,
+    sourceCount: Number(row.sourceCount ?? 0),
+    qualityScore: row.qualityScore != null ? row.qualityScore : undefined,
+    isBreaking: Boolean(row.isBreaking),
+    isTrending: Boolean(row.isTrending),
+    updatedAt: row.updatedAt,
+    createdAt: row.createdAt,
+  }));
+
+  const paginated = paginate(mapped, limit);
+  const lastRow = paginated.rows[paginated.rows.length - 1];
+
+  return {
+    ...paginated,
+    nextCursor: paginated.nextCursor && lastRow
+      ? { createdAt: lastRow.updatedAt, id: lastRow.id }
+      : undefined,
+  };
 }
 
 export async function addRevision(

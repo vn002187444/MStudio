@@ -11,6 +11,7 @@ export {
   NEWS_WINDOW_MS,
 } from "../../../packages/seo/src/sitemap.ts";
 export type { SitemapEntry, NewsSitemapEntry } from "../../../packages/contracts/src/seo.ts";
+export { newsArticleJsonLd } from "./seo/json-ld.ts";
 
 /**
  * Origin canonical production (KHÔNG dùng workers.dev — workers.dev là

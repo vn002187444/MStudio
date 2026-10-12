@@ -61,3 +61,64 @@ export function isPublishedState(status: ArticleStatus): boolean {
     status === "retracted"
   );
 }
+
+export interface ArticleRecord {
+  id: string;
+  storyId: string;
+  status: ArticleStatus;
+  currentRevisionId?: string;
+  publishedRevisionId?: string;
+  publishKey?: string;
+  slug?: string;
+  categorySlug?: string;
+  heroImageUrl?: string;
+  videoUrl?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  canonicalUrl?: string;
+  ogImageUrl?: string;
+  keywords?: string;
+  sourceCount: number;
+  qualityScore?: number;
+  isBreaking: boolean;
+  isTrending: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PublishedArticleRecord {
+  id: string;
+  storyId: string;
+  status: ArticleStatus;
+  title: string;
+  body: string;
+  summary?: string;
+  publishedRevisionId: string;
+  slug?: string;
+  categorySlug?: string;
+  heroImageUrl?: string;
+  videoUrl?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  canonicalUrl?: string;
+  ogImageUrl?: string;
+  keywords?: string;
+  sourceCount: number;
+  qualityScore?: number;
+  isBreaking: boolean;
+  isTrending: boolean;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export interface ArticleSourceLink {
+  name: string;
+  originUrl: string;
+  rightsStatus: string;
+  role: "primary" | "supporting" | "contradicting";
+}
+
+export interface PublishedArticleDetailRecord extends PublishedArticleRecord {
+  sources: ArticleSourceLink[];
+}
+

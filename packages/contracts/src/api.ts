@@ -43,6 +43,27 @@ export interface FeedListResponse extends PagedRows<FeedRecord> {}
 
 export interface RawItemListResponse extends PagedRows<RawItemRecord> {}
 
+export interface UpdateArticleRequest {
+  slug?: string;
+  categorySlug?: string;
+  heroImageUrl?: string;
+  videoUrl?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  canonicalUrl?: string;
+  ogImageUrl?: string;
+  keywords?: string;
+  isBreaking?: boolean;
+  isTrending?: boolean;
+}
+
+export interface SaveArticleRevisionRequest {
+  title: string;
+  body: string;
+  summary?: string;
+  metadata?: UpdateArticleRequest;
+}
+
 export interface ApiErrorResponse {
   error: {
     code: string;

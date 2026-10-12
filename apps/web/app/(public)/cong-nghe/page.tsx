@@ -1,21 +1,27 @@
 import type { Metadata } from "next";
 import { CategoryTemplate } from "../../../components/article/category-template";
 
-/**
- * Công nghệ (PLAN public route /cong-nghe/) — noindex tới khi có
- * article↔category filter (MST-071).
- */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: "Công nghệ | MStudio Channel",
+  title: "Công nghệ & AI | MStudio Channel",
   description:
-    "Công nghệ: AI, Internet, Startup, Open Source, Blockchain, Crypto — MStudio Channel.",
-  robots: { index: false, follow: false },
+    "Tin tức công nghệ mới nhất: Trí tuệ nhân tạo (AI), Bán dẫn, Khởi nghiệp công nghệ, Phần mềm mã nguồn mở — MStudio Channel.",
+  alternates: {
+    canonical: "https://mstudio.minds.io.vn/cong-nghe",
+  },
+  openGraph: {
+    title: "Công nghệ & AI | MStudio Channel",
+    description: "Tin tức công nghệ mới nhất: AI, Bán dẫn, Khởi nghiệp, Phần mềm — MStudio Channel.",
+    url: "https://mstudio.minds.io.vn/cong-nghe",
+  },
 };
 
 export default function TechCategoryPage() {
   return (
     <CategoryTemplate
-      description="AI, Internet, Startup, Open Source, Blockchain, Crypto — xu hướng định hình tương lai."
+      categorySlug="cong-nghe"
+      description="Cập nhật bước tiến trí tuệ nhân tạo, công nghệ bán dẫn, startup và xu hướng kỹ thuật số định hình tương lai."
       name="Công nghệ"
     />
   );

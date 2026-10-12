@@ -9,6 +9,15 @@ export type RawItemStatus =
   | "discarded";
 export type JobStatus = "pending" | "running" | "succeeded" | "failed";
 export type UserRole = "admin" | "editor" | "reviewer" | "seo" | "analyst";
+export type CategoryStatus = "active" | "archived";
+
+export interface CategoryRecord {
+  slug: string;
+  labelVi: string;
+  parentSlug?: string;
+  sort: number;
+  status: CategoryStatus;
+}
 
 export interface SourceRecord {
   id: string;

@@ -8,6 +8,7 @@ import type {
   RawItemStatus,
   ReaderEventInput,
   SourceKind,
+  UpdateArticleRequest,
   UpdateFeedRequest,
   UpdateSourceAllowStatusRequest,
 } from "@mstudio/contracts";
@@ -347,3 +348,47 @@ export function validateReaderEvents(
   }
   return { ok: true, value: parsed };
 }
+
+const optionalHttpUrl = z
+  .string()
+  .refine((val) => {
+    if (!val || val.trim() === "") return true;
+    try {
+      const u = new URL(val);
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, "must be a valid http(s) URL")
+  .optional();
+
+const updateArticleSchema = z.object({
+  slug: z.string().trim().min(1).optional(),
+  categorySlug: z.string().trim().min(1).optional(),
+  heroImageUrl: optionalHttpUrl,
+  videoUrl: optionalHttpUrl,
+  metaTitle: z.string().trim().optional(),
+  metaDescription: z.string().trim().optional(),
+  canonicalUrl: optionalHttpUrl,
+  ogImageUrl: optionalHttpUrl,
+  keywords: z.string().trim().optional(),
+  isBreaking: z.boolean().optional(),
+  isTrending: z.boolean().optional(),
+}).strict();
+
+export function validateUpdateArticle(
+  body: unknown,
+): ValidationResult<UpdateArticleRequest> {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    return {
+      ok: false,
+      errors: { body: ["expected a JSON object"] },
+    };
+  }
+  const result = updateArticleSchema.safeParse(body);
+  if (!result.success) {
+    return { ok: false, errors: mapZodError(result.error) };
+  }
+  return { ok: true, value: result.data as UpdateArticleRequest };
+}
+

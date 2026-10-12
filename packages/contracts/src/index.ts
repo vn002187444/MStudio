@@ -14,6 +14,8 @@ export type {
   UserRole,
 } from "./domain.ts";
 export type {
+  CategoryRecord,
+  CategoryStatus,
   FeedRecord,
   JobRecord,
   RawItemRecord,
@@ -55,7 +57,13 @@ export {
   serializeArticleBlocks,
 } from "./blocks.ts";
 export type { Cursor, PageInput, PagedRows } from "./pagination.ts";
-export type { ArticleStatus } from "./publishing.ts";
+export type {
+  ArticleRecord,
+  ArticleSourceLink,
+  ArticleStatus,
+  PublishedArticleDetailRecord,
+  PublishedArticleRecord,
+} from "./publishing.ts";
 export type {
   QuotaBlockReason,
   QuotaCheckResult,
@@ -117,6 +125,8 @@ export type {
   RawItemListResponse,
   SourceListResponse,
   SourceResponse,
+  UpdateArticleRequest,
+  SaveArticleRevisionRequest,
   UpdateFeedRequest,
   UpdateSourceAllowStatusRequest,
 } from "./api.ts";

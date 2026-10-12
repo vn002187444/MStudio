@@ -13,6 +13,7 @@ import {
   type Logger,
 } from "@mstudio/observability";
 import { computeClusterCandidates } from "./clustering.ts";
+import type { QuotaKind, QuotaBlockReason } from "@mstudio/contracts";
 
 export const DEFAULT_CLUSTER_PAGE_SIZE = 100;
 
@@ -92,6 +93,28 @@ export async function runClusteringStage(
   return { itemsScanned, candidates, clusteredItems, vectorizeEnabled };
 }
 
+function isAiKillSwitchEnabled(envRecord: Record<string, string | undefined>): boolean {
+  const TRUE_VALUES = new Set(["1", "true", "yes", "on"]);
+  const raw = envRecord.MSTUDIO_AI_KILL?.trim().toLowerCase();
+  return raw !== undefined && TRUE_VALUES.has(raw);
+}
+
+function checkQuota(
+  kind: QuotaKind,
+  cost: number,
+  envRecord: Record<string, string | undefined>,
+): { allowed: boolean; reason?: QuotaBlockReason } {
+  if (kind === "ai" && isAiKillSwitchEnabled(envRecord)) {
+    return { allowed: false, reason: "ai_kill_switch" as QuotaBlockReason };
+  }
+  return { allowed: true };
+}
+
+function recordUsage(kind: QuotaKind, cost: number, guard: InMemoryQuotaGuard): void {
+  const metric = kind === "ai" ? "modelUsage" : "workersRequests";
+  guard.record({ [metric]: cost });
+}
+
 export default {
   async fetch(
     request: Request,
@@ -119,7 +142,33 @@ export default {
       return new Response("Method not allowed", { status: 405 });
     }
 
+    const envRecord = env as unknown as Record<
+      string,
+      string | undefined
+    >;
+    const quotaCheck = checkQuota(QuotaKind.AI, 1, envRecord);
+
+    if (!quotaCheck.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "QUOTA_BLOCKED",
+            reason: quotaCheck.reason,
+          },
+        }),
+        {
+          status: 429,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const quotaGuard = new InMemoryQuotaGuard(thresholdsFromEnv(envRecord));
+
     logger.info("request", { path: url.pathname, method: tagged.method });
+
+    recordUsage(QuotaKind.AI, 1, quotaGuard);
+
     return new Response("MStudio intelligence worker", { status: 200 });
   },
 
