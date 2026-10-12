@@ -6,7 +6,8 @@
   "dependencies": {
     "@mstudio/contracts": "workspace:*",
     "@mstudio/db": "workspace:*",
-    "@mstudio/observability": "workspace:*"
+    "@mstudio/observability": "workspace:*",
+    "@mstudio/quota-guard": "workspace:*"
   },
   "scripts": {
     "dev": "wrangler dev",

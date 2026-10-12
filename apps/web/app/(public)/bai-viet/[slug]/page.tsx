@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { apiBaseUrl } from "../../../../lib/api";
+import { newsArticleJsonLd, siteOrigin } from "../../../../lib/seo";
 
 /**
  * Bài viết là runtime-only: không prerender/ISR cache tại edge vì
@@ -178,6 +179,25 @@ export default async function ArticlePage({
           originUrl: source.originUrl,
           rightsStatus: source.rightsStatus,
         }))}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            newsArticleJsonLd(
+              {
+                title: article.title,
+                summary: article.summary,
+                publishedAt: article.updatedAt,
+                author: article.sources?.[0]?.name,
+                slug,
+                mainImage: article.sources?.[0]?.originUrl,
+              },
+              siteOrigin()
+            )
+          ).replace(/</g, "\\u003c"),
+        }}
       />
 
       <p style={{ marginTop: 24 }}>

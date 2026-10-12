@@ -16,6 +16,7 @@ import {
   listStoryAggregates,
   setFeedEnabled,
   setSourceAllowStatus,
+  updateArticleMetadata,
   type SessionIdentity,
 } from "@mstudio/db";
 import {
@@ -75,6 +76,7 @@ import {
   validateRawItemStatus,
   validateReaderEvents,
   validateRecommendationsQuery,
+  validateUpdateArticle,
   validateUpdateFeed,
   validateUpdateSourceAllowStatus,
 } from "./validate.ts";
@@ -216,6 +218,28 @@ app.get("/healthz", (c) =>
     correlationId: c.get("correlationId"),
   }),
 );
+
+app.get("/quota/summary", async (c) => {
+  const identity = await verifyBearer(
+    c.req.raw.headers.get("authorization"),
+    c.env.DB,
+  );
+  if (!identity) {
+    throw new ApiError("UNAUTHORIZED", 401, "bearer token required");
+  }
+  if (
+    !["admin", "editor", "reviewer"].includes(identity.role)
+  ) {
+    throw new ApiError(
+      "FORBIDDEN",
+      403,
+      "requires role: admin, editor, reviewer",
+    );
+  }
+  const quotaGuard = c.get("quotaGuard");
+  const summary = await quotaGuard.summary();
+  return c.json(summary);
+});
 
 app.get("/raw-items", async (c) => {
   const url = new URL(c.req.url);
@@ -401,7 +425,11 @@ app.get("/articles", async (c) => {
   }
   const statusParam = url.searchParams.get("status");
   if (statusParam === null) {
-    const page = await listPublishedArticles(c.env.DB, pagination.value);
+    const categorySlug = url.searchParams.get("category") ?? undefined;
+    const page = await listPublishedArticles(c.env.DB, {
+      ...pagination.value,
+      categorySlug,
+    });
     return c.json(page);
   }
   // Editorial queue (CMS nội bộ): yêu cầu Editor+ — reader surfaces
@@ -466,6 +494,38 @@ app.get("/articles/:id", async (c) => {
   }
   return c.json({ article });
 });
+
+app.patch(
+  "/articles/:id",
+  rateLimit(),
+  requireRole("admin", "editor", "reviewer"),
+  auditChanges("article.update"),
+  async (c) => {
+    const id = c.req.param("id");
+    const body = await readJson(c.req.raw);
+    const validation = validateUpdateArticle(body);
+    if (!validation.ok) {
+      throw badRequest(
+        "VALIDATION_FAILED",
+        "invalid article update payload",
+        validation.errors,
+      );
+    }
+    try {
+      const article = await updateArticleMetadata(
+        c.env.DB,
+        id,
+        validation.value,
+      );
+      return c.json({ article });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not found")) {
+        throw notFound("ARTICLE_NOT_FOUND", `article ${id} not found`);
+      }
+      throw error;
+    }
+  },
+);
 
 // CMS Story Clusters: aggregate theo story_id (chỉ story có bài),
 // mới nhất trước, limit 50. Public như GET /articles list — chỉ
