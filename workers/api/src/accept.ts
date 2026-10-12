@@ -282,14 +282,23 @@ export async function acceptRawItem(
     now,
   });
 
-  const revision = await addRevision(deps.db, {
-    id: crypto.randomUUID(),
-    articleId: article.id,
-    title: draft.title,
-    body: draft.body,
-    summary: draft.summary,
-    now,
-  });
+  const revision = await addRevision(
+    deps.db,
+    {
+      id: crypto.randomUUID(),
+      articleId: article.id,
+      title: draft.title,
+      body: draft.body,
+      summary: draft.summary,
+      now,
+    },
+    {
+      internalLinks: {
+        storyId: story.id,
+        excludedCategorySlugs: [],
+      },
+    },
+  );
 
   await createEditorialDecision(deps.db, {
     id: crypto.randomUUID(),
