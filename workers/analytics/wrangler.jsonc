@@ -6,6 +6,10 @@
     "enabled": true,
     "traces": {
       "enabled": true
+    },
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
     }
   },
   "vars": {

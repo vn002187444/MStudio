@@ -28,5 +28,11 @@
         "queue": "mstudio-events"
       }
     ]
+  },
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
   }
 }
