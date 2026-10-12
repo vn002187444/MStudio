@@ -349,15 +349,28 @@ export function validateReaderEvents(
   return { ok: true, value: parsed };
 }
 
+const optionalHttpUrl = z
+  .string()
+  .refine((val) => {
+    if (!val || val.trim() === "") return true;
+    try {
+      const u = new URL(val);
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, "must be a valid http(s) URL")
+  .optional();
+
 const updateArticleSchema = z.object({
   slug: z.string().trim().min(1).optional(),
   categorySlug: z.string().trim().min(1).optional(),
-  heroImageUrl: z.string().optional(),
-  videoUrl: z.string().optional(),
+  heroImageUrl: optionalHttpUrl,
+  videoUrl: optionalHttpUrl,
   metaTitle: z.string().trim().optional(),
   metaDescription: z.string().trim().optional(),
-  canonicalUrl: z.string().optional(),
-  ogImageUrl: z.string().optional(),
+  canonicalUrl: optionalHttpUrl,
+  ogImageUrl: optionalHttpUrl,
   keywords: z.string().trim().optional(),
   isBreaking: z.boolean().optional(),
   isTrending: z.boolean().optional(),

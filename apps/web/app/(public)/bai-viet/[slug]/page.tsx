@@ -19,6 +19,36 @@ import { BlocksRenderer, headingsFromBlocks } from "../../../../components/artic
 import { parseArticleBlocksBody } from "../../../../../../packages/contracts/src/blocks.ts";
 
 /**
+ * Bài viết là runtime-only: không prerender/ISR cache tại edge vì
+ * 404 lúc build từng bị bake thành HTML 200 (vinext cache quirk).
+ * CDN vẫn cache theo Cache-Control của worker nếu cần.
+ */
+export const dynamic = "force-dynamic";
+
+/** Render markdown link `[text](url)` thành `<a>` an toàn (chỉ http/https/root-relative). */
+function safeUrl(raw: string): string | undefined {
+  if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+  try {
+    const url = new URL(raw);
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.toString();
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
+function renderMarkdownLinks(text: string): string {
+  const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  return text.replace(markdownLinkRegex, (match, linkText, linkUrl) => {
+    const url = safeUrl(linkUrl);
+    if (!url) return match;
+    return `<a href="${url}" rel="noopener noreferrer nofollow" target="_blank">${linkText}</a>`;
+  });
+}
+
+/**
  * Trang bài viết — dữ liệu published từ GET /articles/:id.
  * Slug hiện tại là article id (slug đẹp là follow-up khi có CMS).
  */
@@ -62,7 +92,7 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }> | { slug: string };
-}): Promise<Metadata> {
+}) {
   const { slug } = await Promise.resolve(params);
   const article = await fetchArticle(slug);
   if (!article) {
@@ -72,13 +102,6 @@ export async function generateMetadata({
     title: `${article.title} | MStudio Channel`,
     description: article.summary ?? article.title,
   };
-}
-
-function renderBody(body: string): string[] {
-  return body
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter((paragraph) => paragraph.length > 0);
 }
 
 function BodyWithToc({ body }: { body: string }) {
@@ -100,7 +123,7 @@ function BodyWithToc({ body }: { body: string }) {
         </h2>
       );
     }
-    return <p key={index}>{paragraph}</p>;
+    return <p key={index} dangerouslySetInnerHTML={{__html: renderMarkdownLinks(paragraph)}} />;
   });
   return (
     <>
@@ -113,8 +136,7 @@ function BodyWithToc({ body }: { body: string }) {
   );
 }
 
-/**
- * Body render (FU-05): body là blocks JSON thì render BlocksRenderer
+/** Body render (FU-05): body là blocks JSON thì render BlocksRenderer
  * (heading/list/quote/image); còn không — plain text/HTML cũ — fallback
  * nguyên vẹn về BodyWithToc.
  */
@@ -179,9 +201,8 @@ export default async function ArticlePage({
           originUrl: source.originUrl,
           rightsStatus: source.rightsStatus,
         }))}
-      />
 
-      <script
+/<script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(

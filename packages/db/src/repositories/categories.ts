@@ -1,14 +1,10 @@
 import type { D1Database } from "@cloudflare/workers-types";
+import type {
+  CategoryRecord,
+  CategoryStatus,
+} from "@mstudio/contracts";
 
-export type CategoryStatus = "active" | "archived";
-
-export interface CategoryRecord {
-  slug: string;
-  labelVi: string;
-  parentSlug?: string;
-  sort: number;
-  status: CategoryStatus;
-}
+export type { CategoryRecord, CategoryStatus };
 
 interface CategoryRowRaw {
   slug: string;

@@ -620,7 +620,7 @@ export async function listPublishedArticles(
     baseParams.push(input.categorySlug);
   }
 
-  const order = `ORDER BY a.updated_at DESC, a.id DESC LIMIT ${limit + 1}`;
+  const order = `ORDER BY a.updated_at DESC, a.id DESC LIMIT ?`;
   const rows = input.cursor
     ? (
         await db
@@ -631,42 +631,51 @@ export async function listPublishedArticles(
             ...baseParams,
             input.cursor.createdAt,
             input.cursor.id,
+            limit + 1,
           )
           .all<PublishedArticleRowRaw>()
       ).results
     : (
         await db
           .prepare(`${base} ${order}`)
-          .bind(...baseParams)
+          .bind(...baseParams, limit + 1)
           .all<PublishedArticleRowRaw>()
       ).results;
-  return paginate(
-    rows.map((row) => ({
-      id: row.id,
-      storyId: row.storyId,
-      status: row.status,
-      title: row.title,
-      body: row.body,
-      summary: row.summary ?? undefined,
-      publishedRevisionId: row.publishedRevisionId,
-      slug: row.slug ?? undefined,
-      categorySlug: row.categorySlug ?? undefined,
-      heroImageUrl: row.heroImageUrl ?? undefined,
-      videoUrl: row.videoUrl ?? undefined,
-      metaTitle: row.metaTitle ?? undefined,
-      metaDescription: row.metaDescription ?? undefined,
-      canonicalUrl: row.canonicalUrl ?? undefined,
-      ogImageUrl: row.ogImageUrl ?? undefined,
-      keywords: row.keywords ?? undefined,
-      sourceCount: Number(row.sourceCount ?? 0),
-      qualityScore: row.qualityScore != null ? row.qualityScore : undefined,
-      isBreaking: Boolean(row.isBreaking),
-      isTrending: Boolean(row.isTrending),
-      updatedAt: row.updatedAt,
-      createdAt: row.createdAt,
-    })),
-    limit,
-  );
+
+  const mapped = rows.map((row) => ({
+    id: row.id,
+    storyId: row.storyId,
+    status: row.status,
+    title: row.title,
+    body: row.body,
+    summary: row.summary ?? undefined,
+    publishedRevisionId: row.publishedRevisionId,
+    slug: row.slug ?? undefined,
+    categorySlug: row.categorySlug ?? undefined,
+    heroImageUrl: row.heroImageUrl ?? undefined,
+    videoUrl: row.videoUrl ?? undefined,
+    metaTitle: row.metaTitle ?? undefined,
+    metaDescription: row.metaDescription ?? undefined,
+    canonicalUrl: row.canonicalUrl ?? undefined,
+    ogImageUrl: row.ogImageUrl ?? undefined,
+    keywords: row.keywords ?? undefined,
+    sourceCount: Number(row.sourceCount ?? 0),
+    qualityScore: row.qualityScore != null ? row.qualityScore : undefined,
+    isBreaking: Boolean(row.isBreaking),
+    isTrending: Boolean(row.isTrending),
+    updatedAt: row.updatedAt,
+    createdAt: row.createdAt,
+  }));
+
+  const paginated = paginate(mapped, limit);
+  const lastRow = paginated.rows[paginated.rows.length - 1];
+
+  return {
+    ...paginated,
+    nextCursor: paginated.nextCursor && lastRow
+      ? { createdAt: lastRow.updatedAt, id: lastRow.id }
+      : undefined,
+  };
 }
 
 export async function addRevision(

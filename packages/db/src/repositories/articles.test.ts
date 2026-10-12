@@ -17,6 +17,7 @@ import {
   PublishConflictError,
   transitionArticle,
   TransitionError,
+  updateArticleMetadata,
 } from "../index.ts";
 import { openMigratedTestDb } from "../testing/helpers.ts";
 
@@ -448,3 +449,154 @@ test("getPublishedArticle resolves source lineage via story_sources", async () =
     close();
   }
 });
+
+test("updateArticleMetadata updates SEO, media, and taxonomy fields", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    const articleId = await seedArticle(db);
+    const updated = await updateArticleMetadata(db, articleId, {
+      slug: "test-slug-article",
+      categorySlug: "cong-nghe",
+      heroImageUrl: "https://example.com/hero.jpg",
+      videoUrl: "https://example.com/video.mp4",
+      metaTitle: "SEO Title",
+      metaDescription: "SEO Description",
+      canonicalUrl: "https://example.com/canonical",
+      ogImageUrl: "https://example.com/og.jpg",
+      keywords: "ai, technology",
+      sourceCount: 3,
+      qualityScore: 9.5,
+      isBreaking: true,
+      isTrending: true,
+    });
+
+    assert.equal(updated.slug, "test-slug-article");
+    assert.equal(updated.categorySlug, "cong-nghe");
+    assert.equal(updated.heroImageUrl, "https://example.com/hero.jpg");
+    assert.equal(updated.videoUrl, "https://example.com/video.mp4");
+    assert.equal(updated.metaTitle, "SEO Title");
+    assert.equal(updated.metaDescription, "SEO Description");
+    assert.equal(updated.canonicalUrl, "https://example.com/canonical");
+    assert.equal(updated.ogImageUrl, "https://example.com/og.jpg");
+    assert.equal(updated.keywords, "ai, technology");
+    assert.equal(updated.sourceCount, 3);
+    assert.equal(updated.qualityScore, 9.5);
+    assert.equal(updated.isBreaking, true);
+    assert.equal(updated.isTrending, true);
+
+    const fetched = await getArticle(db, articleId);
+    assert.equal(fetched?.slug, "test-slug-article");
+    assert.equal(fetched?.isBreaking, true);
+    assert.equal(fetched?.isTrending, true);
+  } finally {
+    close();
+  }
+});
+
+test("getPublishedArticle resolves by slug and returns metadata", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    await createStory(db, { id: "story-pub", title: "Story Pub", now: NOW });
+    await createArticle(db, {
+      id: "art-pub",
+      storyId: "story-pub",
+      slug: "bai-viet-slug-chuan",
+      categorySlug: "kinh-doanh",
+      heroImageUrl: "https://example.com/art.jpg",
+      isBreaking: true,
+      now: NOW,
+    });
+    await addRevision(db, {
+      id: "rev-pub",
+      articleId: "art-pub",
+      title: "Public Title",
+      body: "Public Body",
+      now: NOW,
+    });
+    for (const status of ["ai_qa", "auto_eligible", "scheduled"] as const) {
+      await transitionArticle(db, "art-pub", status, NOW);
+    }
+    await publishArticle(db, "art-pub", "rev-pub", NOW);
+
+    // Tìm kiếm bằng id
+    const byId = await getPublishedArticle(db, "art-pub");
+    assert.ok(byId);
+    assert.equal(byId.slug, "bai-viet-slug-chuan");
+    assert.equal(byId.heroImageUrl, "https://example.com/art.jpg");
+    assert.equal(byId.isBreaking, true);
+
+    // Tìm kiếm bằng slug
+    const bySlug = await getPublishedArticle(db, "bai-viet-slug-chuan");
+    assert.ok(bySlug);
+    assert.equal(bySlug.id, "art-pub");
+    assert.equal(bySlug.title, "Public Title");
+  } finally {
+    close();
+  }
+});
+
+test("listPublishedArticles filters by categorySlug and preserves keyset cursor on updatedAt", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    await createStory(db, { id: "story-cat", title: "Story Cat", now: NOW });
+    
+    // Bài 1: kinh-doanh, published lúc NOW
+    await createArticle(db, {
+      id: "art-cat-1",
+      storyId: "story-cat",
+      categorySlug: "kinh-doanh",
+      now: NOW,
+    });
+    await addRevision(db, {
+      id: "rev-cat-1",
+      articleId: "art-cat-1",
+      title: "Kinh doanh 1",
+      body: "Body",
+      now: NOW,
+    });
+    for (const status of ["ai_qa", "auto_eligible", "scheduled"] as const) {
+      await transitionArticle(db, "art-cat-1", status, NOW);
+    }
+    await publishArticle(db, "art-cat-1", "rev-cat-1", NOW);
+
+    // Bài 2: cong-nghe, published lúc LATER
+    await createArticle(db, {
+      id: "art-cat-2",
+      storyId: "story-cat",
+      categorySlug: "cong-nghe",
+      now: NOW,
+    });
+    await addRevision(db, {
+      id: "rev-cat-2",
+      articleId: "art-cat-2",
+      title: "Cong nghe 1",
+      body: "Body",
+      now: NOW,
+    });
+    for (const status of ["ai_qa", "auto_eligible", "scheduled"] as const) {
+      await transitionArticle(db, "art-cat-2", status, NOW);
+    }
+    await publishArticle(db, "art-cat-2", "rev-cat-2", LATER);
+
+    // Lọc chuyên mục kinh-doanh
+    const kdList = await listPublishedArticles(db, { categorySlug: "kinh-doanh" });
+    assert.equal(kdList.rows.length, 1);
+    assert.equal(kdList.rows[0].id, "art-cat-1");
+
+    // Lọc chuyên mục cong-nghe
+    const cnList = await listPublishedArticles(db, { categorySlug: "cong-nghe" });
+    assert.equal(cnList.rows.length, 1);
+    assert.equal(cnList.rows[0].id, "art-cat-2");
+
+    // Keyset cursor test: limit = 1
+    const p1 = await listPublishedArticles(db, { limit: 1 });
+    assert.equal(p1.rows.length, 1);
+    assert.equal(p1.rows[0].id, "art-cat-2");
+    assert.ok(p1.nextCursor);
+    // nextCursor.createdAt phải mang updatedAt của art-cat-2 (LATER)
+    assert.equal(p1.nextCursor.createdAt, LATER);
+  } finally {
+    close();
+  }
+});
+
