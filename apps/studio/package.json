@@ -4,6 +4,9 @@
   "private": true,
   "packageManager": "npm",
   "dependencies": {
+    "@tiptap/extension-image": "^3.31.4",
+    "@tiptap/react": "^3.31.4",
+    "@tiptap/starter-kit": "^3.31.4",
     "@vinext/cloudflare": "^1.0.1",
     "react": "latest",
     "react-dom": "latest",

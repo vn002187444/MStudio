@@ -2,12 +2,17 @@
 
 import { useState } from "react";
 import { firstError, sourceUrlSchema } from "../../lib/validation";
+import { BlocksEditor } from "../../components/blocks-editor";
+import type { ArticleBlock } from "../../../../packages/contracts/src/blocks.ts";
 
 /**
  * Article Editor (MST-040) — main canvas + inspector + desktop/mobile preview.
  * Client boundary: editor interactions only. Chưa nối persistence (MST-041
  * owns revision API) — mọi thay đổi là local state, autosave debounce là
  * follow-up khi endpoint sẵn sàng.
+ *
+ * Body có 2 mode (FU-05): "rich" = Tiptap blocks editor serialize sang
+ * ArticleBlock[] (packages/contracts); "plain" = khối textarea cũ.
  */
 type BlockKind = "paragraph" | "quote" | "heading";
 
@@ -18,6 +23,7 @@ interface Block {
 }
 
 type PreviewMode = "desktop" | "mobile";
+type BodyMode = "rich" | "plain";
 
 const blockLabels: Record<BlockKind, string> = {
   paragraph: "Đoạn văn",
@@ -40,6 +46,8 @@ const fieldStyle = {
 
 export default function EditorPage() {
   const [blocks, setBlocks] = useState<Block[]>([newBlock("paragraph")]);
+  const [bodyMode, setBodyMode] = useState<BodyMode>("rich");
+  const [richBlocks, setRichBlocks] = useState<ArticleBlock[]>([]);
   const [sources, setSources] = useState<string[]>([]);
   const [sourceInput, setSourceInput] = useState("");
   const [sourceError, setSourceError] = useState<string | undefined>(undefined);
@@ -111,44 +119,84 @@ export default function EditorPage() {
 
           <section aria-labelledby="canvas-blocks-heading" style={{ marginBottom: 16 }}>
             <h2 id="canvas-blocks-heading" style={{ fontSize: "var(--text-base)" }}>
-              Rich blocks <span style={{ color: "var(--gray)" }}>({blocks.length})</span>
+              Rich blocks{" "}
+              <span style={{ color: "var(--gray)" }}>
+                ({bodyMode === "rich" ? richBlocks.length : blocks.length})
+              </span>
             </h2>
-            <ul style={{ display: "flex", flexDirection: "column", gap: 12, listStyle: "none", margin: "0 0 12px", padding: 0 }}>
-              {blocks.map((block, index) => (
-                <li key={block.id}>
-                  <label htmlFor={`block-${block.id}`} style={{ display: "block", marginBottom: 4 }}>
-                    {blockLabels[block.kind]} #{index + 1}
-                  </label>
-                  <textarea
-                    id={`block-${block.id}`}
-                    onChange={(event) => updateBlock(block.id, event.target.value)}
-                    rows={block.kind === "paragraph" ? 4 : 2}
-                    style={fieldStyle}
-                    value={block.text}
-                  />
-                  <button
-                    aria-label={`Xóa khối ${index + 1}`}
-                    onClick={() => removeBlock(block.id)}
-                    style={{ background: "none", border: "none", color: "var(--gray)", cursor: "pointer", padding: "4px 0" }}
-                    type="button"
-                  >
-                    Xóa khối
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <div style={{ display: "flex", gap: 8 }} role="group" aria-label="Thêm khối">
-              {(Object.keys(blockLabels) as BlockKind[]).map((kind) => (
+            <div
+              style={{ display: "flex", gap: 8, marginBottom: 12 }}
+              role="group"
+              aria-label="Chế độ soạn thảo nội dung"
+            >
+              {(
+                [
+                  ["rich", "Rich editor"],
+                  ["plain", "Khối đơn giản"],
+                ] as Array<[BodyMode, string]>
+              ).map(([mode, label]) => (
                 <button
-                  key={kind}
-                  onClick={() => setBlocks((current) => [...current, newBlock(kind)])}
-                  style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", cursor: "pointer", padding: "8px 12px" }}
+                  key={mode}
+                  aria-pressed={bodyMode === mode}
+                  className="btn-primary"
+                  onClick={() => setBodyMode(mode)}
+                  style={
+                    bodyMode === mode
+                      ? undefined
+                      : {
+                          background: "var(--white)",
+                          border: "1px solid var(--border)",
+                          color: "var(--ink)",
+                        }
+                  }
                   type="button"
                 >
-                  + {blockLabels[kind]}
+                  {label}
                 </button>
               ))}
             </div>
+            {bodyMode === "rich" ? (
+              <BlocksEditor onChange={setRichBlocks} />
+            ) : (
+              <>
+                <ul style={{ display: "flex", flexDirection: "column", gap: 12, listStyle: "none", margin: "0 0 12px", padding: 0 }}>
+                  {blocks.map((block, index) => (
+                    <li key={block.id}>
+                      <label htmlFor={`block-${block.id}`} style={{ display: "block", marginBottom: 4 }}>
+                        {blockLabels[block.kind]} #{index + 1}
+                      </label>
+                      <textarea
+                        id={`block-${block.id}`}
+                        onChange={(event) => updateBlock(block.id, event.target.value)}
+                        rows={block.kind === "paragraph" ? 4 : 2}
+                        style={fieldStyle}
+                        value={block.text}
+                      />
+                      <button
+                        aria-label={`Xóa khối ${index + 1}`}
+                        onClick={() => removeBlock(block.id)}
+                        style={{ background: "none", border: "none", color: "var(--gray)", cursor: "pointer", padding: "4px 0" }}
+                        type="button"
+                      >
+                        Xóa khối
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div style={{ display: "flex", gap: 8 }} role="group" aria-label="Thêm khối">
+                  {(Object.keys(blockLabels) as BlockKind[]).map((kind) => (
+                    <button
+                      key={kind}
+                      onClick={() => setBlocks((current) => [...current, newBlock(kind)])}
+                      style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", cursor: "pointer", padding: "8px 12px" }}
+                      type="button"
+                    >
+                      + {blockLabels[kind]}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </section>
 
           <section aria-labelledby="canvas-sources-heading">
@@ -187,7 +235,10 @@ export default function EditorPage() {
           <h2 style={{ fontSize: "var(--text-base)", margin: "0 0 8px" }}>Inspector</h2>
           <section aria-labelledby="insp-content-heading" style={{ marginBottom: 12 }}>
             <h3 id="insp-content-heading" style={{ fontSize: "var(--text-sm)" }}>Content</h3>
-            <p role="status" style={{ color: "var(--gray)", margin: 0 }}>{blocks.length} khối, {sources.length} nguồn.</p>
+            <p role="status" style={{ color: "var(--gray)", margin: 0 }}>
+              {bodyMode === "rich" ? richBlocks.length : blocks.length} khối,{" "}
+              {sources.length} nguồn.
+            </p>
           </section>
           <section aria-labelledby="insp-seo-heading" style={{ marginBottom: 12 }}>
             <h3 id="insp-seo-heading" style={{ fontSize: "var(--text-sm)" }}>SEO</h3>

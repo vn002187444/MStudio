@@ -61,3 +61,139 @@ body {
 a {
   color: inherit;
 }
+
+/* ---- Blocks editor Tiptap (FU-05 / MST-040) ---- */
+
+.blocks-editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 8px;
+}
+
+.blocks-editor__btn {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  min-height: 36px;
+  padding: 6px 10px;
+}
+
+.blocks-editor__btn:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+
+.blocks-editor__btn[aria-pressed="true"] {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--white);
+}
+
+.blocks-editor__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.blocks-editor__surface {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-height: 260px;
+  padding: 12px 14px;
+}
+
+.blocks-editor__surface:focus {
+  outline: 2px solid var(--ai-blue);
+  outline-offset: 2px;
+}
+
+.blocks-editor__surface p {
+  line-height: 1.65;
+  margin: 0 0 12px;
+}
+
+.blocks-editor__surface h2 {
+  font-size: var(--text-2xl);
+  margin: 20px 0 8px;
+}
+
+.blocks-editor__surface h3 {
+  font-size: var(--text-xl);
+  margin: 16px 0 8px;
+}
+
+.blocks-editor__surface ul,
+.blocks-editor__surface ol {
+  margin: 0 0 12px;
+  padding-left: 24px;
+}
+
+.blocks-editor__surface ul {
+  list-style: disc;
+}
+
+.blocks-editor__surface ol {
+  list-style: decimal;
+}
+
+.blocks-editor__surface li {
+  margin: 4px 0;
+}
+
+.blocks-editor__surface li > p {
+  margin: 0;
+}
+
+.blocks-editor__surface blockquote {
+  background: var(--soft);
+  border-left: 3px solid var(--ink);
+  border-radius: var(--radius-sm);
+  color: var(--ink-700);
+  margin: 0 0 12px;
+  padding: 8px 16px;
+}
+
+.blocks-editor__surface a {
+  color: var(--ai-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.blocks-editor__surface figure {
+  margin: 0 0 12px;
+}
+
+.blocks-editor__surface img {
+  border-radius: var(--radius-sm);
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+.blocks-editor__surface figcaption {
+  color: var(--gray);
+  font-size: var(--text-sm);
+  margin-top: 4px;
+}
+
+.blocks-editor__json {
+  font-size: var(--text-sm);
+  margin-top: 12px;
+}
+
+.blocks-editor__json summary {
+  color: var(--gray);
+  cursor: pointer;
+}
+
+.blocks-editor__json pre {
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  max-height: 260px;
+  overflow: auto;
+  padding: 12px;
+}

@@ -14,6 +14,8 @@ import {
   TableOfContents,
 } from "../../../../components/article/table-of-contents";
 import { SourceBlock } from "../../../../components/article/source-block";
+import { BlocksRenderer, headingsFromBlocks } from "../../../../components/article/blocks-renderer";
+import { parseArticleBlocksBody } from "../../../../../../packages/contracts/src/blocks.ts";
 
 /**
  * Trang bài viết — dữ liệu published từ GET /articles/:id.
@@ -110,6 +112,26 @@ function BodyWithToc({ body }: { body: string }) {
   );
 }
 
+/**
+ * Body render (FU-05): body là blocks JSON thì render BlocksRenderer
+ * (heading/list/quote/image); còn không — plain text/HTML cũ — fallback
+ * nguyên vẹn về BodyWithToc.
+ */
+function ArticleBody({ body }: { body: string }) {
+  const blocks = parseArticleBlocksBody(body);
+  if (!blocks) return <BodyWithToc body={body} />;
+  const headings = headingsFromBlocks(blocks);
+  return (
+    <>
+      <TableOfContents headings={headings} />
+      <section aria-labelledby="article-body-heading">
+        <h2 id="article-body-heading">Nội dung</h2>
+        <BlocksRenderer blocks={blocks} />
+      </section>
+    </>
+  );
+}
+
 export default async function ArticlePage({
   params,
 }: {
@@ -148,7 +170,7 @@ export default async function ArticlePage({
         </section>
       ) : null}
 
-      <BodyWithToc body={article.body} />
+      <ArticleBody body={article.body} />
 
       <SourceBlock
         sources={(article.sources ?? []).map((source) => ({

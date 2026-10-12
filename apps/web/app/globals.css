@@ -357,6 +357,91 @@ h3 {
   }
 }
 
+/* ---- Article blocks renderer (FU-05): blocks JSON → HTML ---- */
+
+.article-blocks p {
+  line-height: 1.75;
+  margin: 0 0 16px;
+}
+
+.article-blocks h2 {
+  font-size: var(--text-2xl);
+  margin: 28px 0 12px;
+}
+
+.article-blocks h3 {
+  font-size: var(--text-xl);
+  margin: 24px 0 10px;
+}
+
+.article-blocks ul,
+.article-blocks ol {
+  margin: 0 0 16px;
+  padding-left: 24px;
+}
+
+.article-blocks ul {
+  list-style: disc;
+}
+
+.article-blocks ol {
+  list-style: decimal;
+}
+
+.article-blocks li {
+  line-height: 1.7;
+  margin: 4px 0;
+}
+
+.article-blocks li > p {
+  margin: 0;
+}
+
+.article-blocks blockquote {
+  background: var(--soft);
+  border-left: 3px solid var(--ink);
+  border-radius: var(--radius-md);
+  color: var(--ink-700);
+  font-size: var(--text-lg);
+  margin: 0 0 16px;
+  padding: 12px 20px;
+}
+
+.article-blocks blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.article-blocks a {
+  color: var(--ai-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.article-blocks code {
+  background: var(--soft);
+  border-radius: var(--radius-sm);
+  font-size: 0.95em;
+  padding: 1px 4px;
+}
+
+.article-blocks figure {
+  margin: 0 0 20px;
+}
+
+.article-blocks figure img {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.article-blocks figcaption {
+  color: var(--gray);
+  font-size: var(--text-sm);
+  margin-top: 8px;
+}
+
 .skeleton-pulse {
   animation: skeleton-pulse var(--motion-duration-slow) var(--motion-ease-standard) infinite alternate;
   background: var(--border);
