@@ -33,8 +33,40 @@ export type {
   StorySourceRole,
   StoryStatus,
 } from "./story.ts";
+export type {
+  ArticleBlock,
+  ArticleBlockType,
+  BlockquoteBlock,
+  BulletListBlock,
+  HeadingBlock,
+  ImageBlock,
+  InlineContent,
+  ListItemBlock,
+  ListItemContent,
+  OrderedListBlock,
+  ParagraphBlock,
+  TextMark,
+  TextMarkType,
+  TextNode,
+} from "./blocks.ts";
+export {
+  parseArticleBlocks,
+  parseArticleBlocksBody,
+  serializeArticleBlocks,
+} from "./blocks.ts";
 export type { Cursor, PageInput, PagedRows } from "./pagination.ts";
 export type { ArticleStatus } from "./publishing.ts";
+export type {
+  QuotaBlockReason,
+  QuotaCheckResult,
+  QuotaKind,
+  QuotaKindSummary,
+  QuotaLimitSource,
+  QuotaSummaryResponse,
+  QuotaUsageRecord,
+  QuotaUsageSource,
+} from "./quota.ts";
+export { QUOTA_KINDS, isQuotaKind } from "./quota.ts";
 export type {
   DraftSource,
   RawItemAcceptResult,

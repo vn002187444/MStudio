@@ -12,6 +12,7 @@ Owner: commandcode. Human gate: schema.
 | `idx_raw_items_payload_hash` | raw_items | (payload_hash) | Payload-hash idempotency fallback (MST-008) |
 | `idx_jobs_status_type` | jobs | (status, type) | Job queue polling by status + type |
 | `idx_jobs_correlation_id` | jobs | (correlation_id) | Lineage lookup by correlation id (MST-011) |
+| `idx_quota_usage_day` | quota_usage | (day) | Daily quota summary / `/quota/summary` (MST-011) |
 | `UNIQUE (source_id, url)` | feeds | (source_id, url) | One feed per URL per source |
 | `UNIQUE (feed_id, external_id)` | raw_items | (feed_id, external_id) | Ingest idempotency (MST-008) |
 
