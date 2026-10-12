@@ -146,7 +146,7 @@ export default {
       string,
       string | undefined
     >;
-    const quotaCheck = checkQuota(QuotaKind.AI, 1, envRecord);
+    const quotaCheck = checkQuota("ai", 1, envRecord);
 
     if (!quotaCheck.allowed) {
       return new Response(
@@ -167,7 +167,7 @@ export default {
 
     logger.info("request", { path: url.pathname, method: tagged.method });
 
-    recordUsage(QuotaKind.AI, 1, quotaGuard);
+    recordUsage("ai", 1, quotaGuard);
 
     return new Response("MStudio intelligence worker", { status: 200 });
   },
