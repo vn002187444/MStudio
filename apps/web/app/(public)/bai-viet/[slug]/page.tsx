@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { apiBaseUrl } from "../../../../lib/api";
+
+/**
+ * Bài viết là runtime-only: không prerender/ISR cache tại edge vì
+ * 404 lúc build từng bị bake thành HTML 200 (vinext cache quirk).
+ * CDN vẫn cache theo Cache-Control của worker nếu cần.
+ */
+export const dynamic = "force-dynamic";
 import { ArticleHero } from "../../../../components/article/article-hero";
 import {
   extractHeadings,
@@ -35,7 +42,7 @@ async function fetchArticle(
   try {
     const response = await fetch(
       `${apiBaseUrl()}/articles/${encodeURIComponent(slug)}`,
-      { next: { revalidate: 60 } },
+      { cache: "no-store" },
     );
     if (response.status === 404) return undefined;
     if (!response.ok) throw new Error(`article API ${response.status}`);
