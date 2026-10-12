@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import {
+  countArticlesByStatus,
   createFeed,
   createSource,
   deleteSource,
@@ -12,6 +13,7 @@ import {
   listPublishedArticles,
   listRawItemsByStatus,
   listSources,
+  listStoryAggregates,
   setFeedEnabled,
   setSourceAllowStatus,
   type SessionIdentity,
@@ -431,6 +433,28 @@ app.get("/articles", async (c) => {
   return c.json(page);
 });
 
+// CMS dashboard: đếm bài theo status. Editor+ — cùng pattern với
+// GET /articles?status= (số liệu queue nội bộ, chưa publish).
+// Đăng ký trước /articles/:id để "counts" không bị nuốt thành id.
+app.get("/articles/counts", async (c) => {
+  const identity = await verifyBearer(
+    c.req.raw.headers.get("authorization"),
+    c.env.DB,
+  );
+  if (!identity) {
+    throw new ApiError("UNAUTHORIZED", 401, "bearer token required");
+  }
+  if (!["admin", "editor", "reviewer"].includes(identity.role)) {
+    throw new ApiError(
+      "FORBIDDEN",
+      403,
+      "requires role: admin, editor, reviewer",
+    );
+  }
+  const counts = await countArticlesByStatus(c.env.DB);
+  return c.json({ counts });
+});
+
 app.get("/articles/:id", async (c) => {
   const id = c.req.param("id");
   const article = await getPublishedArticle(c.env.DB, id);
@@ -441,6 +465,14 @@ app.get("/articles/:id", async (c) => {
     );
   }
   return c.json({ article });
+});
+
+// CMS Story Clusters: aggregate theo story_id (chỉ story có bài),
+// mới nhất trước, limit 50. Public như GET /articles list — chỉ
+// metadata aggregate (storyId, count, statuses, title mới nhất).
+app.get("/stories", async (c) => {
+  const rows = await listStoryAggregates(c.env.DB);
+  return c.json({ rows });
 });
 
 app.get("/categories", async (c) => {
@@ -616,6 +648,7 @@ app.all("/recommendations", (c) =>
   c.text("Method not allowed", 405),
 );
 app.all("/articles/:id", (c) => c.text("Method not allowed", 405));
+app.all("/stories", (c) => c.text("Method not allowed", 405));
 app.all("/categories", (c) => c.text("Method not allowed", 405));
 app.all("/sources/:id", (c) => c.text("Method not allowed", 405));
 app.all("/sources/:id/allow-status", (c) =>

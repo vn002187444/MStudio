@@ -2,7 +2,11 @@ import type { D1Database } from "@cloudflare/workers-types";
 import type {
   ArticleStatus,
 } from "@mstudio/contracts";
-import { validateTransition } from "@mstudio/contracts";
+import {
+  ARTICLE_STATUSES,
+  isArticleStatus,
+  validateTransition,
+} from "@mstudio/contracts";
 import { paginate, pageSize } from "./pagination.ts";
 import type { PageInput, PagedRows } from "./pagination.ts";
 import {
@@ -218,7 +222,107 @@ export async function listArticlesByStatus(
   return paginate(results.map(toArticleRow), limit);
 }
 
-export interface PublishedArticleRecord {  id: string;
+export type ArticleStatusCounts = Record<ArticleStatus, number>;
+
+/**
+ * CMS dashboard: đếm số bài theo status trong một query GROUP BY.
+ * Mọi status đều có key (0 nếu chưa có bài) để studio group theo
+ * status không phải xử lý undefined.
+ */
+export async function countArticlesByStatus(
+  db: D1Database,
+): Promise<ArticleStatusCounts> {
+  const rows = (
+    await db
+      .prepare(
+        "SELECT status, COUNT(*) AS count FROM articles GROUP BY status",
+      )
+      .all<{ status: string; count: number }>()
+  ).results;
+  const counts = Object.fromEntries(
+    ARTICLE_STATUSES.map((status) => [status, 0]),
+  ) as ArticleStatusCounts;
+  for (const row of rows) {
+    if (isArticleStatus(row.status)) {
+      counts[row.status] = Number(row.count);
+    }
+  }
+  return counts;
+}
+
+export interface StoryAggregateRecord {
+  storyId: string;
+  articleCount: number;
+  statuses: ArticleStatus[];
+  /** Title của article mới nhất trong story đã có revision (bài chưa
+   * có revision không có title để hiển thị — omit khi không có). */
+  latestTitle?: string;
+  latestUpdatedAt: string;
+}
+
+interface StoryAggregateRowRaw {
+  storyId: string;
+  articleCount: number;
+  statuses: string;
+  latestTitle: string | null;
+  latestUpdatedAt: string;
+}
+
+export const STORY_AGGREGATE_LIMIT = 50;
+
+function toStoryAggregate(row: StoryAggregateRowRaw): StoryAggregateRecord {
+  const statuses = row.statuses
+    .split(",")
+    .filter(isArticleStatus)
+    .sort(
+      (a, b) => ARTICLE_STATUSES.indexOf(a) - ARTICLE_STATUSES.indexOf(b),
+    );
+  return {
+    storyId: row.storyId,
+    articleCount: Number(row.articleCount),
+    statuses,
+    latestTitle: row.latestTitle ?? undefined,
+    latestUpdatedAt: row.latestUpdatedAt,
+  };
+}
+
+/**
+ * CMS "Story Clusters": group articles theo story_id (chỉ story có bài),
+ * mới nhất trước, limit 50. Chỉ metadata aggregate — không đọc body.
+ * Index consideration: GROUP BY story_id là full scan; articles còn nhỏ
+ * nên chấp nhận được — nếu bảng phình cần index (story_id, updated_at)
+ * (tạo migration riêng, không nằm trong task read-only này).
+ */
+export async function listStoryAggregates(
+  db: D1Database,
+  limit: number = STORY_AGGREGATE_LIMIT,
+): Promise<StoryAggregateRecord[]> {
+  const rows = (
+    await db
+      .prepare(
+        `SELECT a.story_id AS storyId,
+                COUNT(*) AS articleCount,
+                group_concat(DISTINCT a.status) AS statuses,
+                MAX(a.updated_at) AS latestUpdatedAt,
+                (SELECT r.title
+                   FROM articles la
+                   JOIN article_revisions r ON r.id = la.current_revision_id
+                  WHERE la.story_id = a.story_id
+                  ORDER BY la.updated_at DESC, la.id DESC
+                  LIMIT 1) AS latestTitle
+           FROM articles a
+          GROUP BY a.story_id
+          ORDER BY MAX(a.updated_at) DESC, a.story_id DESC
+          LIMIT ?`,
+      )
+      .bind(limit)
+      .all<StoryAggregateRowRaw>()
+  ).results;
+  return rows.map(toStoryAggregate);
+}
+
+export interface PublishedArticleRecord {
+  id: string;
   storyId: string;
   status: ArticleStatus;
   title: string;

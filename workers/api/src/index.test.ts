@@ -8,6 +8,7 @@ import type {
   ReaderEventMessage,
   SourceRecord,
 } from "@mstudio/contracts";
+import { ARTICLE_STATUSES } from "@mstudio/contracts";
 import {
   addRevision,
   addStorySource,
@@ -1151,6 +1152,247 @@ test("GET /articles?status= lists the editorial queue for editors", async () => 
     };
     assert.ok(body.rows.some((row) => row.id === "art-queue"));
     assert.ok(body.rows.every((row) => row.status === "drafted"));
+  } finally {
+    close();
+  }
+});
+
+const SEED_LATER = "2026-02-01T00:00:00.000Z";
+
+async function seedArticleStatuses(db: D1Database): Promise<void> {
+  await createStory(db, {
+    id: "story-counts",
+    title: "Counts Story",
+    now: SEED_NOW,
+  });
+  await createArticle(db, {
+    id: "art-c1",
+    storyId: "story-counts",
+    now: SEED_NOW,
+  });
+  await createArticle(db, {
+    id: "art-c2",
+    storyId: "story-counts",
+    now: SEED_NOW,
+  });
+  await createArticle(db, {
+    id: "art-c3",
+    storyId: "story-counts",
+    now: SEED_NOW,
+  });
+  await addRevision(db, {
+    id: "rev-c3",
+    articleId: "art-c3",
+    title: "Counts Headline",
+    body: "body",
+    now: SEED_NOW,
+  });
+  await transitionArticle(db, "art-c3", "ai_qa", SEED_NOW);
+  await transitionArticle(db, "art-c3", "auto_eligible", SEED_NOW);
+  await transitionArticle(db, "art-c3", "scheduled", SEED_NOW);
+  await publishArticle(db, "art-c3", "rev-c3", SEED_NOW);
+}
+
+test("GET /articles/counts requires a bearer token", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/articles/counts"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 401);
+    const body = (await response.json()) as ApiErrorResponse;
+    assert.equal(body.error.code, "UNAUTHORIZED");
+  } finally {
+    close();
+  }
+});
+
+test("GET /articles/counts rejects a non-editorial role", async () => {
+  const { env, db, close } = await setup();
+  try {
+    const { token } = await createSession(db, {
+      userId: "analyst-user",
+      role: "analyst",
+      expiresAt: "2099-01-01T00:00:00.000Z",
+    });
+    const response = await worker.fetch(
+      request("/articles/counts", undefined, token),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 403);
+    const body = (await response.json()) as ApiErrorResponse;
+    assert.equal(body.error.code, "FORBIDDEN");
+  } finally {
+    close();
+  }
+});
+
+test("GET /articles/counts returns totals for every status", async () => {
+  const { env, db, close, adminToken } = await setup();
+  try {
+    await seedArticleStatuses(db);
+    const response = await worker.fetch(
+      request("/articles/counts", undefined, adminToken),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      counts: Record<string, number>;
+    };
+    assert.equal(Object.keys(body.counts).length, ARTICLE_STATUSES.length);
+    assert.equal(body.counts.drafted, 2);
+    assert.equal(body.counts.published, 1);
+    assert.equal(body.counts.ai_qa, 0);
+    assert.equal(body.counts.scheduled, 0);
+    assert.equal(body.counts.retracted, 0);
+    assert.equal(
+      body.counts.drafted +
+        body.counts.published +
+        body.counts.ai_qa +
+        body.counts.human_review +
+        body.counts.auto_eligible +
+        body.counts.hold +
+        body.counts.scheduled +
+        body.counts.updated +
+        body.counts.corrected +
+        body.counts.retracted,
+      3,
+    );
+  } finally {
+    close();
+  }
+});
+
+test("wrong method on /articles/counts returns 405", async () => {
+  const { env, close, adminToken } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/articles/counts", { method: "POST" }, adminToken),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 405);
+  } finally {
+    close();
+  }
+});
+
+async function seedStoryAggregates(db: D1Database): Promise<void> {
+  await createStory(db, { id: "story-a", title: "Story A", now: SEED_NOW });
+  await createStory(db, {
+    id: "story-b",
+    title: "Story B",
+    now: SEED_LATER,
+  });
+  await createArticle(db, {
+    id: "art-a1",
+    storyId: "story-a",
+    now: SEED_NOW,
+  });
+  await addRevision(db, {
+    id: "rev-a1",
+    articleId: "art-a1",
+    title: "A Headline",
+    body: "body",
+    now: SEED_NOW,
+  });
+  await transitionArticle(db, "art-a1", "ai_qa", SEED_NOW);
+  await transitionArticle(db, "art-a1", "auto_eligible", SEED_NOW);
+  await transitionArticle(db, "art-a1", "scheduled", SEED_NOW);
+  await publishArticle(db, "art-a1", "rev-a1", SEED_NOW);
+  await createArticle(db, {
+    id: "art-a2",
+    storyId: "story-a",
+    now: SEED_NOW,
+  });
+  await createArticle(db, {
+    id: "art-b1",
+    storyId: "story-b",
+    now: SEED_LATER,
+  });
+}
+
+test("GET /stories aggregates stories newest first without a token", async () => {
+  const { env, db, close } = await setup();
+  try {
+    await seedStoryAggregates(db);
+    const response = await worker.fetch(
+      request("/stories"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      rows: Array<{
+        storyId: string;
+        articleCount: number;
+        statuses: string[];
+        latestTitle?: string;
+        latestUpdatedAt: string;
+      }>;
+    };
+    assert.equal(body.rows.length, 2);
+
+    const newest = body.rows[0];
+    assert.equal(newest.storyId, "story-b");
+    assert.equal(newest.articleCount, 1);
+    assert.deepEqual(newest.statuses, ["drafted"]);
+    assert.equal(newest.latestUpdatedAt, SEED_LATER);
+    assert.equal(newest.latestTitle, undefined);
+
+    const older = body.rows[1];
+    assert.equal(older.storyId, "story-a");
+    assert.equal(older.articleCount, 2);
+    assert.deepEqual(older.statuses, ["drafted", "published"]);
+    assert.equal(older.latestUpdatedAt, SEED_NOW);
+    assert.equal(older.latestTitle, "A Headline");
+  } finally {
+    close();
+  }
+});
+
+test("GET /stories caps the aggregate at 50 rows", async () => {
+  const { env, db, close } = await setup();
+  try {
+    for (let index = 0; index < 52; index += 1) {
+      const storyId = `story-limit-${index}`;
+      await createStory(db, {
+        id: storyId,
+        title: `Story ${index}`,
+        now: SEED_NOW,
+      });
+      await createArticle(db, {
+        id: `art-limit-${index}`,
+        storyId,
+        now: SEED_NOW,
+      });
+    }
+    const response = await worker.fetch(
+      request("/stories"),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as { rows: unknown[] };
+    assert.equal(body.rows.length, 50);
+  } finally {
+    close();
+  }
+});
+
+test("wrong method on /stories returns 405", async () => {
+  const { env, close } = await setup();
+  try {
+    const response = await worker.fetch(
+      request("/stories", { method: "POST" }),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 405);
   } finally {
     close();
   }
