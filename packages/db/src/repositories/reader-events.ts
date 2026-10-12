@@ -94,7 +94,11 @@ export async function createReaderEvents(
         event.createdAt,
       ),
   );
-  await db.batch(statements);
+
+  for (let i = 0; i < statements.length; i += 100) {
+    const batch = statements.slice(i, i + 100);
+    await db.batch(batch);
+  }
 }
 
 export async function listReaderEventsByArticle(
