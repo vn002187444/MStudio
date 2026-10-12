@@ -219,27 +219,6 @@ app.get("/healthz", (c) =>
   }),
 );
 
-app.get("/quota/summary", async (c) => {
-  const identity = await verifyBearer(
-    c.req.raw.headers.get("authorization"),
-    c.env.DB,
-  );
-  if (!identity) {
-    throw new ApiError("UNAUTHORIZED", 401, "bearer token required");
-  }
-  if (
-    !["admin", "editor", "reviewer"].includes(identity.role)
-  ) {
-    throw new ApiError(
-      "FORBIDDEN",
-      403,
-      "requires role: admin, editor, reviewer",
-    );
-  }
-  const quotaGuard = c.get("quotaGuard");
-  const summary = await quotaGuard.summary();
-  return c.json(summary);
-});
 
 app.get("/raw-items", async (c) => {
   const url = new URL(c.req.url);
