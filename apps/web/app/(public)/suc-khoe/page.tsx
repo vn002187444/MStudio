@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 export default function HealthCategoryPage() {
   return (
     <CategoryTemplate
+      categorySlug="suc-khoe"
       description="Y tế, dinh dưỡng, tâm lý và kiến thức sức khỏe có kiểm chứng nguồn."
       name="Sức khỏe"
     />

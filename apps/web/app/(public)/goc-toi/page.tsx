@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 export default function DarkCategoryPage() {
   return (
     <CategoryTemplate
+      categorySlug="goc-toi"
       description="Kỳ án, Hồ sơ, Ký sự, Dark History — điều tra và hồ sơ, không imagery giật gân."
       name="Góc Tối"
     />

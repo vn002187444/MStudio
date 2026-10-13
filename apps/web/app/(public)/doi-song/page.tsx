@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 export default function LifeCategoryPage() {
   return (
     <CategoryTemplate
+      categorySlug="doi-song"
       description="Tâm sự, Kỹ năng sống, Gia đình, Sức khỏe, Du lịch."
       name="Đời sống"
     />

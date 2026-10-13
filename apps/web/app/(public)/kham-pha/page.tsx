@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 export default function DiscoveryCategoryPage() {
   return (
     <CategoryTemplate
+      categorySlug="kham-pha"
       description="Chuyện lạ, Kỳ án, Ký sự, Hồ sơ, Bí ẩn, Lịch sử."
       name="Khám phá"
     />

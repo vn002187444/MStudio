@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 export default function AiChannelCategoryPage() {
   return (
     <CategoryTemplate
+      categorySlug="ai-channel"
       description="Tin AI, models, agents, research, developer, GitHub trending và cộng đồng."
       name="AI Channel"
     />

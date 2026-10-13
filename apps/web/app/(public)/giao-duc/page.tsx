@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 export default function EducationCategoryPage() {
   return (
     <CategoryTemplate
+      categorySlug="giao-duc"
       description="Giáo dục đại học, học bổng, EdTech và xu hướng đào tạo."
       name="Giáo dục"
     />

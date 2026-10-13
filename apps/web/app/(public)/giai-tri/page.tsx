@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 export default function EntertainmentCategoryPage() {
   return (
     <CategoryTemplate
+      categorySlug="giai-tri"
       description="Ngôi sao, Âm nhạc, Điện ảnh, Showbiz và Scandal."
       name="Giải trí"
     />

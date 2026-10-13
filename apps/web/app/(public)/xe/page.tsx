@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 export default function AutoCategoryPage() {
   return (
     <CategoryTemplate
+      categorySlug="xe"
       description="Ô tô, xe máy, EV và thị trường xe Việt Nam & quốc tế."
       name="Xe"
     />
