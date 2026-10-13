@@ -701,6 +701,142 @@ Nối tiếp FU-01..FU-07 trong `QA_REPORT.md` §5. Mỗi task nhỏ, một owne
 - Hiển thị mốc thời gian xuất bản thật (`publishedAt`) theo định dạng tương đối ("15 phút trước", "2 giờ trước").
 - Mọi feed bài trên trang chủ và danh mục kết nối 100% với endpoint API thực tế.
 
+## Sprint S08: CMS Stability Hotfix, 15m Auto-Publish Policy, iOS HIG Polish & Rank Math SEO Suite (13-10-2026)
+
+### 1. Chính sách Tự động Hóa Biên tập & Xuất bản 15 Phút (15-Minute Editorial Grace Period Policy)
+- **Quyết định Human Lead (13-10-2026):** Cho phép AI tự động viết bài từ các Story Cluster chất lượng cao và tự động xuất bản nếu sau **15 phút** ban biên tập không duyệt hoặc can thiệp.
+- **Workflow phân tầng trạng thái:**
+  1. `mstudio-intelligence`: Tự động gom cụm `incoming` -> sinh bản thảo AI qua Gemini Flash (`ModelGateway`).
+  2. Tạo bản ghi `articles` với trạng thái `auto_eligible` (hoặc `human_review`) và ghi mốc thời gian `created_at`.
+  3. Cửa sổ can thiệp 15 phút (15-Minute Grace Window): Ban biên tập có thể xem xét tại CMS `/newsroom/needs-review`, bấm Duyệt ngay (`scheduled` -> `published`), bấm Chỉnh sửa, hoặc bấm Giữ lại (`hold`) / Hủy bỏ (`retracted`).
+  4. Nếu sau 15 phút (`created_at <= datetime('now', '-15 minutes')`) bài vẫn ở `auto_eligible` và không bị `hold`, Worker Scheduler tự động chuyển tiếp: `auto_eligible -> scheduled -> published`, sinh sitemap event và kích hoạt CDN purge cache.
+
+### 2. Thiết kế Chuẩn Giao diện & Hiệu ứng iOS (Apple Human Interface Guidelines)
+- **Visual Rhythm & Depth:**
+  - Kính mờ siêu thực (Ultra Frosted Glass): `backdrop-blur-xl bg-white/80 dark:bg-black/80 border-b border-black/5 dark:border-white/10`.
+  - Bo góc liên tục (Continuous Corner Radius - Squircle): Sử dụng `rounded-2xl` (16px) và `rounded-3xl` (24px) thay vì góc nhọn thô cứng.
+  - Phản hồi xúc giác & Vật lý khi chạm (Tactile Press Feedback): `active:scale-[0.98] transition-transform duration-150 ease-out` cho toàn bộ nút bấm, thẻ bài và hàng danh sách.
+  - Bộ điều khiển phân đoạn (iOS Segmented Control): Tab chuyển đổi mượt mà với thanh trượt indicator phong cách iOS Safari.
+  - Typographic Hierarchy: Nhịp typography dứt khoát theo SF Pro / Inter font metrics, đường viền siêu mảnh 1px hairline (`var(--border)`).
+
+### 3. Bộ Công Cụ SEO Toàn Diện Kiểu Rank Math Pro
+- **Real-Time On-Page SEO Scorer (0–100 điểm):**
+  - Chấm điểm và đưa ra checklist 10 tiêu chí theo thời gian thực: Focus Keyword trong Title/Meta Desc/URL/Sapo/Heading H2, Keyword Density 1.0–2.5%, Độ dài bài viết, Điểm dễ đọc Readability (Flesch Score), Thẻ ALT hình ảnh, Internal Links.
+- **Visual Schema Markup Generator:**
+  - Trực quan hóa và cho phép chọn nhanh các kiểu Schema JSON-LD: `NewsArticle`, `Article`, `FAQPage`, `VideoObject`, `BreadcrumbList`.
+- **Tích hợp Google Search Console (GSC) qua Service Account JSON:**
+  - Sử dụng Google Service Account JSON lưu trữ an toàn trong Cloudflare Worker Secrets (`GSC_SERVICE_ACCOUNT_KEY`).
+  - Cho phép đồng bộ headless không cần popup đăng nhập OAuth hết hạn, tự động kéo lượt click, hiển thị, CTR và vị trí từ khóa trung bình.
+- **Quản lý Chuyển hướng 301/302 & Bắt lỗi 404 (Redirect Manager):**
+  - Bảng D1 `redirects`: Tự động sinh redirect 301 khi biên tập viên thay đổi slug bài viết để bảo toàn thứ hạng Google.
+  - Bắt lỗi 404 và tự động gợi ý đường dẫn bài viết tương đồng.
+- **Image SEO:** Tự động tạo và điền `alt` text từ headline cho ảnh đại diện và ảnh trong bài viết.
+
+### 4. Tối Ưu Hóa Toàn Diện Giao Diện Studio CMS Cho Thiết Bị Di Động (Mobile-First CMS UX / iOS Web Experience)
+- **Kiến trúc Responsive & Điều hướng Mobile:**
+  - Chuyển đổi thanh Sidebar máy tính cố định (`studio-nav.tsx`) thành **Bottom Navigation Bar** hoặc **iOS Slide-over Sheet/Drawer** khi màn hình `< 768px`.
+  - Thiết kế mục tiêu chạm thân thiện với ngón tay cái (**Thumb-friendly touch targets**): tối thiểu 44×44px cho tất cả các nút bấm, hàng danh sách và icon điều hướng.
+  - Header di động tối giản hiển thị tiêu đề trang, trạng thái kết nối backend và nút mở menu hoặc bộ lọc nhanh.
+- **Trình biên tập & Duyệt bài tối ưu trên Mobile (`/editor` & `/newsroom`):**
+  - **Floating Mobile Toolbar:** Thanh công cụ định dạng khối nằm nổi ngay trên bàn phím ảo hoặc mép dưới màn hình, không che khuất nội dung soạn thảo.
+  - **Vuốt chạm xử lý nhanh (Swipe Gestures):** Cho phép vuốt sang phải để Duyệt ngay (`Accept / Publish`), vuốt sang trái để Giữ lại (`Hold`) hoặc Từ chối (`Reject`) trên danh sách Incoming và Cần duyệt (`/newsroom/needs-review`).
+  - **Chế độ Mobile Preview tích hợp:** Cho phép biên tập viên xem trước giao diện bài viết trên khung mô phỏng di động (390px) trước khi xuất bản.
+- **Bảng số liệu Audience & Bộ công cụ SEO thích ứng Mobile:**
+  - Thẻ KPI cuộn ngang mượt mà (Horizontal Snap Scroll): Các ô Lượt xem, Đọc sâu, Tỷ lệ hoàn thành cuộn ngang êm ái trên màn hình nhỏ.
+  - Chuyển đổi bảng dữ liệu dàn ngang (Desktop Tables) thành danh sách thẻ xếp tầng (Card-based list) trực quan, tránh lỗi vỡ khung hoặc thanh cuộn ngang khó chịu.
+  - Bộ công cụ SEO Rank Math (On-Page Scorer, Schema, Redirects, GSC) hiển thị dạng Accordion / Tabs dễ dàng thao tác bằng một tay.
+- **Trải nghiệm iOS Mobile Native:**
+  - Hỗ trợ cử chỉ Kéo để làm mới (**Pull-to-Refresh**) trên các trang tin tươi Incoming, Cần duyệt và Audience.
+  - Tương thích hoàn toàn vùng an toàn (**Safe Area Insets**): `padding-bottom: env(safe-area-inset-bottom)` cho iPhone tai thỏ / Dynamic Island.
+  - Phản hồi rung vật lý nhẹ (`active:scale-[0.98]`) và hiệu ứng chuyển trang mượt mà không giật khựng (View Transitions).
+
+### 5. Chiến Lược Preload & Tối Ưu Tốc Độ Tải Tức Thì (Instant-Load Preload Engine)
+- **Critical Assets & Typography Preload:**
+  - Preload phông chữ hệ thống (`Inter`, `SF Pro Display`) bằng `<link rel="preload" as="font" type="font/woff2" crossorigin>` trực tiếp trong thẻ `<head>`, loại bỏ 100% hiện tượng trễ phông (FOUT/FOIT) và đảm bảo CLS = 0.
+- **Hero Image Preload (Tối ưu LCP < 800ms):**
+  - Tự động phát hiện ảnh đại diện của bài tin chính (Lead story) trên Trang chủ và bài viết chi tiết để chèn `<link rel="preload" as="image" href="..." fetchpriority="high">`, đưa chỉ số LCP đạt mức xanh tuyệt đối trên Google PageSpeed.
+- **Speculation Rules & Route Prefetching:**
+  - Triển khai chuẩn W3C Speculation Rules API (`<script type="speculationrules">`) cho các đường dẫn bài viết hiển thị trong Viewport:
+    - Khi người dùng cuộn đến hoặc lướt qua thẻ bài, trình duyệt tự động prefetch ngầm HTML và dữ liệu SSR.
+    - Thời gian mở bài viết khi độc giả bấm click giảm về 0ms (Instant Navigation).
+- **Cloudflare HTTP 103 Early Hints & Preconnect:**
+  - Máy chủ Worker phát HTTP 103 Early Hints cho CSS bundle và phông chữ song song trong khi Worker xử lý truy vấn D1.
+  - Khai báo `<link rel="preconnect" href="...">` tới CDN hình ảnh R2 và DNS-prefetch tới các nguồn tài nguyên ngoại vi.
+- **AI Writing & SEO Metadata Enrichment (Luồng AI Điền Đầy Đủ & Đúng Chuẩn SEO):**
+  - Nâng cấp luồng AI sinh bài (`packages/ai` và `workers/api/src/accept.ts`):
+    - **SEO Slug tự động:** Chuyển đổi tiêu đề bài viết sang đường dẫn slug tiếng Việt chuẩn SEO (kebab-case không dấu, lược bỏ stop words).
+    - **Meta Title:** Sinh tiêu đề SEO 50–60 ký tự, chứa Focus Keyword ở đầu câu.
+    - **Meta Description:** Sinh mô tả tóm tắt hấp dẫn 150–160 ký tự chuẩn Search Snippet CTR cao.
+    - **Tự động phân loại danh mục (`categorySlug`):** AI tự động gán bài vào đúng chuyên mục (`cong-nghe`, `kinh-te`, `xa-hoi`, `the-gioi`...).
+    - **Focus Keyword & Tags:** AI trích xuất 1 từ khóa trọng tâm và 3-5 từ khóa phụ lưu vào trường `keywords`.
+    - **Hero & OG Image:** Tự động trích xuất ảnh từ RSS feed (`og:image`, `enclosure`) lưu vào `heroImageUrl` và `ogImageUrl`.
+    - **Canonical URL:** Tự động tạo URL chính tắc `https://mstudio.minds.io.vn/bai-viet/${slug}`.
+    - **Cấu trúc On-Page Semantic:** Sinh cấu trúc bài báo phân cấp thẻ H2, H3, Sapo tóm tắt, bảng sự thật kiểm chứng (Facts), và khối FAQ Schema Markup.
+
+## Sprint S09: International RSS Expansion, Awwwards Modern UX, PIN/Account Auth, In-CMS Email, Editor Rank Math & Auto-Writer (13-10-2026)
+
+### 1. Mở Rộng Nguồn RSS Quốc Tế & Cộng Đồng Lớn (Đảm bảo mỗi chuyên mục 2–3 nguồn)
+- **Công nghệ & Trí tuệ Nhân tạo (`cong-nghe`):**
+  - TechCrunch (RSS chính), The Verge (Tech RSS), Hacker News Top Stories (Y Combinator), VnExpress Số Hóa.
+- **Kinh tế & Thị trường (`kinh-te` / `kinh-doanh`):**
+  - Bloomberg Markets, CNBC Top Business, CafeF Tài chính, VnEconomy.
+- **Thế giới & Toàn cầu (`the-gioi`):**
+  - Reuters World News, BBC World News, Tuổi Trẻ Thế Giới, VNExpress Quốc Tế.
+- **Đời sống, Xã hội & Sức khỏe (`doi-song`, `xa-hoi`, `suc-khoe`):**
+  - Tuổi Trẻ Đời Sống, Thanh Niên Giới Trẻ, Sức Khỏe & Đời Sống (Bộ Y Tế).
+- **Khoa học & Đổi mới (`khoa-hoc`):**
+  - Science Daily, Nature News RSS, VnExpress Khoa học.
+- **Thể thao & Giải trí (`the-thao`, `giai-tri`):**
+  - BBC Sport RSS, Tuổi Trẻ Thể Thao, Thanh Niên Văn Hóa Giải Trí.
+
+### 2. Nâng Cấp Giao Diện Web Độc Giả (Homepage & Trang Con) Hiện Đại Chuẩn Awwwards / Apple News
+- **Bento Grid & Visual Hierarchy:** Bố cục chia ô Bento tinh xảo, thẻ bài chính Lead Story với hiệu ứng ánh sáng Ambient Glow.
+- **Micro-interactions:** Hiệu ứng hover nhấc nổi nhẹ (`hover:-translate-y-1`), thanh đọc audio tóm tắt nhanh (Web Speech TTS zero-cost), live indicators nhấp nháy cho tin nóng (Breaking News).
+- **Dark/Light Mode tương phản cao:** Nền Obsidian `#080A0F`, đường viền kính hairline 1px, typography Inter/SF Pro tối ưu nhịp đọc.
+
+### 3. Nâng Cấp Giao Diện Studio CMS Chuẩn Crafted SaaS (Linear / Raycast / Awwwards)
+- **Command Palette (⌘K / Ctrl+K):** Tìm kiếm bài viết, chuyển trang nhanh, gọi các tác vụ duyệt bài ngay bằng bàn phím.
+- **Phím tắt biên tập:** `J/K` để lướt danh sách tin, `E` để vào soạn thảo, `A` để duyệt (`Accept`), `R` để từ chối (`Reject`).
+- **Giao diện Quick Triage:** Hỗ trợ duyệt nhanh dạng thẻ cho danh sách chờ duyệt 15 phút (`/newsroom/needs-review`).
+
+### 4. Audit & Tối Ưu Toàn Bộ Luồng Vận Hành CMS (Workflow Architecture)
+- **Luồng khép kín:** RSS Crawler -> Raw Items -> Story Clustering -> Gemini Verification Writer -> 15-Minute Grace Window -> Editor Intervention OR Auto-Publish -> CDN Cache Purge -> Sitemaps & Search Engine Indexing.
+- **Cơ chế Cảnh báo Tin nóng:** Khi có ≥ 3 nguồn đưa tin cùng chủ đề trong 30 phút, hệ thống tự động đẩy cờ `isBreaking = true` lên trang chủ.
+
+### 5. Tích Hợp Rank Math SEO Scorer Trực Tiếp Vào Trình Soạn Thảo (`/editor`)
+- **Real-Time On-Page Score (0–100):** Tích hợp sidebar tính điểm ngay khi gõ tiêu đề, mô tả và nội dung bài viết.
+- **Checklist 10 Tiêu chí:**
+  1. Tiêu đề chứa Focus Keyword (độ dài 50–60 ký tự).
+  2. Sapo mở đầu chứa Focus Keyword trong 100 từ đầu tiên.
+  3. Mật độ từ khóa trọng tâm (Keyword Density đạt 1.0% – 2.5%).
+  4. Cấu trúc bài viết có ít nhất một thẻ Heading H2/H3 chứa từ khóa.
+  5. Độ dài bài viết đạt chuẩn (≥ 300 từ cho tin nhanh, ≥ 600 từ cho bài phân tích).
+  6. Điểm dễ đọc Readability (Flesch Reading Ease score).
+  7. Hình ảnh đại diện có thẻ ALT text chuẩn SEO.
+  8. Liên kết nội bộ (Internal link) dẫn tới bài viết liên quan.
+  9. Đường dẫn Slug ngắn gọn, chuẩn SEO không dấu.
+  10. Xem trước Google Snippet (SERP Preview) trên cả giao diện Mobile và Desktop.
+
+### 6. Hệ Thống Xác Thực CMS Toàn Diện: Mã PIN Nhanh "272113000" & Tài Khoản Email (Bỏ Token Thủ Công)
+- **Mã PIN Nhanh Admin:** Hỗ trợ nhập PIN `272113000` tại `/login` để đăng nhập ngay quyền Human Lead / Admin trong 1 giây mà không cần copy paste Bearer Token.
+- **Tài khoản Email & Mật khẩu:** Cho phép biên tập viên đăng nhập bằng email được cấp, hỗ trợ đổi mật khẩu trong `/settings`.
+- **Session Management:** Tự động lưu phiên an toàn qua HttpOnly Cookie / Secure Local Storage, loại bỏ hoàn toàn ô nhập token thủ công rườm rà.
+
+### 7. Module Hộp Thư Email Nội Bộ Bên Trong CMS (`/email`)
+- **Hộp thư đến:** Tiếp nhận email phản hồi của độc giả, đính chính, đóng góp bài viết từ `contact@minds.io.vn`.
+- **Soạn thư đi & Broadcast:** Gửi thông báo xuất bản cho ban biên tập, gửi bản tin Newsletter cho người đăng ký qua Cloudflare Email Routing / MailChannels / Resend.
+
+### 8. Lối Vào CMS Trực Tiếp Từ Domain Chính
+- Thêm route chuyển hướng `/cms`, `/admin`, `/studio` trên `https://mstudio.minds.io.vn` chuyển tiếp thẳng vào trang CMS an toàn.
+- Nút truy cập nhanh *"Biên tập viên / Studio"* ở thanh điều hướng phụ hoặc footer của trang web chính.
+
+### 9. Phân Bổ Danh Mục & Taxonomy Chuyên Mục Con Đầy Đủ
+- Rà soát và gán nhãn chính xác cho mọi bài viết vào các danh mục con: `cong-nghe`, `kinh-te`, `the-gioi`, `thoi-su`, `xa-hoi`, `the-thao`, `giai-tri`, `khoa-hoc`, `xe`.
+- Không để tồn tại bài viết có `category_slug = NULL`.
+
+### 10. Kích Hoạt AI Viết Bài Tự Động Hôm Nay (Go-Live Daily Production)
+- Quét các cụm tin thô hot nhất hôm nay (13-10-2026), kích hoạt `Evidence Verification Writer` sinh loạt bài viết có đầy đủ SEO, hình ảnh, thẻ phân loại và xuất bản ra trang chủ.
+
 ## Final principles
 1. Trust over volume.
 2. Free tier is architecture.

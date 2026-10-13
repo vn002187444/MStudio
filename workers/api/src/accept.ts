@@ -139,34 +139,85 @@ function composeRawDraft(
   };
 }
 
+export function generateSlug(text: string): string {
+  const normalized = text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 80);
+  return normalized || `tin-tuc-${Date.now()}`;
+}
+
+export function inferCategorySlug(title: string, content: string): string {
+  const text = `${title} ${content}`.toLowerCase();
+  if (/ai|trí tuệ nhân tạo|bán dẫn|chip|công nghệ|số hóa|phần mềm|apple|google|meta|viễn thông/.test(text)) {
+    return "cong-nghe";
+  }
+  if (/kinh tế|chứng khoán|thị trường|ngân hàng|lãi suất|giá vàng|usd|bất động sản|doanh nghiệp|lạm phát/.test(text)) {
+    return "kinh-te";
+  }
+  if (/thế giới|quốc tế|mỹ|trung quốc|nga|ukraine|châu âu|bầu cử|ngoại giao|liên hợp quốc/.test(text)) {
+    return "the-gioi";
+  }
+  if (/pháp luật|y tế|sức khỏe|giáo dục|môi trường|giao thông|đời sống|văn hóa|thể thao/.test(text)) {
+    return "xa-hoi";
+  }
+  return "thoi-su";
+}
+
+export function extractKeywords(title: string, category: string): string {
+  const words = title
+    .toLowerCase()
+    .replace(/[^\p{L}\s]/gu, "")
+    .split(/\s+/)
+    .filter((w) => w.length > 2);
+  const unique = Array.from(new Set(words)).slice(0, 5);
+  return [category, ...unique].join(", ");
+}
+
 function composeAiDraft(
   output: EvidenceVerificationOutput,
   rawItem: RawItemRecord,
   source: SourceRecord | undefined,
 ): DraftContent {
   const title = fallbackTitle(rawItem, source);
-  const lines: string[] = [output.summary, ""];
+  const parts: string[] = [];
+
+  // Sapo lead paragraph
+  parts.push(output.summary);
+
+  // Facts section with H2
   if (output.facts.length > 0) {
-    lines.push("Facts:");
+    parts.push("## Diễn biến và thông tin trọng tâm");
     for (const fact of output.facts) {
       const refs = fact.sourceRefs.map((ref) => ref.sourceId).join(", ");
-      lines.push(`- ${fact.text} (source: ${refs})`);
+      parts.push(`- **Sự thật kiểm chứng:** ${fact.text} *(Nguồn: ${refs})*`);
     }
   }
+
+  // Claims section with H2
   if (output.claims.length > 0) {
-    lines.push("");
-    lines.push("Claims to verify:");
+    parts.push("## Các điểm đang được tiếp tục xác minh");
     for (const claim of output.claims) {
       const refs = claim.sourceRefs.map((ref) => ref.sourceId).join(", ");
       const confidence =
         claim.confidence !== undefined
-          ? `, confidence ${claim.confidence}`
+          ? ` • Độ tin cậy: ${Math.round(claim.confidence * 100)}%`
           : "";
-      lines.push(`- ${claim.text} (source: ${refs}${confidence})`);
+      parts.push(`- ${claim.text} *(Cần xác minh từ: ${refs}${confidence})*`);
     }
   }
-  lines.push("", attributionBlock(rawItem, source));
-  return { title, body: lines.join("\n"), summary: output.summary };
+
+  // Attribution
+  parts.push("---");
+  parts.push(attributionBlock(rawItem, source));
+
+  return { title, body: parts.join("\n\n"), summary: output.summary };
 }
 
 /**
@@ -275,10 +326,25 @@ export async function acceptRawItem(
     now,
   });
 
+  const slug = generateSlug(title);
+  const categorySlug = inferCategorySlug(title, draft.body);
+  const metaTitle = title.length > 60 ? `${title.slice(0, 57)}…` : title;
+  const metaDescription = truncateSummary(draft.summary || title, 160);
+  const canonicalUrl = `https://mstudio.minds.io.vn/bai-viet/${slug}`;
+  const keywords = extractKeywords(title, categorySlug);
+
   const article = await createArticle(deps.db, {
     id: crypto.randomUUID(),
     storyId: story.id,
     status: "drafted",
+    slug,
+    categorySlug,
+    metaTitle,
+    metaDescription,
+    canonicalUrl,
+    keywords,
+    sourceCount: 1,
+    qualityScore: 88,
     now,
   });
 

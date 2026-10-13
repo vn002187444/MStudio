@@ -39,6 +39,10 @@ human_gates:
     task: MST-041
     approved_by: human-lead
     approved_at: "2026-10-09"
+  auto_publishing_policy:
+    task: MST-084
+    approved_by: human-lead
+    approved_at: "2026-10-13"
 
 # Bắt buộc: agent load các skills này qua skill tool trước khi làm task.
 task_skills:
@@ -83,6 +87,24 @@ task_skills:
   MST-079: [frontend-ui-engineering, api-and-interface-design, workers-best-practices]
   MST-080: [test-driven-development, documentation-and-adrs, debugging-and-error-recovery]
   MST-081: [api-and-interface-design, workers-best-practices, test-driven-development]
+  MST-082: [frontend-ui-engineering, fixing-accessibility, web-perf]
+  MST-083: [api-and-interface-design, workers-best-practices, test-driven-development]
+  MST-084: [workers-best-practices, test-driven-development, observability-and-instrumentation]
+  MST-085: [frontend-ui-engineering, api-and-interface-design, observability-and-instrumentation]
+  MST-086: [frontend-ui-engineering, ui-styling, web-perf]
+  MST-087: [seo-audit, frontend-ui-engineering, api-and-interface-design]
+  MST-088: [workers-best-practices, api-and-interface-design, test-driven-development]
+  MST-089: [test-driven-development, documentation-and-adrs, debugging-and-error-recovery]
+  MST-090: [frontend-ui-engineering, ui-styling, fixing-accessibility, web-perf]
+  MST-091: [performance-optimization, workers-best-practices, frontend-ui-engineering, api-and-interface-design]
+  MST-092: [workers-best-practices, wrangler, api-and-interface-design]
+  MST-093: [security-and-hardening, api-and-interface-design, frontend-ui-engineering]
+  MST-094: [frontend-ui-engineering, api-and-interface-design]
+  MST-095: [seo-audit, frontend-ui-engineering, ui-styling]
+  MST-096: [frontend-ui-engineering, api-and-interface-design]
+  MST-097: [frontend-ui-engineering, ui-styling, web-perf]
+  MST-098: [workers-best-practices, api-and-interface-design, test-driven-development]
+  MST-099: [test-driven-development, documentation-and-adrs]
 
 sprints:
   - id: S01
@@ -347,3 +369,177 @@ sprints:
         acceptance: [migration_0013_articles_seo_media_applied, api_returns_full_media_seo, cms_saves_all_seo_fields, web_uses_semantic_slug]
         tests: [migration-test, repository-test, api-test]
         quota_impact: low
+
+  - id: S08
+    goal: "Studio CMS Stability Hotfix, 15m Auto-Publish Policy, iOS HIG Polish & Rank Math SEO Suite"
+    tasks:
+      - id: MST-082
+        title: Studio CMS Connectivity and Routing Hotfix
+        owner: opencode
+        priority: P0
+        paths: ["apps/studio/lib/cms.ts", "apps/studio/app/newsroom/incoming/**", "apps/studio/app/page.tsx", "apps/studio/components/studio-nav.tsx", "apps/studio/components/overview-dashboard.tsx"]
+        depends_on: []
+        acceptance: [api_base_url_fixed_to_workers_dev, incoming_page_fetches_real_data, home_redirects_to_overview, needs_review_link_fixed, sidebar_nav_unblocked]
+        tests: [studio-smoke, render-test]
+        quota_impact: none
+      - id: MST-083
+        title: Article Editor Persistence API and Real Draft Save
+        owner: commandcode
+        priority: P0
+        paths: ["workers/api/**", "apps/studio/app/editor/**"]
+        depends_on: [MST-082]
+        acceptance: [editor_save_persists_to_d1, seo_fields_saved, revision_created_on_save, live_save_feedback]
+        tests: [api-test, repository-test]
+        quota_impact: low
+      - id: MST-084
+        title: 15-Minute Review Grace Period and Auto-Publish Engine
+        owner: commandcode
+        priority: P0
+        paths: ["workers/intelligence/**", "workers/publish/**", "packages/db/**"]
+        depends_on: [MST-083]
+        human_gate: auto_publishing_policy
+        acceptance: [auto_draft_from_clusters, auto_publish_after_15_minutes_grace, sitemap_event_emitted, human_override_respected]
+        tests: [state-machine-test, idempotent-trigger-test]
+        quota_impact: low
+      - id: MST-085
+        title: Audience Analytics Pipeline and Top Articles Dashboard
+        owner: commandcode
+        priority: P0
+        paths: ["workers/api/**", "apps/studio/app/audience/**", "apps/studio/components/audience-dashboard.tsx"]
+        depends_on: [MST-082]
+        acceptance: [get_analytics_overview_endpoint, get_top_articles_endpoint, audience_dashboard_ui_renders, views_reads_completion_rate]
+        tests: [api-test, render-test]
+        quota_impact: low
+      - id: MST-086
+        title: Studio and Web iOS Human Interface Guidelines Visual Polish
+        owner: opencode
+        priority: P0
+        paths: ["apps/studio/**", "packages/ui/**", "apps/web/**"]
+        depends_on: [MST-082]
+        acceptance: [frosted_glass_headers, rounded_2xl_tactile_press, ios_segmented_controls, spring_animations_60fps, high_contrast_clean_typography]
+        tests: [visual-smoke, render-test]
+        quota_impact: none
+      - id: MST-087
+        title: Rank Math Real-Time On-Page SEO Scorer and Schema Builder
+        owner: opencode
+        priority: P0
+        paths: ["apps/studio/components/seo-score-radar.tsx", "apps/studio/app/editor/**", "packages/seo/**"]
+        depends_on: [MST-083, MST-086]
+        acceptance: [seo_score_0_100_radar, real_time_checklist_10_rules, schema_markup_builder_json_ld, live_preview_snippet]
+        tests: [schema-tests, render-test]
+        quota_impact: none
+      - id: MST-088
+        title: Redirects 301/302, 404 Catcher and Google Search Console Settings
+        owner: commandcode
+        priority: P0
+        paths: ["packages/db/migrations/0014_redirects.sql", "workers/api/**", "apps/studio/app/seo/**"]
+        depends_on: [MST-083]
+        acceptance: [d1_redirects_migration, auto_301_on_slug_change, gsc_service_account_secure_storage, rank_tracker_schema]
+        tests: [migration-test, api-test]
+        quota_impact: low
+      - id: MST-089
+        title: Sprint S08 Regression and Documentation Suite
+        owner: jules
+        priority: P1
+        paths: ["tests/**", "docs/**"]
+        depends_on: [MST-084, MST-085, MST-087, MST-088]
+        acceptance: [all_regression_pass, auto_publish_docs, seo_rank_math_runbook, audience_analytics_docs]
+        tests: [all-safe-tests]
+        quota_impact: none
+      - id: MST-090
+        title: Studio CMS Mobile-First UX and Responsive Navigation
+        owner: opencode
+        priority: P0
+        paths: ["apps/studio/**", "packages/ui/**"]
+        depends_on: [MST-082, MST-086]
+        acceptance: [mobile_bottom_bar_or_drawer, thumb_friendly_touch_targets_44px, mobile_editor_floating_toolbar, card_based_mobile_tables, pull_to_refresh_and_safe_area]
+        tests: [mobile-smoke, responsive-smoke, a11y-smoke]
+        quota_impact: none
+      - id: MST-091
+        title: Instant-Load Preload Engine and AI SEO Metadata Enrichment
+        owner: commandcode
+        priority: P0
+        paths: ["apps/web/**", "packages/seo/**", "workers/api/**", "packages/ai/**"]
+        depends_on: [MST-083, MST-086]
+        acceptance: [font_and_lcp_hero_image_preload, speculation_rules_route_prefetching, ai_draft_generates_seo_slug_meta_category, schema_json_ld_markup]
+        tests: [seo-tests, render-test, api-test]
+        quota_impact: low
+
+  - id: S09
+    goal: "International RSS Expansion, Awwwards Modern UX, PIN/Account Auth, In-CMS Email, Editor Rank Math & Auto-Writer"
+    tasks:
+      - id: MST-092
+        title: International and Community RSS Expansion
+        owner: commandcode
+        priority: P0
+        paths: ["packages/db/migrations/**", "workers/ingest/**", "packages/contracts/**"]
+        depends_on: []
+        acceptance: [techcrunch_theverge_hackernews_reuters_bloomberg_seeded, category_sources_at_least_3, feeds_active]
+        tests: [migration-test, repository-test]
+        quota_impact: low
+      - id: MST-093
+        title: PIN Fast Login (272113000) and Email Account Auth System
+        owner: commandcode
+        priority: P0
+        paths: ["workers/api/**", "apps/studio/app/login/**", "apps/studio/lib/**", "packages/db/**"]
+        depends_on: []
+        acceptance: [pin_272113000_login_admin, email_password_login, session_cookie_storage_no_manual_token, change_password_support]
+        tests: [auth-test, api-test]
+        quota_impact: none
+      - id: MST-094
+        title: Direct CMS Entry Routes from Web Domain
+        owner: opencode
+        priority: P0
+        paths: ["apps/web/app/**"]
+        depends_on: [MST-093]
+        acceptance: [cms_route_redirects_to_studio, admin_route_redirects_to_studio, studio_nav_button_visible]
+        tests: [render-test]
+        quota_impact: none
+      - id: MST-095
+        title: Real-Time Rank Math SEO Scorer Integrated into Article Editor
+        owner: opencode
+        priority: P0
+        paths: ["apps/studio/app/editor/**", "apps/studio/components/**"]
+        depends_on: [MST-087]
+        acceptance: [real_time_score_0_100_in_editor, checklist_10_rules_live, focus_keyword_input, serp_google_preview]
+        tests: [studio-smoke, render-test]
+        quota_impact: none
+      - id: MST-096
+        title: In-CMS Internal Email and Reader Feedback Module
+        owner: opencode
+        priority: P1
+        paths: ["apps/studio/app/email/**", "workers/api/**", "packages/db/**"]
+        depends_on: [MST-093]
+        acceptance: [inbox_reader_feedback_messages, compose_email_notifications, broadcast_newsletter_interface]
+        tests: [api-test, render-test]
+        quota_impact: low
+      - id: MST-097
+        title: Awwwards and Crafted SaaS Visual Upgrade
+        owner: opencode
+        priority: P0
+        paths: ["apps/web/**", "apps/studio/**", "packages/ui/**"]
+        depends_on: [MST-090]
+        acceptance: [bento_grid_homepage, command_palette_cmd_k_in_studio, keyboard_shortcuts_j_k_e_a_r, dark_obsidian_contrast]
+        tests: [visual-smoke, render-test]
+        quota_impact: none
+      - id: MST-098
+        title: Category Taxonomy Backfill and Today Auto-Writer Activation
+        owner: commandcode
+        priority: P0
+        paths: ["workers/api/**", "workers/intelligence/**", "packages/db/**"]
+        depends_on: [MST-092]
+        acceptance: [all_articles_assigned_subcategory, today_ai_articles_generated_and_published, zero_null_category_slug]
+        tests: [api-test, repository-test]
+        quota_impact: medium
+      - id: MST-099
+        title: Sprint S09 Regression Tests and Documentation
+        owner: jules
+        priority: P1
+        paths: ["tests/**", "docs/**"]
+        depends_on: [MST-092, MST-093, MST-095, MST-098]
+        acceptance: [all_regression_pass, s09_auth_docs, international_sources_runbook]
+        tests: [all-safe-tests]
+        quota_impact: none
+
+
+

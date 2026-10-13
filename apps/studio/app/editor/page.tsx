@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { firstError, sourceUrlSchema } from "../../lib/validation";
 import { BlocksEditor } from "../../components/blocks-editor";
+import { RankMathInspector } from "../../components/rank-math-inspector";
+import { apiBaseUrl } from "../../lib/cms";
+import { useCmsToken } from "../../components/cms-actions";
 import type { ArticleBlock } from "../../../../packages/contracts/src/blocks.ts";
 
 /**
@@ -77,10 +80,12 @@ export default function EditorPage() {
   const [sourceError, setSourceError] = useState<string | undefined>(undefined);
   const [preview, setPreview] = useState<PreviewMode>("desktop");
 
-  // SEO & Taxonomy & Media states (MST-081)
+  // SEO & Taxonomy & Media states (MST-081, MST-095)
   const [slug, setSlug] = useState("");
   const [categorySlug, setCategorySlug] = useState("thoi-su");
   const [heroImageUrl, setHeroImageUrl] = useState("");
+  const [heroImageAlt, setHeroImageAlt] = useState("");
+  const [focusKeyword, setFocusKeyword] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
@@ -90,6 +95,69 @@ export default function EditorPage() {
   const [isTrending, setIsTrending] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState("");
+
+  // Extract content elements from richBlocks or plain blocks for real-time Rank Math SEO scoring
+  const { extractedBodyText, extractedHeadings, extractedImages, extractedLinks } = useMemo(() => {
+    if (bodyMode === "rich") {
+      const textParts: string[] = [];
+      const headingsList: Array<{ level: number; text: string }> = [];
+      const imagesList: Array<{ src: string; alt?: string }> = [];
+      const linksList: string[] = [];
+
+      function traverse(b: ArticleBlock) {
+        if (b.type === "paragraph") {
+          textParts.push(b.content.map((c) => c.text).join(""));
+          b.content.forEach((c) => {
+            c.marks?.forEach((m) => {
+              if (m.type === "link" && m.attrs?.href) linksList.push(m.attrs.href);
+            });
+          });
+        } else if (b.type === "heading") {
+          const hText = b.content.map((c) => c.text).join("");
+          textParts.push(hText);
+          headingsList.push({ level: b.attrs.level, text: hText });
+        } else if (b.type === "image") {
+          imagesList.push({ src: b.attrs.src, alt: b.attrs.alt });
+        } else if (b.type === "blockquote") {
+          b.content.forEach(traverse);
+        } else if (b.type === "bulletList" || b.type === "orderedList") {
+          b.content.forEach((li) => {
+            li.content.forEach((item) => {
+              if (item.type === "paragraph") {
+                textParts.push(item.content.map((c) => c.text).join(""));
+                item.content.forEach((c) => {
+                  c.marks?.forEach((m) => {
+                    if (m.type === "link" && m.attrs?.href) linksList.push(m.attrs.href);
+                  });
+                });
+              } else {
+                traverse(item);
+              }
+            });
+          });
+        }
+      }
+
+      richBlocks.forEach(traverse);
+      return {
+        extractedBodyText: textParts.join("\n\n"),
+        extractedHeadings: headingsList,
+        extractedImages: imagesList,
+        extractedLinks: [...linksList, ...sources],
+      };
+    } else {
+      const textParts = blocks.map((b) => b.text);
+      const headingsList = blocks
+        .filter((b) => b.kind === "heading")
+        .map((b) => ({ level: 2, text: b.text }));
+      return {
+        extractedBodyText: textParts.join("\n\n"),
+        extractedHeadings: headingsList,
+        extractedImages: [],
+        extractedLinks: [...sources],
+      };
+    }
+  }, [bodyMode, richBlocks, blocks, sources]);
 
   function updateBlock(id: string, text: string) {
     setBlocks((current) => current.map((block) => (block.id === id ? { ...block, text } : block)));
@@ -117,18 +185,56 @@ export default function EditorPage() {
     }
   }
 
+  const [token] = useCmsToken();
+
   async function handleSave() {
-    setSaveStatus("saving");
-    setSaveMessage("Đang lưu bản thảo & metadata…");
-    try {
-      // Giả lập lưu hoặc gửi Worker API
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      setSaveStatus("saved");
-      setSaveMessage("Đã lưu bản thảo & SEO metadata thành công!");
-      setTimeout(() => setSaveStatus("idle"), 3000);
-    } catch {
+    if (!token) {
       setSaveStatus("error");
-      setSaveMessage("Lỗi khi lưu bài viết.");
+      setSaveMessage("Vui lòng cấu hình Token biên tập (Bearer) để lưu bài.");
+      return;
+    }
+    setSaveStatus("saving");
+    setSaveMessage("Đang lưu bài viết vào D1…");
+    try {
+      const bodyText =
+        bodyMode === "rich"
+          ? richBlocks.map((b) => (b.type === "paragraph" ? b.text : `[${b.type}] ${b.text}`)).join("\n\n")
+          : blocks.map((b) => b.text).join("\n\n");
+
+      const res = await fetch(`${apiBaseUrl()}/articles`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: headline || "Bản thảo chưa đặt tên",
+          body: bodyText,
+          summary: summary || dek,
+          slug: slug || generateSlug(headline || "ban-thao"),
+          categorySlug,
+          heroImageUrl,
+          videoUrl,
+          metaTitle: metaTitle || headline,
+          metaDescription: metaDescription || dek || summary,
+          canonicalUrl,
+          keywords,
+          isBreaking,
+          isTrending,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+        throw new Error(errData?.error?.message ?? `HTTP ${res.status}`);
+      }
+
+      setSaveStatus("saved");
+      setSaveMessage("Đã lưu bài viết & SEO metadata thành công vào D1!");
+      setTimeout(() => setSaveStatus("idle"), 4000);
+    } catch (err) {
+      setSaveStatus("error");
+      setSaveMessage(err instanceof Error ? err.message : "Lỗi khi lưu bài viết.");
     }
   }
 
@@ -349,10 +455,31 @@ export default function EditorPage() {
           </section>
         </div>
 
-        {/* Inspector Panel */}
-        <aside aria-label="Inspector" className="desk-pane" style={{ alignSelf: "start", width: "100%", maxWidth: 340 }}>
+        {/* Inspector Panel with Real-time Rank Math SEO */}
+        <aside aria-label="Inspector" className="desk-pane" style={{ alignSelf: "start", width: "100%", maxWidth: 390, padding: "16px" }}>
+          {/* Real-time Rank Math SEO Inspector (Task MST-095) */}
+          <div style={{ marginBottom: 20 }}>
+            <RankMathInspector
+              headline={headline}
+              dek={dek}
+              summary={summary}
+              bodyText={extractedBodyText}
+              headings={extractedHeadings}
+              images={extractedImages}
+              links={extractedLinks}
+              slug={slug}
+              focusKeyword={focusKeyword}
+              onFocusKeywordChange={setFocusKeyword}
+              metaTitle={metaTitle}
+              metaDescription={metaDescription}
+              heroImageUrl={heroImageUrl}
+              heroImageAlt={heroImageAlt}
+              onHeroImageAltChange={setHeroImageAlt}
+            />
+          </div>
+
           <h2 style={{ fontSize: "var(--text-base)", margin: "0 0 12px", borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>
-            Phân loại &amp; SEO Inspector
+            Phân loại &amp; Xuất bản
           </h2>
 
           {/* Taxonomy Section */}
@@ -442,6 +569,16 @@ export default function EditorPage() {
               onChange={(e) => setHeroImageUrl(e.target.value)}
               placeholder="https://pub-r2.minds.io.vn/..."
               spellCheck={false}
+              style={{ ...fieldStyle, marginBottom: 8 }}
+            />
+            <label htmlFor="editor-hero-alt-field" style={{ display: "block", marginBottom: 4, fontSize: "var(--text-sm)" }}>
+              Thẻ ALT ảnh đại diện (Rank Math SEO)
+            </label>
+            <input
+              id="editor-hero-alt-field"
+              value={heroImageAlt}
+              onChange={(e) => setHeroImageAlt(e.target.value)}
+              placeholder="Mô tả nội dung bức ảnh, chứa từ khóa chính…"
               style={{ ...fieldStyle, marginBottom: 8 }}
             />
             <label htmlFor="editor-video-url" style={{ display: "block", marginBottom: 4, fontSize: "var(--text-sm)" }}>

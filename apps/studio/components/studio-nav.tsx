@@ -6,6 +6,7 @@
 const items = [
   { href: "/", label: "Home" },
   { href: "/overview", label: "Overview" },
+  { href: "/editor", label: "Article Editor" },
   { href: "/newsroom/incoming", label: "Incoming" },
   { href: "/clusters", label: "Story Clusters" },
   { href: "/newsroom/research", label: "Research Desk" },
@@ -16,11 +17,11 @@ const items = [
   { href: "/corrections", label: "Corrections" },
   { href: "/newsroom/sources", label: "Sources" },
   { href: "/ai-desk", label: "AI Desk" },
-  { href: "#", label: "SEO & Discovery", disabled: true },
-  { href: "#", label: "Audience", disabled: true },
-  { href: "#", label: "Media", disabled: true },
-  { href: "#", label: "Automation", disabled: true },
-  { href: "#", label: "Settings", disabled: true },
+  { href: "/seo", label: "SEO & Discovery" },
+  { href: "/audience", label: "Audience & Analytics" },
+  { href: "/media", label: "Media" },
+  { href: "/automation", label: "Automation" },
+  { href: "/settings", label: "Settings" },
 ];
 
 export function StudioNav() {

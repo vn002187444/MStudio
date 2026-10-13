@@ -5,6 +5,7 @@
  * import trực tiếp khi MST-002 wire workspace dep cho apps/studio).
  */
 import { AcceptRejectButtons, TokenGate } from "../../../components/cms-actions";
+import { apiBaseUrl } from "../../../lib/cms";
 interface KeysetCursor {
   createdAt: string;
   id: string;
@@ -41,10 +42,6 @@ const PAGE_LIMIT = 20;
 
 // Inbox CMS cần dữ liệu tươi — no-store có chủ đích (khác reader surfaces cache-first).
 const FETCH_OPTIONS = { cache: "no-store" } as const;
-
-function apiBaseUrl(): string {
-  return process.env.MSTUDIO_API_URL ?? "http://localhost:8787";
-}
 
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(`${apiBaseUrl()}${path}`, FETCH_OPTIONS);
@@ -93,11 +90,41 @@ export default async function IncomingPage({
     incomingQuery.set("cursor_id", cursorId as string);
   }
 
-  const [incoming, sources] = await Promise.all([
-    fetchJson<RawItemListResponse>(`/raw-items?${incomingQuery.toString()}`),
-    fetchJson<SourceListResponse>("/sources?limit=100"),
-  ]);
+  let incoming: RawItemListResponse = { rows: [] };
+  let sources: SourceListResponse = { rows: [] };
+  let fetchError: string | undefined = undefined;
+
+  try {
+    const [incomingRes, sourcesRes] = await Promise.all([
+      fetchJson<RawItemListResponse>(`/raw-items?${incomingQuery.toString()}`),
+      fetchJson<SourceListResponse>("/sources?limit=100"),
+    ]);
+    incoming = incomingRes;
+    sources = sourcesRes;
+  } catch (error) {
+    fetchError = error instanceof Error ? error.message : "Lỗi khi nạp dữ liệu từ backend";
+  }
+
   const sourceNames = new Map(sources.rows.map((source) => [source.id, source.name]));
+
+  if (fetchError) {
+    return (
+      <main>
+        <h1 style={{ fontSize: "var(--text-3xl)", margin: "0 0 8px" }}>Incoming</h1>
+        <div role="alert" style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: 24 }}>
+          <h2 style={{ fontSize: "var(--text-base)", margin: "0 0 4px", color: "var(--breaking-red)" }}>
+            Đang đồng bộ luồng Ingestion…
+          </h2>
+          <p style={{ color: "var(--gray)", margin: "0 0 16px" }}>
+            {fetchError}. Hệ thống đang kết nối với Cloudflare Worker Ingest. Vui lòng bấm thử lại bên dưới.
+          </p>
+          <a className="btn-primary" href="/newsroom/incoming" style={{ textDecoration: "none", display: "inline-block" }}>
+            Nạp lại dữ liệu
+          </a>
+        </div>
+      </main>
+    );
+  }
 
   if (incoming.rows.length === 0) {
     return (

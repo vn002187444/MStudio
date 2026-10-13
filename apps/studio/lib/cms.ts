@@ -86,7 +86,12 @@ export interface FeedRow {
 }
 
 export function apiBaseUrl(): string {
-  return process.env.MSTUDIO_API_URL ?? "http://localhost:8787";
+  if (process.env.MSTUDIO_API_URL) {
+    return process.env.MSTUDIO_API_URL;
+  }
+  // studio.vn002187444.workers.dev uses custom domain api.mstudio.minds.io.vn
+  // to avoid Cloudflare same-subdomain worker loop restrictions
+  return "https://api.mstudio.minds.io.vn";
 }
 
 export function publishBaseUrl(): string {

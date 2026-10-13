@@ -29,13 +29,15 @@ const COUNT_STATUSES: readonly ArticleStatus[] = [
 
 const quickLinks: readonly { href: string; label: string }[] = [
   { href: "/overview", label: "Overview" },
+  { href: "/editor", label: "Editor" },
   { href: "/newsroom/incoming", label: "Incoming" },
   { href: "/clusters", label: "Story Clusters" },
   { href: "/drafts", label: "Drafts" },
-  { href: "/newsroom/needsReview", label: "Needs Review" },
+  { href: "/newsroom/needs-review", label: "Needs Review" },
   { href: "/scheduled", label: "Scheduled" },
   { href: "/newsroom/published", label: "Published" },
-  { href: "/corrections", label: "Corrections" },
+  { href: "/audience", label: "Audience & Views" },
+  { href: "/seo", label: "SEO & Discovery" },
   { href: "/newsroom/sources", label: "Sources" },
 ];
 
