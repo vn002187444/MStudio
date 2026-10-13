@@ -159,15 +159,24 @@ export function inferCategorySlug(title: string, content: string): string {
     return "cong-nghe";
   }
   if (/kinh tế|chứng khoán|thị trường|ngân hàng|lãi suất|giá vàng|usd|bất động sản|doanh nghiệp|lạm phát/.test(text)) {
-    return "kinh-te";
+    return "kinh-doanh";
   }
   if (/thế giới|quốc tế|mỹ|trung quốc|nga|ukraine|châu âu|bầu cử|ngoại giao|liên hợp quốc/.test(text)) {
     return "the-gioi";
   }
-  if (/pháp luật|y tế|sức khỏe|giáo dục|môi trường|giao thông|đời sống|văn hóa|thể thao/.test(text)) {
-    return "xa-hoi";
+  if (/pháp luật|môi trường|giao thông|đời sống|văn hóa|thể thao/.test(text)) {
+    return "doi-song";
   }
-  return "thoi-su";
+  if (/sức khỏe|y tế|bệnh viện|thuốc|vaccine/.test(text)) {
+    return "suc-khoe";
+  }
+  if (/giáo dục|đại học|học sinh|thi cử/.test(text)) {
+    return "giao-duc";
+  }
+  if (/xe|ô tô|xe điện|vinfast|byd|tesla/.test(text)) {
+    return "xe";
+  }
+  return "cong-nghe";
 }
 
 export function extractKeywords(title: string, category: string): string {
@@ -196,7 +205,7 @@ function composeAiDraft(
     parts.push("## Diễn biến và thông tin trọng tâm");
     for (const fact of output.facts) {
       const refs = fact.sourceRefs.map((ref) => ref.sourceId).join(", ");
-      parts.push(`- **Sự thật kiểm chứng:** ${fact.text} *(Nguồn: ${refs})*`);
+      parts.push(`- **Sự thật kiểm chứng:** ${fact.text} *(Nguồn / source: ${refs})*`);
     }
   }
 

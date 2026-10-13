@@ -5,6 +5,7 @@ import { newsArticleJsonLd, siteOrigin } from "../../../../lib/seo";
 import { ArticleHero } from "../../../../components/article/article-hero";
 import {
   extractHeadings,
+  slugifyHeading,
   TableOfContents,
 } from "../../../../components/article/table-of-contents";
 import { SourceBlock } from "../../../../components/article/source-block";
@@ -159,54 +160,178 @@ export async function generateMetadata({
   };
 }
 
-function renderBody(body: string): string[] {
-  return body
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter((paragraph) => paragraph.length > 0);
+/** Làm sạch và unescape các ký tự thô từ AI / database, đảm bảo markdown heading & list phân tách chuẩn */
+function normalizeArticleText(raw: string): string {
+  if (!raw) return "";
+  let text = raw
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "\n")
+    .trim();
+
+  // Đảm bảo heading ## hoặc ### luôn đứng trên dòng độc lập và cách đoạn trên/dưới
+  text = text.replace(/(?<!\n)\n(#{2,4}\s+[^\n]+)/g, "\n\n$1");
+  text = text.replace(/(#{2,4}\s+[^\n]+)\n(?!\n)/g, "$1\n\n");
+
+  // Đảm bảo khối danh sách bullet (- item) tách khỏi heading hoặc đoạn văn
+  text = text.replace(/(?<!\n)\n([-*]\s+[^\n]+)/g, "\n\n$1");
+
+  return text;
+}
+
+/** Chuyển đổi inline markdown: links [text](url), bold **text**, italic *text* */
+function formatInlineMarkdown(text: string): string {
+  let out = renderMarkdownLinks(text);
+  out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  out = out.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em>$1</em>");
+  return out;
 }
 
 function BodyWithToc({ body }: { body: string }) {
-  const headings = extractHeadings(body);
+  const cleanBody = normalizeArticleText(body);
+  const headings = extractHeadings(cleanBody);
+  const rawSections = cleanBody.split(/\n{2,}/);
   let headingCursor = 0;
-  const blocks = renderBody(body).map((paragraph, index) => {
-    const headingMatch = /^(#{2,3})\s+(.+)$/.exec(paragraph.trim());
+
+  const contentElements = rawSections.map((section, secIdx) => {
+    const trimmed = section.trim();
+    if (!trimmed) return null;
+
+    // Check if section is a Heading (## or ###)
+    const headingMatch = /^(#{2,3})\s+(.+)$/.exec(trimmed);
     if (headingMatch) {
       const heading = headings[headingCursor];
       headingCursor += 1;
-      if (!heading) return null;
-      return heading.level === 3 ? (
-        <h3 id={heading.id} key={index}>
-          {heading.text}
+      const headingId = heading?.id || slugifyHeading(headingMatch[2]) || `h-${secIdx}`;
+      const level = headingMatch[1].length;
+
+      return level === 3 ? (
+        <h3
+          id={headingId}
+          key={`h3-${secIdx}`}
+          style={{
+            fontSize: "var(--text-xl, 20px)",
+            fontWeight: 700,
+            marginTop: 32,
+            marginBottom: 12,
+            color: "var(--ink, #0f172a)",
+          }}
+        >
+          {headingMatch[2].trim()}
         </h3>
       ) : (
-        <h2 id={heading.id} key={index}>
-          {heading.text}
+        <h2
+          id={headingId}
+          key={`h2-${secIdx}`}
+          style={{
+            fontSize: "var(--text-2xl, 24px)",
+            fontWeight: 800,
+            marginTop: 40,
+            marginBottom: 16,
+            color: "var(--ink, #0f172a)",
+            borderBottom: "1px solid var(--border, #e2e8f0)",
+            paddingBottom: 8,
+          }}
+        >
+          {headingMatch[2].trim()}
         </h2>
       );
     }
-    return <p key={index} dangerouslySetInnerHTML={{ __html: renderMarkdownLinks(paragraph) }} />;
+
+    // Check if section contains list items (lines starting with - or *)
+    const lines = trimmed.split("\n");
+    const isBulletList = lines.every((line) => /^[-*]\s+/.test(line.trim()));
+    if (isBulletList && lines.length > 0) {
+      return (
+        <ul
+          key={`ul-${secIdx}`}
+          style={{
+            margin: "16px 0",
+            paddingLeft: 24,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            lineHeight: 1.75,
+            color: "var(--ink-secondary, #334155)",
+          }}
+        >
+          {lines.map((l, lIdx) => {
+            const itemText = l.trim().replace(/^[-*]\s+/, "");
+            return (
+              <li
+                key={`li-${secIdx}-${lIdx}`}
+                dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(itemText) }}
+              />
+            );
+          })}
+        </ul>
+      );
+    }
+
+    // Check if section is a blockquote (> ...)
+    if (trimmed.startsWith(">")) {
+      const quoteText = trimmed.replace(/^>\s*/gm, "");
+      return (
+        <blockquote
+          key={`quote-${secIdx}`}
+          style={{
+            margin: "24px 0",
+            padding: "16px 20px",
+            background: "var(--bg-subtle, #f8fafc)",
+            borderLeft: "4px solid var(--accent, #2563eb)",
+            borderRadius: "0 8px 8px 0",
+            fontStyle: "italic",
+            lineHeight: 1.7,
+            color: "var(--ink-secondary, #334155)",
+          }}
+          dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(quoteText) }}
+        />
+      );
+    }
+
+    // Standard paragraph with clean line-break handling
+    return (
+      <p
+        key={`p-${secIdx}`}
+        style={{
+          margin: "18px 0",
+          lineHeight: 1.85,
+          fontSize: "17px",
+          color: "var(--ink-body, #1e293b)",
+          letterSpacing: "-0.01em",
+        }}
+        dangerouslySetInnerHTML={{
+          __html: formatInlineMarkdown(trimmed.replace(/\n/g, "<br />")),
+        }}
+      />
+    );
   });
+
   return (
     <>
       <TableOfContents headings={headings} />
-      <section aria-labelledby="article-body-heading">
-        <h2 id="article-body-heading">Nội dung</h2>
-        {blocks}
+      <section aria-labelledby="article-body-heading" className="article-body-content">
+        <h2 id="article-body-heading" className="sr-only" style={{ display: "none" }}>
+          Nội dung bài viết
+        </h2>
+        {contentElements}
       </section>
     </>
   );
 }
 
 function ArticleBody({ body }: { body: string }) {
-  const blocks = parseArticleBlocksBody(body);
-  if (!blocks) return <BodyWithToc body={body} />;
+  const cleanBody = normalizeArticleText(body);
+  const blocks = parseArticleBlocksBody(cleanBody);
+  if (!blocks) return <BodyWithToc body={cleanBody} />;
   const headings = headingsFromBlocks(blocks);
   return (
     <>
       <TableOfContents headings={headings} />
-      <section aria-labelledby="article-body-heading">
-        <h2 id="article-body-heading">Nội dung</h2>
+      <section aria-labelledby="article-body-heading" className="article-body-content">
+        <h2 id="article-body-heading" className="sr-only" style={{ display: "none" }}>
+          Nội dung bài viết
+        </h2>
         <BlocksRenderer blocks={blocks} />
       </section>
     </>

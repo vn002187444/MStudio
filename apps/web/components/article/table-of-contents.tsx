@@ -22,7 +22,12 @@ export function slugifyHeading(text: string): string {
 
 export function extractHeadings(body: string): TocHeading[] {
   const headings: TocHeading[] = [];
-  for (const line of body.split("\n")) {
+  const normalized = body
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "\n");
+
+  for (const line of normalized.split("\n")) {
     const match = /^(#{2,3})\s+(.+)$/.exec(line.trim());
     if (!match) continue;
     const text = match[2].trim();
