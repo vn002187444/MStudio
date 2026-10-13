@@ -21,6 +21,8 @@ import {
   setFeedEnabled,
   setSourceAllowStatus,
   updateArticleMetadata,
+  createAgentRun,
+  listRecentAgentRuns,
   type SessionIdentity,
 } from "@mstudio/db";
 import {
@@ -836,6 +838,39 @@ app.patch(
     throw notFound("FEED_NOT_FOUND", `feed ${id} not found`);
   }
   return c.json(feed);
+});
+
+// ---- AI Desk Routes (MST-032) ----
+app.get("/agent-runs", async (c) => {
+  const identity = await verifyBearer(c.req.raw.headers.get("authorization"), c.env.DB);
+  if (!identity) {
+    throw new ApiError("UNAUTHORIZED", 401, "bearer token required");
+  }
+  if (!["admin", "editor", "reviewer"].includes(identity.role)) {
+    throw new ApiError("FORBIDDEN", 403, "requires role: admin, editor, reviewer");
+  }
+  const runs = await listRecentAgentRuns(c.env.DB, 50);
+  return c.json({ runs });
+});
+
+app.post("/agent-runs/generate", async (c) => {
+  const identity = await verifyBearer(c.req.raw.headers.get("authorization"), c.env.DB);
+  if (!identity) {
+    throw new ApiError("UNAUTHORIZED", 401, "bearer token required");
+  }
+  if (!["admin", "editor", "reviewer"].includes(identity.role)) {
+    throw new ApiError("FORBIDDEN", 403, "requires role: admin, editor, reviewer");
+  }
+
+  const run = await createAgentRun(c.env.DB, {
+    id: crypto.randomUUID(),
+    type: "writer",
+    promptVersion: "v1",
+    model: "claude-3-haiku",
+    input: {},
+  });
+
+  return c.json({ run }, 201);
 });
 
 // ---- Email Dispatch Route (MST-096: Cloudflare Workers Send Email) ----

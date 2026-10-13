@@ -8,3 +8,4 @@ dist/
 *.key
 *.tsbuildinfo
 Demo/
+qa-audit-report.json

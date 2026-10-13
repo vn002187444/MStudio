@@ -165,6 +165,19 @@ export async function markAgentRunFailed(
   return getAgentRun(db, id);
 }
 
+export async function listRecentAgentRuns(
+  db: D1Database,
+  limit: number = 50,
+): Promise<AgentRunRecord[]> {
+  const results = await db
+    .prepare(
+      `${AGENT_RUN_SELECT} ORDER BY created_at DESC LIMIT ?`,
+    )
+    .bind(limit)
+    .all<AgentRunRowRaw>();
+  return results.results.map(toAgentRunRow);
+}
+
 export async function listAgentRunsByStory(
   db: D1Database,
   storyId: string,
