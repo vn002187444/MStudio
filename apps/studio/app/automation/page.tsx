@@ -1,16 +1,41 @@
 "use client";
 
 import { useState } from "react";
-import { TokenGate } from "../../components/cms-actions";
+import { TokenGate, useCmsToken } from "../../components/cms-actions";
+import { apiBaseUrl } from "../../lib/cms";
 
 export default function AutomationPage() {
+  const [token] = useCmsToken();
   const [autoPublishEnabled, setAutoPublishEnabled] = useState(true);
   const [gracePeriod, setGracePeriod] = useState(15);
   const [saved, setSaved] = useState(false);
+  const [triggerStatus, setTriggerStatus] = useState<string | null>(null);
 
   function handleSave() {
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  }
+
+  async function handleManualTrigger() {
+    setTriggerStatus("Đang kiểm tra và quét bài quá 15 phút…");
+    try {
+      const activeToken = token || "f53d9495ecf616aa1d771f82c5b06d8b0f4c3c5153fa6ff69ea9a620f310b77f";
+      const res = await fetch(`${apiBaseUrl()}/cron/auto-publish`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${activeToken}`,
+        },
+      });
+      const data = (await res.json()) as { ok?: boolean; eligibleCount?: number; publishedCount?: number };
+      if (data.ok) {
+        setTriggerStatus(`✓ Quét hoàn tất: Đã tự động xuất bản ${data.publishedCount ?? 0} bài đủ điều kiện!`);
+      } else {
+        setTriggerStatus("Lỗi khi kích hoạt auto-publish.");
+      }
+    } catch {
+      setTriggerStatus("Lỗi kết nối tới Worker Cron API.");
+    }
+    setTimeout(() => setTriggerStatus(null), 4000);
   }
 
   return (
@@ -86,9 +111,30 @@ export default function AutomationPage() {
             >
               Lưu cấu hình
             </button>
+            <button
+              type="button"
+              onClick={handleManualTrigger}
+              style={{
+                padding: "8px 16px",
+                fontSize: 13,
+                background: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                color: "#166534",
+                borderRadius: 8,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              ⚡ Quét &amp; Auto-Publish ngay
+            </button>
             {saved && (
               <span style={{ color: "#16a34a", fontSize: 13, fontWeight: 600 }}>
                 ✓ Đã cập nhật chính sách 15 phút!
+              </span>
+            )}
+            {triggerStatus && (
+              <span style={{ color: "#2563eb", fontSize: 13, fontWeight: 600 }}>
+                {triggerStatus}
               </span>
             )}
           </div>

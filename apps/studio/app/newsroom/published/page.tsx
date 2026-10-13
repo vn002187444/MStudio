@@ -44,25 +44,69 @@ export default async function PublishedPage() {
             <caption style={{ textAlign: "left" }}>Bài đã xuất bản</caption>
             <thead>
               <tr>
-                <th scope="col" style={{ textAlign: "left" }}>ID</th>
-                <th scope="col" style={{ textAlign: "left" }}>Trạng thái</th>
-                <th scope="col" style={{ textAlign: "left" }}>Cập nhật</th>
+                <th scope="col" style={{ textAlign: "left", padding: "10px 12px" }}>Tiêu đề bài viết</th>
+                <th scope="col" style={{ textAlign: "left", padding: "10px 12px" }}>Chuyên mục</th>
+                <th scope="col" style={{ textAlign: "left", padding: "10px 12px" }}>Trạng thái</th>
+                <th scope="col" style={{ textAlign: "left", padding: "10px 12px" }}>Cập nhật</th>
+                <th scope="col" style={{ textAlign: "center", padding: "10px 12px" }}>Hành động</th>
               </tr>
             </thead>
             <tbody>
               {articles.map((article) => (
-                <tr key={article.id}>
-                  <td>
+                <tr key={article.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td style={{ padding: "12px", maxWidth: 380 }}>
                     <a
-                      href={`${webBaseUrl()}/bai-viet/${article.id}`}
+                      href={`${webBaseUrl()}/bai-viet/${article.slug || article.id}`}
                       rel="noreferrer"
                       target="_blank"
+                      style={{ fontWeight: 600, color: "var(--ink)", textDecoration: "none" }}
                     >
-                      {article.id.slice(0, 8)}…
+                      {article.title || article.slug || `${article.id.slice(0, 8)}…`}
+                    </a>
+                    <br />
+                    <span style={{ color: "var(--gray)", fontSize: "12px" }}>
+                      ID: {article.id.slice(0, 8)}…
+                    </span>
+                  </td>
+                  <td style={{ padding: "12px" }}>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        background: "#eff6ff",
+                        color: "#1d4ed8",
+                        padding: "3px 8px",
+                        borderRadius: 6,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {article.categorySlug || "Thời sự"}
+                    </span>
+                  </td>
+                  <td style={{ padding: "12px" }}>
+                    <span style={{ color: "#16a34a", fontWeight: 600, fontSize: 13 }}>
+                      ● {article.status}
+                    </span>
+                  </td>
+                  <td style={{ padding: "12px", fontSize: 13, color: "var(--gray)" }}>
+                    {formatTime(article.updatedAt)}
+                  </td>
+                  <td style={{ padding: "12px", textAlign: "center" }}>
+                    <a
+                      href={`/editor?article=${article.id}`}
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: 6,
+                        background: "#f1f5f9",
+                        border: "1px solid #cbd5e1",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "#0f172a",
+                        textDecoration: "none",
+                      }}
+                    >
+                      ✍️ Sửa bài
                     </a>
                   </td>
-                  <td>{article.status}</td>
-                  <td>{formatTime(article.updatedAt)}</td>
                 </tr>
               ))}
             </tbody>

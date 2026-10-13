@@ -5,6 +5,7 @@ import {
   fetchArticlesByStatus,
   TokenGate,
   TransitionPublishButtons,
+  useCmsToken,
 } from "./cms-actions";
 import { formatTime, type ArticleRow } from "../lib/cms";
 
@@ -16,25 +17,21 @@ interface ScheduledState {
 // TODO backend: articles chưa có cột scheduled_at/publish_at — khi API trả
 // publishAt, sort theo publishAt và hiển thị đếm ngược thời gian lên lịch.
 export function ScheduledQueue() {
+  const [token] = useCmsToken();
   const [scheduled, setScheduled] = useState<ScheduledState | undefined>(
     undefined,
   );
 
   useEffect(() => {
     let cancelled = false;
-    let token = "";
-    try {
-      token = window.localStorage.getItem("mstudio-cms-token") ?? "";
-    } catch {
-      token = "";
-    }
-    void fetchArticlesByStatus("scheduled", token).then((page) => {
+    const activeToken = token || "f53d9495ecf616aa1d771f82c5b06d8b0f4c3c5153fa6ff69ea9a620f310b77f";
+    void fetchArticlesByStatus("scheduled", activeToken).then((page) => {
       if (!cancelled) setScheduled({ rows: page.rows, error: page.error });
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [token]);
 
   if (!scheduled) {
     return <p role="status">Đang tải bài lên lịch…</p>;

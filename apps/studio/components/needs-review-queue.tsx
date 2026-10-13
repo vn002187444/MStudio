@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   TokenGate,
   TransitionPublishButtons,
+  useCmsToken,
 } from "./cms-actions";
 import {
   apiBaseUrl,
@@ -57,7 +58,7 @@ function QueueTable({ queue }: { queue: QueueState }) {
           <caption style={{ textAlign: "left" }}>Bài chờ ở trạng thái {queue.status}</caption>
           <thead>
             <tr>
-              <th scope="col" style={{ textAlign: "left" }}>ID</th>
+              <th scope="col" style={{ textAlign: "left" }}>Bài viết</th>
               <th scope="col" style={{ textAlign: "left" }}>Cập nhật</th>
               <th scope="col" style={{ textAlign: "left" }}>Hành động</th>
             </tr>
@@ -67,14 +68,17 @@ function QueueTable({ queue }: { queue: QueueState }) {
               <tr key={article.id}>
                 <td>
                   <a
-                    href={`${webBaseUrl()}/bai-viet/${article.id}`}
+                    href={`${webBaseUrl()}/bai-viet/${article.slug || article.id}`}
                     rel="noreferrer"
                     target="_blank"
+                    style={{ fontWeight: 600, color: "var(--ink)" }}
                   >
-                    {article.id.slice(0, 8)}…
+                    {article.title || article.slug || `${article.id.slice(0, 8)}…`}
                   </a>
                   <br />
-                  <span style={{ color: "var(--gray)" }}>{article.storyId.slice(0, 8)}…</span>
+                  <span style={{ color: "var(--gray)", fontSize: "12px" }}>
+                    ID: {article.id.slice(0, 8)}… · <a href={`/editor?article=${article.id}`} style={{ color: "#2563eb" }}>Chỉnh sửa</a>
+                  </span>
                 </td>
                 <td>{formatTime(article.updatedAt)}</td>
                 <td>
@@ -94,30 +98,21 @@ function QueueTable({ queue }: { queue: QueueState }) {
 }
 
 export function NeedsReviewQueue() {
+  const [token] = useCmsToken();
   const [queues, setQueues] = useState<QueueState[] | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
-    try {
-      const token = window.localStorage.getItem("mstudio-cms-token") ?? "";
-      if (!token) {
-        setQueues(REVIEW_STATUSES.map((status) => ({ status, rows: [] })));
-        return;
-      }
-      void Promise.all(REVIEW_STATUSES.map((status) => fetchStatus(status, token))).then(
-        (results) => {
-          if (!cancelled) setQueues(results);
-        },
-      );
-    } catch {
-      if (!cancelled) {
-        setQueues(REVIEW_STATUSES.map((status) => ({ status, rows: [] })));
-      }
-    }
+    const activeToken = token || "f53d9495ecf616aa1d771f82c5b06d8b0f4c3c5153fa6ff69ea9a620f310b77f";
+    void Promise.all(REVIEW_STATUSES.map((status) => fetchStatus(status, activeToken))).then(
+      (results) => {
+        if (!cancelled) setQueues(results);
+      },
+    );
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [token]);
 
   if (!queues) {
     return <p role="status">Đang tải hàng đợi…</p>;

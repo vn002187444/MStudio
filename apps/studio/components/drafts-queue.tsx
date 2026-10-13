@@ -5,6 +5,7 @@ import {
   fetchArticlesByStatus,
   TokenGate,
   TransitionPublishButtons,
+  useCmsToken,
 } from "./cms-actions";
 import { formatTime, type ArticleRow } from "../lib/cms";
 
@@ -14,23 +15,18 @@ interface DraftsState {
 }
 
 export function DraftsQueue() {
+  const [token] = useCmsToken();
   const [drafts, setDrafts] = useState<DraftsState | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
-    let token = "";
-    try {
-      token = window.localStorage.getItem("mstudio-cms-token") ?? "";
-    } catch {
-      token = "";
-    }
     void fetchArticlesByStatus("drafted", token).then((page) => {
       if (!cancelled) setDrafts({ rows: page.rows, error: page.error });
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [token]);
 
   if (!drafts) {
     return <p role="status">Đang tải bản nháp…</p>;

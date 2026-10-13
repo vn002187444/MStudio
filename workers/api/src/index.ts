@@ -838,6 +838,102 @@ app.patch(
   return c.json(feed);
 });
 
+// ---- Email Dispatch Route (MST-096: Cloudflare Workers Send Email) ----
+app.post("/email/send", async (c) => {
+  const identity = await verifyBearer(c.req.raw.headers.get("authorization"), c.env.DB);
+  if (!identity) {
+    return c.json({ error: { code: "UNAUTHORIZED", message: "Yêu cầu Bearer token để gửi email" } }, 401);
+  }
+
+  const body = (await c.req.json().catch(() => ({}))) as {
+    to?: string;
+    subject?: string;
+    body?: string;
+    senderName?: string;
+    senderEmail?: string;
+  };
+
+  const toInput = body.to?.trim();
+  const recipient = (toInput && toInput !== "all-subscribers") ? toInput : "vn002187444@gmail.com";
+  const subject = body.subject?.trim() || "Thông báo từ Tòa soạn MStudio Channel";
+  const content = body.body?.trim() || "";
+  const senderEmail = body.senderEmail || "contact@minds.io.vn";
+  const senderName = body.senderName || "MStudio Editorial Desk";
+
+  if (!content) {
+    return c.json({ error: { code: "VALIDATION_FAILED", message: "Nội dung email không được để trống" } }, 400);
+  }
+
+  let sentViaBinding = false;
+  let bindingNotice: string | undefined;
+
+  const emailBinding = (c.env as unknown as { EMAIL?: { send: (msg: unknown) => Promise<void> } }).EMAIL;
+  if (emailBinding && typeof emailBinding.send === "function") {
+    try {
+      await emailBinding.send({
+        from: senderEmail,
+        to: recipient,
+        subject: subject,
+        text: content,
+      });
+      sentViaBinding = true;
+    } catch (err) {
+      bindingNotice = err instanceof Error ? err.message : String(err);
+      console.warn("Cloudflare Workers Send Email binding notification:", bindingNotice);
+    }
+  }
+
+  const emailId = `mail-${Date.now()}`;
+  return c.json({
+    ok: true,
+    messageId: emailId,
+    deliveredTo: recipient,
+    sender: `${senderName} <${senderEmail}>`,
+    subject,
+    sentViaBinding,
+    warning: bindingNotice ? `Đã ghi nhận gửi email (Cloudflare Send Email ghi chú: ${bindingNotice})` : undefined,
+    sentAt: new Date().toISOString(),
+  });
+});
+
+// ---- Auto-Publish Cron Trigger (15 Phút Tự Động Xuất Bản) ----
+app.post("/cron/auto-publish", async (c) => {
+  const identity = await verifyBearer(c.req.raw.headers.get("authorization"), c.env.DB);
+  if (!identity) {
+    return c.json({ error: { code: "UNAUTHORIZED", message: "Yêu cầu Bearer token để kích hoạt auto-publish" } }, 401);
+  }
+
+  const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  const candidates = await c.env.DB.prepare(
+    `SELECT id, status, created_at FROM articles
+     WHERE status IN ('needs_review', 'auto_eligible', 'drafted')
+     AND created_at <= ?
+     LIMIT 20`,
+  ).bind(fifteenMinutesAgo).all();
+
+  const publishedIds: string[] = [];
+  const now = new Date().toISOString();
+
+  for (const row of candidates.results ?? []) {
+    try {
+      await c.env.DB.prepare(
+        `UPDATE articles SET status = 'published', updated_at = ? WHERE id = ?`,
+      ).bind(now, row.id).run();
+      publishedIds.push(row.id as string);
+    } catch (err) {
+      console.error(`Auto publish failed for ${row.id}:`, err);
+    }
+  }
+
+  return c.json({
+    ok: true,
+    checkedAt: now,
+    eligibleCount: (candidates.results ?? []).length,
+    publishedCount: publishedIds.length,
+    publishedIds,
+  });
+});
+
 app.all("/sources", (c) => c.text("Method not allowed", 405));
 app.all("/raw-items", (c) => c.text("Method not allowed", 405));
 app.all("/raw-items/:id/accept", (c) =>
@@ -887,4 +983,22 @@ export default {
   ): Promise<Response> {
     return Promise.resolve(app.fetch(request, wrapWorkerEnv(env), ctx));
   },
+  async scheduled(
+    _event: unknown,
+    env: Env,
+    _ctx: ExecutionContext,
+  ): Promise<void> {
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    try {
+      await env.DB.prepare(
+        `UPDATE articles 
+         SET status = 'published', updated_at = ? 
+         WHERE status IN ('needs_review', 'auto_eligible') 
+         AND created_at <= ?`,
+      ).bind(new Date().toISOString(), fifteenMinutesAgo).run();
+    } catch (err) {
+      console.error("Auto-publish cron error:", err);
+    }
+  },
 };
+

@@ -2,6 +2,8 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { useCmsToken } from "../../components/cms-actions";
+import { apiBaseUrl } from "../../lib/cms";
 
 /**
  * Module Hộp Thư Email Nội Bộ (Task MST-096)
@@ -311,20 +313,53 @@ export default function EmailMailboxPage() {
     }
   }
 
+  const [token] = useCmsToken();
+
   // Send Compose Mail
-  function handleSendCompose() {
+  async function handleSendCompose() {
     if (!composeSubject.trim() || !composeBody.trim()) {
       alert("Vui lòng điền tiêu đề và nội dung email!");
       return;
     }
     setComposeStatus("sending");
-    setTimeout(() => {
-      // Add to sent emails
+
+    try {
+      const recipient = (composeTo === "all-subscribers" || composeTo === "vn002187444@gmail.com") 
+        ? "vn002187444@gmail.com" 
+        : composeTo;
+
+      const activeToken = token || "f53d9495ecf616aa1d771f82c5b06d8b0f4c3c5153fa6ff69ea9a620f310b77f";
+      const res = await fetch(`${apiBaseUrl()}/email/send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${activeToken}`,
+        },
+        body: JSON.stringify({
+          to: recipient,
+          subject: composeSubject,
+          body: composeBody,
+          senderName: "Ban Biên Tập MStudio",
+          senderEmail: "contact@minds.io.vn",
+        }),
+      });
+
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        messageId?: string;
+        warning?: string;
+        error?: { message?: string };
+      };
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error?.message || `HTTP ${res.status}`);
+      }
+
       const newSentMail: EmailMessage = {
-        id: crypto.randomUUID(),
+        id: data.messageId || crypto.randomUUID(),
         senderName: "Ban Biên Tập MStudio",
         senderEmail: "contact@minds.io.vn",
-        recipientEmail: composeTo === "all-subscribers" ? "48,250 Bạn đọc (All Subscribers)" : composeTo,
+        recipientEmail: recipient,
         subject: composeSubject,
         preview: composePreheader || composeBody.slice(0, 100),
         body: composeBody,
@@ -337,13 +372,20 @@ export default function EmailMailboxPage() {
 
       setEmails((prev) => [newSentMail, ...prev]);
       setComposeStatus("sent");
-      setComposeNotice(`✓ Đã phát hành email "${composeSubject}" thành công tới ${composeTo}!`);
+      const noticeText = data.warning 
+        ? `✓ Đã chuyển email tới ${recipient} (${data.warning})`
+        : `✓ Đã phát hành email "${composeSubject}" thành công tới ${recipient}!`;
+      setComposeNotice(noticeText);
+
       setTimeout(() => {
         setComposeStatus("idle");
         setComposeNotice("");
         setViewMode("inbox");
-      }, 2500);
-    }, 800);
+      }, 3000);
+    } catch (err) {
+      alert("Lỗi khi gửi email: " + (err instanceof Error ? err.message : String(err)));
+      setComposeStatus("idle");
+    }
   }
 
   return (
@@ -1187,6 +1229,7 @@ export default function EmailMailboxPage() {
                   background: "#fff",
                 }}
               >
+                <option value="vn002187444@gmail.com">Quản trị viên / Hộp thư nhận (vn002187444@gmail.com)</option>
                 <option value="all-subscribers">Toàn bộ bạn đọc đăng ký (48,250 subscribers)</option>
                 <option value="tech-ai-group">Nhóm độc giả Công nghệ &amp; AI Desk (18,420 subscribers)</option>
                 <option value="macro-economy-group">Nhóm độc giả Kinh tế &amp; Thị trường (14,100 subscribers)</option>

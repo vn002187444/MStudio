@@ -29,6 +29,15 @@
       }
     ]
   },
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "destination_address": "vn002187444@gmail.com"
+    }
+  ],
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
   "observability": {
     "logs": {
       "enabled": true,
