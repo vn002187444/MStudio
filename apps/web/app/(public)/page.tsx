@@ -319,6 +319,7 @@ export default async function PublicHomePage() {
             </p>
             <div style={{ display: "flex", gap: 6 }}>
               <input
+                aria-label="Địa chỉ email để đăng ký bản tin"
                 type="email"
                 placeholder="email@cuaban.com"
                 style={{
