@@ -11,8 +11,31 @@ const CATEGORY_NAMES: Record<string, string> = {
   "the-thao": "Thể thao",
   "doi-song": "Đời sống",
   "suc-khoe": "Sức khỏe",
+  "ai-channel": "AI Channel",
   xe: "Xe",
 };
+
+export const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
+  "cong-nghe": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+  "ai-channel": "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=1200&q=80",
+  "kinh-doanh": "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1200&q=80",
+  "the-gioi": "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=1200&q=80",
+  "doi-song": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80",
+  "giai-tri": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
+  "khoa-hoc": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",
+  "thoi-su": "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80",
+  "the-thao": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80",
+  "suc-khoe": "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=1200&q=80",
+  xe: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80",
+};
+
+export function getArticleImageUrl(article: PublishedArticleRecord): string {
+  if (article.heroImageUrl && article.heroImageUrl.trim() !== "") {
+    return article.heroImageUrl;
+  }
+  const category = article.categorySlug || "cong-nghe";
+  return CATEGORY_FALLBACK_IMAGES[category] ?? CATEGORY_FALLBACK_IMAGES["cong-nghe"];
+}
 
 export function formatRelativeTime(iso: string): string {
   try {
@@ -34,20 +57,20 @@ export function formatRelativeTime(iso: string): string {
 export function LeadStoryCard({ article }: { article: PublishedArticleRecord }) {
   const url = `/bai-viet/${article.slug || article.id}`;
   const categoryLabel = (article.categorySlug && CATEGORY_NAMES[article.categorySlug]) || "Tin tức";
+  const imageUrl = getArticleImageUrl(article);
 
   return (
     <article className="lead-card" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ position: "relative", borderRadius: "var(--radius-md, 8px)", overflow: "hidden", border: "1px solid var(--border)" }}>
-        {article.heroImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={article.heroImageUrl}
-            alt={article.title}
-            style={{ width: "100%", aspectRatio: "16 / 9", objectFit: "cover", display: "block" }}
-          />
-        ) : (
-          <ArticleHero seed={article.id} />
-        )}
+      <div style={{ position: "relative", borderRadius: "var(--radius-md, 8px)", overflow: "hidden", border: "1px solid var(--border)", background: "var(--soft, #f1f5f9)" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageUrl}
+          alt={article.title}
+          referrerPolicy="no-referrer"
+          loading="eager"
+          decoding="async"
+          style={{ width: "100%", aspectRatio: "16 / 9", objectFit: "cover", display: "block" }}
+        />
         {article.isBreaking ? (
           <span
             style={{
@@ -185,22 +208,15 @@ export function CompactNewsCard({
             border: "1px solid var(--border)",
           }}
         >
-          {article.heroImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={article.heroImageUrl}
-              alt=""
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
-          ) : (
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                background: "linear-gradient(135deg, #e2e8f0, #cbd5e1)",
-              }}
-            />
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={getArticleImageUrl(article)}
+            alt=""
+            referrerPolicy="no-referrer"
+            loading="lazy"
+            decoding="async"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
         </div>
       ) : null}
     </article>
@@ -225,16 +241,15 @@ export function FeaturedCard({ article }: { article: PublishedArticleRecord }) {
       }}
     >
       <div style={{ height: 140, borderRadius: 6, overflow: "hidden", background: "var(--soft)" }}>
-        {article.heroImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={article.heroImageUrl}
-            alt=""
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
-        ) : (
-          <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #e2e8f0, #cbd5e1)" }} />
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={getArticleImageUrl(article)}
+          alt=""
+          referrerPolicy="no-referrer"
+          loading="lazy"
+          decoding="async"
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>

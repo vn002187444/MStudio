@@ -9,6 +9,7 @@ import {
 } from "../../../../components/article/table-of-contents";
 import { SourceBlock } from "../../../../components/article/source-block";
 import { BlocksRenderer, headingsFromBlocks } from "../../../../components/article/blocks-renderer";
+import { CATEGORY_FALLBACK_IMAGES } from "../../../../components/article/news-card";
 import { parseArticleBlocksBody } from "../../../../../../packages/contracts/src/blocks.ts";
 
 /**
@@ -314,20 +315,21 @@ export default async function ArticlePage({
           : ""}
       </p>
 
-      {/* Hero Media: Video / Real Image / Deterministic Canvas */}
+      {/* Hero Media: Video / Real Image / Category Editorial Image */}
       {article.videoUrl ? (
         <VideoEmbed url={article.videoUrl} />
-      ) : article.heroImageUrl ? (
-        <div style={{ margin: "0 0 24px", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
+      ) : (
+        <div style={{ margin: "0 0 24px", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)", background: "var(--soft, #f1f5f9)" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={article.heroImageUrl}
+            src={article.heroImageUrl || (CATEGORY_FALLBACK_IMAGES[article.categorySlug || "cong-nghe"] ?? CATEGORY_FALLBACK_IMAGES["cong-nghe"])}
             alt={article.title}
+            referrerPolicy="no-referrer"
+            loading="eager"
+            decoding="async"
             style={{ width: "100%", maxHeight: 480, objectFit: "cover", display: "block" }}
           />
         </div>
-      ) : (
-        <ArticleHero seed={article.id} />
       )}
 
       {article.summary ? (
