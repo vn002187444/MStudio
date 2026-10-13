@@ -1,13 +1,12 @@
 /**
  * API base URL duy nhất cho apps/web (mọi fetch server-side).
- * - Local/dev: đặt MSTUDIO_API_URL hoặc mặc định API prod.
- * - Production Worker: env build-time không tồn tại ở runtime nên
- *   default thẳng về API prod (custom domain — workers.dev gây
- *   error 1042 loop prevention khi worker cùng account fetch nhau).
+ * Dùng direct worker endpoint https://mstudio-api.vn002187444.workers.dev
+ * để tránh lỗi Cloudflare Same-Zone Subrequest Timeout (HTTP 522) khi
+ * custom domain worker (mstudio.minds.io.vn) subrequest tới custom domain worker (api.mstudio.minds.io.vn).
  */
 export function apiBaseUrl(): string {
-  return (
-    process.env.MSTUDIO_API_URL ??
-    "https://api.mstudio.minds.io.vn"
-  );
+  if (process.env.MSTUDIO_API_URL && !process.env.MSTUDIO_API_URL.includes("api.mstudio.minds.io.vn")) {
+    return process.env.MSTUDIO_API_URL;
+  }
+  return "https://mstudio-api.vn002187444.workers.dev";
 }
