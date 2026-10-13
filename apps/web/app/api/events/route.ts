@@ -3,7 +3,7 @@
  * Lý do: tránh CORS browser→workers/api, giữ API base URL phía server.
  * Chỉ forward eventType trong allowlist PLAN (follow/hide/share/save/...).
  */
-import { apiBaseUrl } from "../../../lib/api";
+import { apiBaseUrl, fetchApi } from "../../../lib/api";
 const ALLOWED_EVENT_TYPES = new Set([
   "open_article",
   "meaningful_read",
@@ -36,7 +36,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
   }
-  const upstream = await fetch(`${apiBaseUrl()}/events`, {
+  const upstream = await fetchApi(`/events`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(events),

@@ -2,7 +2,7 @@
  * Shared article fetchers cho public feeds (moi-nhat, dang-nong).
  * Layer content theo PLAN repository structure (lib/content/).
  */
-import { apiBaseUrl } from "../api";
+import { apiBaseUrl, fetchApi } from "../api";
 
 export interface PublishedArticle {
   id: string;
@@ -31,7 +31,7 @@ interface RecommendationsResponse {
 /** Bài published mới nhất, lỗi mạng trả [] (trang có empty state). */
 export async function fetchLatestArticles(limit = 10): Promise<PublishedArticle[]> {
   try {
-    const response = await fetch(`${apiBaseUrl()}/articles?limit=${limit}`, {
+    const response = await fetchApi(`/articles?limit=${limit}`, {
       next: { revalidate: 60 },
     });
     if (!response.ok) return [];
@@ -45,8 +45,8 @@ export async function fetchLatestArticles(limit = 10): Promise<PublishedArticle[
 /** Một bài theo id (dùng resolve trending candidates). */
 export async function fetchArticleById(id: string): Promise<PublishedArticle | undefined> {
   try {
-    const response = await fetch(
-      `${apiBaseUrl()}/articles/${encodeURIComponent(id)}`,
+    const response = await fetchApi(
+      `/articles/${encodeURIComponent(id)}`,
       { next: { revalidate: 60 } },
     );
     if (!response.ok) return undefined;
@@ -63,8 +63,8 @@ export async function fetchArticleById(id: string): Promise<PublishedArticle | u
  */
 export async function fetchTrendingArticles(limit = 8): Promise<PublishedArticle[]> {
   try {
-    const response = await fetch(
-      `${apiBaseUrl()}/recommendations?limit=${limit * 2}`,
+    const response = await fetchApi(
+      `/recommendations?limit=${limit * 2}`,
       { next: { revalidate: 60 } },
     );
     if (!response.ok) return [];

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { apiBaseUrl } from "../../../../lib/api";
+import { apiBaseUrl, fetchApi } from "../../../../lib/api";
 import { newsArticleJsonLd, siteOrigin } from "../../../../lib/seo";
 import { ArticleHero } from "../../../../components/article/article-hero";
 import {
@@ -89,8 +89,8 @@ async function fetchArticle(
   slug: string,
 ): Promise<PublishedArticle | undefined> {
   try {
-    const response = await fetch(
-      `${apiBaseUrl()}/articles/${encodeURIComponent(slug)}`,
+    const response = await fetchApi(
+      `/articles/${encodeURIComponent(slug)}`,
       { cache: "no-store" },
     );
     if (response.status === 404) return undefined;
@@ -106,8 +106,8 @@ async function fetchArticle(
 
 async function fetchRelatedCandidates(articleId: string) {
   try {
-    const response = await fetch(
-      `${apiBaseUrl()}/recommendations?articleId=${encodeURIComponent(articleId)}&limit=4`,
+    const response = await fetchApi(
+      `/recommendations?articleId=${encodeURIComponent(articleId)}&limit=4`,
       { cache: "no-store" },
     );
     if (!response.ok) return [];

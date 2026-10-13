@@ -33,7 +33,7 @@ interface CategoryApiRow {
   status: string;
 }
 
-import { apiBaseUrl } from "../../lib/api";
+import { apiBaseUrl, fetchApi } from "../../lib/api";
 
 /**
  * MST-072: nav lấy từ GET /categories (DB-backed, MST-071), fallback về
@@ -42,7 +42,7 @@ import { apiBaseUrl } from "../../lib/api";
  */
 export async function fetchPrimaryNav(): Promise<TaxonomyItem[]> {
   try {
-    const response = await fetch(`${apiBaseUrl()}/categories`, {
+    const response = await fetchApi(`/categories`, {
       next: { revalidate: 300 },
     });
     if (!response.ok) return primaryNav;

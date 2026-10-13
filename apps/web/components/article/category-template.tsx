@@ -1,5 +1,5 @@
 import type { PublishedArticleRecord } from "@mstudio/contracts";
-import { apiBaseUrl } from "../../lib/api";
+import { apiBaseUrl, fetchApi } from "../../lib/api";
 import { CompactNewsCard, LeadStoryCard } from "./news-card";
 
 interface ArticlesResponse {
@@ -10,16 +10,16 @@ interface ArticlesResponse {
 async function fetchCategoryArticles(categorySlug?: string, limit = 20): Promise<PublishedArticleRecord[]> {
   try {
     const url = categorySlug
-      ? `${apiBaseUrl()}/articles?category=${encodeURIComponent(categorySlug)}&limit=${limit}`
-      : `${apiBaseUrl()}/articles?limit=${limit}`;
-    const response = await fetch(url, { cache: "no-store" });
+      ? `/articles?category=${encodeURIComponent(categorySlug)}&limit=${limit}`
+      : `/articles?limit=${limit}`;
+    const response = await fetchApi(url, { cache: "no-store" });
     if (!response.ok) return [];
     const payload = (await response.json()) as ArticlesResponse;
     const articles = Array.isArray(payload.rows) ? payload.rows : [];
 
     // Fallback: nếu chuyên mục chưa có bài riêng, lấy bài mới nhất của hệ thống để không bao giờ bị trắng trang
     if (articles.length === 0 && categorySlug) {
-      const fallbackRes = await fetch(`${apiBaseUrl()}/articles?limit=10`, { cache: "no-store" });
+      const fallbackRes = await fetchApi(`/articles?limit=10`, { cache: "no-store" });
       if (fallbackRes.ok) {
         const fallbackPayload = (await fallbackRes.json()) as ArticlesResponse;
         return Array.isArray(fallbackPayload.rows) ? fallbackPayload.rows : [];

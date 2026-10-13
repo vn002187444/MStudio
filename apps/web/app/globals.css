@@ -73,7 +73,7 @@ h3 {
 }
 
 .site-header {
-  background: var(--black);
+  background: rgba(9, 9, 9, 0.85);
   color: var(--white);
   position: sticky;
   top: 0;
@@ -135,6 +135,27 @@ h3 {
   margin: 0 auto;
   max-width: var(--max-content-width);
   padding: 12px 16px;
+}
+
+.header-search {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  cursor: pointer;
+  display: inline-flex;
+  min-height: 44px;
+  min-width: 44px;
+  justify-content: center;
+  opacity: 0.7;
+  padding: 8px;
+  text-decoration: none;
+  transition: opacity var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.header-search:hover {
+  opacity: 1;
 }
 
 .desktop-nav ul {
@@ -266,54 +287,303 @@ h3 {
 }
 
 .home-main {
-  margin: 0 auto;
-  max-width: var(--max-content-width);
-  padding: 24px 16px 48px;
+  padding-bottom: 48px;
+  padding-top: 24px;
 }
 
-.home-main h2 {
-  font-size: var(--text-2xl);
+/* ── Breaking News Banner ── */
+.breaking-banner {
+  align-items: center;
+  background: linear-gradient(90deg, #fee2e2, #fef2f2);
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-sm);
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 8px 16px;
 }
 
+.breaking-badge {
+  background: var(--breaking-red);
+  border-radius: 4px;
+  color: #fff;
+  flex-shrink: 0;
+  font-size: var(--text-label);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  text-transform: uppercase;
+}
+
+.breaking-link {
+  color: var(--ink);
+  font-size: var(--text-meta);
+  font-weight: 600;
+  overflow: hidden;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Hero Grid ── */
 .hero-grid {
   display: grid;
-  gap: 16px;
+  gap: 24px;
   grid-template-columns: 1fr;
-  margin-bottom: 32px;
-}
-
-.hero-main,
-.hero-rail,
-.home-columns section,
-.home-sidebar section {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 20px;
+  margin-bottom: 40px;
 }
 
 @media (min-width: 900px) {
   .hero-grid {
     grid-template-columns: 2fr 1fr;
   }
+}
 
+.hero-main {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+
+.hero-rail {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.hero-empty {
+  color: var(--gray);
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.hero-empty p {
+  margin: 0;
+}
+
+/* ── Section Headers ── */
+.section-divider-sm {
+  align-items: center;
+  border-bottom: 2px solid var(--ink);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+}
+
+.section-label {
+  font-size: var(--text-meta);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.section-meta {
+  color: var(--gray);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.section-header {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+}
+
+.section-header--ink {
+  border-bottom: 2px solid var(--ink);
+}
+
+.section-title {
+  font-size: var(--text-card-title);
+  font-weight: 700;
+  margin: 0;
+}
+
+.section-link {
+  color: var(--brand);
+  font-size: var(--text-label);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.section-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Card Lists ── */
+.card-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Featured Section ── */
+.featured-section {
+  margin-bottom: 48px;
+}
+
+.featured-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+/* ── Home Columns (Main Feed + Sidebar) ── */
+.home-columns {
+  display: grid;
+  gap: 32px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
   .home-columns {
-    display: grid;
-    gap: 16px;
     grid-template-columns: 2fr 1fr;
   }
 }
 
-.home-columns {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: 1fr;
+/* ── Feed Filters ── */
+.feed-filters {
+  display: flex;
+  font-size: var(--text-meta);
+  gap: 12px;
 }
 
+.filter-active {
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.filter-link {
+  color: var(--gray);
+  text-decoration: none;
+}
+
+.filter-link:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.empty-text {
+  color: var(--gray);
+  padding: 20px 0;
+}
+
+/* ── Sidebar ── */
 .home-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+}
+
+.sidebar-module {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.sidebar-heading {
+  align-items: center;
+  display: flex;
+  font-size: var(--text-meta);
+  font-weight: 700;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.sidebar-text {
+  color: var(--ink-700);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Topic Pills ── */
+.topic-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.topic-pill {
+  background: var(--soft);
+  border-radius: 16px;
+  color: var(--ink-700);
+  font-size: var(--text-label);
+  font-weight: 500;
+  padding: 4px 10px;
+  transition:
+    background var(--motion-duration-fast) var(--motion-ease-out),
+    color var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.topic-pill:hover {
+  background: var(--ink);
+  color: var(--white);
+}
+
+/* ── Newsletter Box ── */
+.newsletter-box {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border-radius: var(--radius-md);
+  color: #fff;
+  padding: 20px;
+}
+
+.newsletter-heading {
+  font-size: var(--text-ui);
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.newsletter-desc {
+  color: #94a3b8;
+  font-size: var(--text-label);
+  line-height: 1.4;
+  margin: 0 0 12px;
+}
+
+.newsletter-form {
+  display: flex;
+  gap: 6px;
+}
+
+.newsletter-input {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  flex: 1;
+  font-size: var(--text-label);
+  padding: 8px 10px;
+}
+
+.newsletter-input::placeholder {
+  color: #64748b;
+}
+
+.newsletter-btn {
+  background: var(--brand);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  cursor: pointer;
+  font-size: var(--text-label);
+  font-weight: 600;
+  padding: 8px 14px;
+  transition: background var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.newsletter-btn:hover {
+  background: var(--brand-hover);
 }
 
 .site-footer {
@@ -328,6 +598,146 @@ h3 {
 }
 
 .site-footer p {
+  margin: 0;
+}
+
+/* ── Editorial Footer (PLAN.md page blueprint) ── */
+
+.editorial-footer {
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  margin-top: 64px;
+  padding: 48px 0 32px;
+}
+
+.footer-grid {
+  display: grid;
+  gap: 32px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .footer-grid {
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 48px;
+  }
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-brand {
+  font-size: var(--text-xl);
+  margin: 0;
+}
+
+.footer-tagline {
+  color: var(--gray);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.footer-heading {
+  font-size: var(--text-meta);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.footer-sitemap {
+  columns: 2;
+  column-gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.footer-sitemap li {
+  break-inside: avoid;
+  padding: 4px 0;
+}
+
+.footer-sitemap a,
+.footer-links a {
+  color: var(--ink-700);
+  font-size: var(--text-meta);
+  text-decoration: none;
+  transition: color var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.footer-sitemap a:hover,
+.footer-links a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.footer-social {
+  display: flex;
+  gap: 12px;
+}
+
+.footer-social-link {
+  align-items: center;
+  color: var(--ink-700);
+  display: inline-flex;
+  font-size: var(--text-meta);
+  gap: 6px;
+  text-decoration: none;
+  transition: color var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.footer-social-link:hover {
+  color: var(--ink);
+}
+
+.footer-cms-pill {
+  align-items: center;
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  color: var(--ink);
+  display: inline-flex;
+  font-size: var(--text-label);
+  font-weight: 600;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 14px;
+  text-decoration: none;
+  transition:
+    background var(--motion-duration-fast) var(--motion-ease-out),
+    border-color var(--motion-duration-fast) var(--motion-ease-out);
+  width: fit-content;
+}
+
+.footer-cms-pill:hover {
+  background: var(--white);
+  border-color: var(--ink-700);
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  color: var(--gray);
+  font-size: var(--text-label);
+  margin-top: 32px;
+  padding-top: 24px;
+}
+
+.footer-bottom p {
   margin: 0;
 }
 
@@ -501,10 +911,80 @@ h3 {
   }
 }
 
-/* Đặt cuối file để thắng cascade: reduced-motion tắt pulse (PLAN ### Motion). */
+/* ── Foundation motion & interaction utilities (Phase 1) ── */
+
+/* Tactile press feedback — all interactive cards and buttons */
+.press-scale:active {
+  transform: scale(0.98);
+  transition: transform var(--motion-duration-instant) var(--motion-spring-apple);
+}
+
+/* Card hover — quiet editorial interaction */
+.card-hover {
+  transition:
+    transform var(--motion-duration-fast) var(--motion-spring-apple),
+    border-color var(--motion-duration-fast) var(--motion-ease-out),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.card-hover:hover {
+  border-color: var(--ink-700);
+  transform: translateY(-1px);
+}
+
+/* Thumbnail scale on parent hover */
+.card-hover:hover .thumb-scale {
+  transform: scale(1.02);
+}
+
+.thumb-scale {
+  transition: transform var(--motion-duration-base) var(--motion-spring-apple);
+  will-change: transform;
+}
+
+/* Frosted glass backdrop — header, mobile tab bar */
+.frosted-glass {
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+}
+
+/* ── Spacing rhythm helpers (8px baseline, PLAN.md) ── */
+.container-content {
+  margin: 0 auto;
+  max-width: var(--container);
+  padding-left: var(--gutter-mobile);
+  padding-right: var(--gutter-mobile);
+}
+
+@media (min-width: 768px) {
+  .container-content {
+    padding-left: var(--gutter);
+    padding-right: var(--gutter);
+  }
+}
+
+/* ── Editorial dividers ── */
+.section-divider {
+  border-bottom: 2px solid var(--ink);
+  font-size: var(--text-h3);
+  font-weight: 700;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+}
+
+/* ── Reduced-motion respect (PLAN.md accessibility, WCAG 2.2) ── */
+/* Must be last to win cascade */
 @media (prefers-reduced-motion: reduce) {
   .skeleton-pulse {
     animation: none;
+  }
+
+  .card-hover,
+  .card-hover:hover,
+  .press-scale:active,
+  .thumb-scale {
+    transform: none !important;
+    transition: none !important;
   }
 
   html {
@@ -621,4 +1101,41 @@ h3 {
 .btn-hide:disabled {
   cursor: default;
   opacity: 0.7;
+}
+
+/* ── Mobile Tab Bar (PLAN.md PWA app-like) ── */
+
+.mobile-tab-bar {
+  background: rgba(255, 255, 255, 0.88);
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+  bottom: 0;
+  left: 0;
+  padding-bottom: max(env(safe-area-inset-bottom), 8px);
+  padding-top: 6px;
+  position: fixed;
+  right: 0;
+  z-index: var(--z-overlay);
+}
+
+.tab-active-dot {
+  background: var(--ink);
+  border-radius: 9999px;
+  height: 4px;
+  margin-top: 2px;
+  transition: transform var(--motion-duration-fast) var(--motion-spring-apple);
+  width: 4px;
+}
+
+/* Hide mobile tab bar on desktop */
+@media (min-width: 768px) {
+  .mobile-tab-bar {
+    display: none;
+  }
+}
+
+/* Reserve space for fixed tab bar on mobile */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 72px;
+  }
 }
