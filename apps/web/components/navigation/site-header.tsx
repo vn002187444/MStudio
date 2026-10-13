@@ -12,6 +12,22 @@ import { fetchPrimaryNav, trendingTopics } from "./taxonomy";
  */
 export async function SiteHeader() {
   const primaryNav = await fetchPrimaryNav();
+  const primaryLabels = [
+    "Mới nhất",
+    "Dành cho bạn",
+    "Đang nóng",
+    "Thời sự",
+    "Công nghệ",
+    "AI Channel",
+    "Kinh tế",
+    "Thế giới",
+    "Khoa học",
+    "Thể thao",
+    "Giải trí",
+    "Đời sống",
+  ];
+  const mainNavItems = primaryNav.filter((item) => primaryLabels.includes(item.label));
+  const otherNavItems = primaryNav.filter((item) => !primaryLabels.includes(item.label));
 
   return (
     <header className="site-header frosted-glass bg-black/85">
@@ -21,14 +37,30 @@ export async function SiteHeader() {
           MSTUDIO <span>CHANNEL</span>
         </a>
 
-        <nav aria-label="Chuyên mục chính" className="desktop-nav flex-1">
-          <ul>
-            {primaryNav.map((item) => (
-              <li key={item.href}>
-                <a href={item.href}>{item.label}</a>
-              </li>
-            ))}
-          </ul>
+        <nav aria-label="Chuyên mục chính" className="desktop-nav flex-1 min-w-0">
+          <div className="flex items-center gap-2 w-full">
+            <ul className="flex gap-1 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
+              {mainNavItems.map((item) => (
+                <li key={item.href} className="shrink-0">
+                  <a href={item.href} className="desktop-nav-link">
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            {otherNavItems.length > 0 && (
+              <details className="desktop-dropdown relative shrink-0">
+                <summary className="desktop-nav-link cursor-pointer list-none">Khác ▾</summary>
+                <ul className="desktop-dropdown-menu">
+                  {otherNavItems.map((item) => (
+                    <li key={item.href}>
+                      <a href={item.href}>{item.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </div>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -86,26 +118,38 @@ export async function SiteHeader() {
             <span>CMS</span>
           </a>
 
-          <details className="mobile-menu">
+          <details className="mobile-menu group">
             <summary aria-label="Mở menu chuyên mục">Menu</summary>
             <nav aria-label="Chuyên mục (di động)">
-              <ul>
-                {primaryNav.map((item) => (
-                  <li key={item.href}>
-                    <a href={item.href}>{item.label}</a>
-                  </li>
+              <div className="mobile-menu-drawer grid grid-cols-2 gap-x-4 gap-y-2">
+                <div className="col-span-2 text-[var(--white)] font-bold mb-2">Chuyên mục chính</div>
+                {mainNavItems.map((item) => (
+                  <a href={item.href} key={item.href}>
+                    {item.label}
+                  </a>
                 ))}
-                <li className="border-t border-[var(--ink-800)] pt-1 mt-1">
+                {otherNavItems.length > 0 && (
+                  <>
+                    <div className="col-span-2 text-[var(--white)] font-bold mt-4 mb-2">Khác</div>
+                    {otherNavItems.map((item) => (
+                      <a href={item.href} key={item.href}>
+                        {item.label}
+                      </a>
+                    ))}
+                  </>
+                )}
+                <div className="col-span-2 border-t border-[var(--ink-800)] mt-4 pt-4">
+                  <div className="text-[var(--white)] font-bold mb-2">Tòa soạn CMS</div>
                   <a
                     href="/cms"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-300 hover:underline"
+                    className="text-blue-300 hover:underline inline-block py-2"
                   >
                     ✍️ Cổng Biên tập viên / Studio CMS
                   </a>
-                </li>
-              </ul>
+                </div>
+              </div>
             </nav>
           </details>
         </div>
