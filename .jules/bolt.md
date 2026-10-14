@@ -1,0 +1,3 @@
+## 2024-10-14 - Optimize Recommendation Concurrency in Cloudflare Workers
+**Learning:** Sequential `Promise.all` blocks artificially block independent queries when retrieving user profiles and generic recommendations. Cloudflare D1 batching works best when all possible parallel queries are submitted simultaneously.
+**Action:** Unroll sequential `Promise.all` queries into a single concurrent `Promise.all` block. Bundle dependent queries (like retrieving a user profile then their followed topics) inside an anonymous async function within the array to ensure strict adherence to avoiding unhandled promise rejections without losing the concurrency for independent data like trending articles.
