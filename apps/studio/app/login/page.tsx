@@ -27,7 +27,7 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin: pin.trim() }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as { error?: { message?: string }; token: string; user: any };
       if (!res.ok) {
         throw new Error(data.error?.message || "Mã PIN không chính xác");
       }
@@ -57,7 +57,7 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as { error?: { message?: string }; token: string; user: any };
       if (!res.ok) {
         throw new Error(data.error?.message || "Đăng nhập không thành công");
       }

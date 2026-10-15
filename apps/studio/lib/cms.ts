@@ -51,6 +51,9 @@ export interface ArticleRow {
   publishedRevisionId?: string;
   createdAt: string;
   updatedAt: string;
+  slug?: string;
+  title?: string;
+  categorySlug?: string;
 }
 
 export interface ArticleListResponse {

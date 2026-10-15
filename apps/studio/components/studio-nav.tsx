@@ -3,7 +3,7 @@
  * Newsroom review/publish/sources + overview/clusters/drafts/scheduled/
  * corrections đã live; SEO, audience, media, automation, settings vẫn chờ.
  */
-const items = [
+const items: Array<{ href: string; label: string; disabled?: boolean }> = [
   { href: "/", label: "Home" },
   { href: "/overview", label: "Overview" },
   { href: "/editor", label: "Article Editor" },

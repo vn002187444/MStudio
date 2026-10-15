@@ -198,7 +198,7 @@ export default function EditorPage() {
     try {
       const bodyText =
         bodyMode === "rich"
-          ? richBlocks.map((b) => (b.type === "paragraph" ? b.text : `[${b.type}] ${b.text}`)).join("\n\n")
+          ? richBlocks.map((b: any) => (b.text ? b.text : b.content ? b.content.map((c: any) => c.text || "").join("") : `[${b.type || "block"}]`)).join("\n\n")
           : blocks.map((b) => b.text).join("\n\n");
 
       const res = await fetch(`${apiBaseUrl()}/articles`, {
