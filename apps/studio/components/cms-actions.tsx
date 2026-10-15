@@ -54,7 +54,8 @@ export function TokenField({
   const [quickPin, setQuickPin] = useState("");
   const [pinError, setPinError] = useState("");
 
-  const handleQuickPin = async () => {
+  const handleQuickPin = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (quickPin.trim() === "272113000") {
       const adminToken = "f53d9495ecf616aa1d771f82c5b06d8b0f4c3c5153fa6ff69ea9a620f310b77f";
       onChange(adminToken);
@@ -130,7 +131,7 @@ export function TokenField({
           </div>
         </div>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <form onSubmit={handleQuickPin} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <input
           type="password"
           maxLength={9}
@@ -140,6 +141,7 @@ export function TokenField({
             setPinError("");
           }}
           placeholder="Mã PIN 9 số…"
+          aria-label="Nhập mã PIN để đăng nhập nhanh"
           style={{
             width: "140px",
             padding: "8px 12px",
@@ -151,8 +153,7 @@ export function TokenField({
           }}
         />
         <button
-          type="button"
-          onClick={handleQuickPin}
+          type="submit"
           className="btn-primary"
           style={{ minHeight: "36px", padding: "6px 14px", fontSize: "12px", borderRadius: "8px" }}
         >
@@ -170,7 +171,7 @@ export function TokenField({
         >
           Đăng nhập Email
         </a>
-      </div>
+      </form>
       {pinError && (
         <div style={{ width: "100%", color: "var(--breaking-red)", fontSize: "12px", margin: "4px 0 0" }}>
           {pinError}
@@ -196,7 +197,7 @@ export async function authedFetch(
 }
 
 function useAction() {
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<string | false>(false);
   const [message, setMessage] = useState<string | undefined>(undefined);
   return { busy, message, setBusy, setMessage };
 }
@@ -273,7 +274,7 @@ export function AcceptRejectButtons({ rawItemId }: { rawItemId: string }) {
       setMessage("Lỗi: nhập token biên tập ở trên trước.");
       return;
     }
-    setBusy(true);
+    setBusy(action);
     setMessage(undefined);
     try {
       const response = await authedFetch(
@@ -294,11 +295,23 @@ export function AcceptRejectButtons({ rawItemId }: { rawItemId: string }) {
 
   return (
     <span>
-      <button disabled={busy} onClick={() => void decide("accept")} type="button">
-        Duyệt
+      <button
+        disabled={!!busy}
+        aria-busy={busy === "accept"}
+        onClick={() => void decide("accept")}
+        type="button"
+        style={{ cursor: busy ? (busy === "accept" ? 'wait' : 'not-allowed') : 'pointer' }}
+      >
+        {busy === "accept" ? "Đang duyệt..." : "Duyệt"}
       </button>{" "}
-      <button disabled={busy} onClick={() => void decide("reject")} type="button">
-        Loại
+      <button
+        disabled={!!busy}
+        aria-busy={busy === "reject"}
+        onClick={() => void decide("reject")}
+        type="button"
+        style={{ cursor: busy ? (busy === "reject" ? 'wait' : 'not-allowed') : 'pointer' }}
+      >
+        {busy === "reject" ? "Đang loại..." : "Loại"}
       </button>
       <ActionMessage message={message} />
     </span>
@@ -318,7 +331,7 @@ export function TransitionPublishButtons({
   const targets = ARTICLE_TRANSITIONS[status as keyof typeof ARTICLE_TRANSITIONS] ?? [];
 
   async function transition(to: string) {
-    setBusy(true);
+    setBusy(to);
     setMessage(undefined);
     try {
       const response = await fetch(
@@ -345,7 +358,7 @@ export function TransitionPublishButtons({
       setMessage("Lỗi: bài chưa có revision để publish.");
       return;
     }
-    setBusy(true);
+    setBusy("publish");
     setMessage(undefined);
     try {
       const response = await fetch(
@@ -373,14 +386,26 @@ export function TransitionPublishButtons({
         .filter((to) => to !== "published")
         .map((to) => (
           <span key={to}>
-            <button disabled={busy} onClick={() => void transition(to)} type="button">
-              → {to}
+            <button
+              disabled={!!busy}
+              aria-busy={busy === to}
+              onClick={() => void transition(to)}
+              type="button"
+              style={{ cursor: busy ? (busy === to ? 'wait' : 'not-allowed') : 'pointer' }}
+            >
+              {busy === to ? "Đang xử lý..." : `→ ${to}`}
             </button>{" "}
           </span>
         ))}
       {status === "scheduled" ? (
-        <button disabled={busy} onClick={() => void publish()} type="button">
-          Publish
+        <button
+          disabled={!!busy}
+          aria-busy={busy === "publish"}
+          onClick={() => void publish()}
+          type="button"
+          style={{ cursor: busy ? (busy === "publish" ? 'wait' : 'not-allowed') : 'pointer' }}
+        >
+          {busy === "publish" ? "Đang publish..." : "Publish"}
         </button>
       ) : null}
       <ActionMessage message={message} />
