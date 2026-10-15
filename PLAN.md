@@ -834,8 +834,22 @@ Nối tiếp FU-01..FU-07 trong `QA_REPORT.md` §5. Mỗi task nhỏ, một owne
 - Rà soát và gán nhãn chính xác cho mọi bài viết vào các danh mục con: `cong-nghe`, `kinh-te`, `the-gioi`, `thoi-su`, `xa-hoi`, `the-thao`, `giai-tri`, `khoa-hoc`, `xe`.
 - Không để tồn tại bài viết có `category_slug = NULL`.
 
-### 10. Kích Hoạt AI Viết Bài Tự Động Hôm Nay (Go-Live Daily Production)
-- Quét các cụm tin thô hot nhất hôm nay (13-10-2026), kích hoạt `Evidence Verification Writer` sinh loạt bài viết có đầy đủ SEO, hình ảnh, thẻ phân loại và xuất bản ra trang chủ.
+### 11. CMS Studio Real Data, GSC API, Mobile-First Polish & Worker Performance Hardening (Sprint S10)
+- **Xóa bỏ 100% Mockdata:**
+  - Hộp thư Email (`/email`) chuyển sang CSDL D1 thật (bảng `emails`) kèm API `GET/POST /emails`.
+  - Quản lý chuyển hướng (`/seo`) kết nối CSDL D1 `redirects` kèm API `GET/POST /redirects`.
+  - Giám sát tự động hóa (`/automation`) kết nối thống kê trực tiếp từ D1 (`/raw-items?status=incoming`, `/articles/counts`).
+- **Tích Hợp Google Search Console (GSC) API & Instant Indexing:**
+  - Tạo module sinh JWT token Service Account bằng Web Crypto API `crypto.subtle` trong `workers/api`.
+  - Endpoint `GET /seo/gsc/overview` truy vấn trực tiếp Clicks, Impressions, CTR, Average Position và Top Queries từ Google Search Console API.
+  - Tự động ping Google Indexing API khi bài viết chuyển sang trạng thái `published`.
+- **Tối Ưu Mobile-First & Micro-UX:**
+  - Giao diện Hộp thư Email dạng Master-Detail Drill-down trên màn hình di động (<768px).
+  - Floating Action Bar tại Editor và Needs-Review tối ưu vùng chạm ngón tay cái (Thumb zone).
+  - Bảng dữ liệu tự động chuyển sang dạng Responsive Cards trên di động.
+- **Triệt Tiêu Rủi Ro Quá Tải CPU Worker (Cloudflare Free Tier 10ms - 50ms):**
+  - `workers/normalize`: Giảm `max_batch_size: 5` và ngắt tải ảnh ồ ạt, chỉ tải ảnh khi bài viết được chấp thuận làm story/draft.
+  - `workers/intelligence`: Pre-tokenize token sets $O(N)$ trước vòng lặp phân cụm, chặn quét tối đa 50 tin thô gần nhất thay vì scan full bảng $O(N^2)$.
 
 ## Final principles
 1. Trust over volume.

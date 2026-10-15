@@ -105,6 +105,10 @@ task_skills:
   MST-097: [frontend-ui-engineering, ui-styling, web-perf]
   MST-098: [workers-best-practices, api-and-interface-design, test-driven-development]
   MST-099: [test-driven-development, documentation-and-adrs]
+  MST-101: [workers-best-practices, api-and-interface-design, test-driven-development]
+  MST-102: [workers-best-practices, performance-optimization, test-driven-development]
+  MST-103: [frontend-ui-engineering, api-and-interface-design, ui-styling]
+  MST-104: [frontend-ui-engineering, ui-styling, fixing-accessibility]
 
 sprints:
   - id: S01
@@ -539,6 +543,45 @@ sprints:
         depends_on: [MST-092, MST-093, MST-095, MST-098]
         acceptance: [all_regression_pass, s09_auth_docs, international_sources_runbook]
         tests: [all-safe-tests]
+        quota_impact: none
+  - id: S10
+    goal: "Studio CMS Mockdata Elimination, GSC & Real Email Integration, Mobile UX Polish, Worker CPU Optimization"
+    tasks:
+      - id: MST-101
+        title: Backend API for Real Data, In-CMS Emails, Redirects and GSC JWT Integration
+        owner: commandcode
+        priority: P0
+        paths: ["workers/api/**", "packages/db/**"]
+        depends_on: [MST-098]
+        acceptance: [emails_d1_table_and_endpoints, redirects_d1_table_and_endpoints, gsc_service_account_jwt_and_analytics_endpoint]
+        tests: [api-test, repository-test]
+        quota_impact: low
+      - id: MST-102
+        title: Workers CPU and Subrequest Optimization
+        owner: commandcode
+        priority: P0
+        paths: ["workers/normalize/**", "workers/intelligence/**"]
+        depends_on: [MST-098]
+        acceptance: [normalize_image_rehost_throttled_and_batch_5, intelligence_token_cache_and_time_window_limit]
+        tests: [normalize-test, intelligence-test]
+        quota_impact: low
+      - id: MST-103
+        title: Studio CMS Frontend Real Data Migration
+        owner: opencode
+        priority: P0
+        paths: ["apps/studio/**"]
+        depends_on: [MST-101]
+        acceptance: [email_inbox_wired_to_d1, seo_redirects_wired_to_d1, gsc_real_metrics_rendered, automation_real_counts]
+        tests: [studio-smoke, render-test]
+        quota_impact: none
+      - id: MST-104
+        title: Studio Mobile-First UI/UX & Master-Detail Navigation Polish
+        owner: opencode
+        priority: P0
+        paths: ["apps/studio/**", "packages/ui/**"]
+        depends_on: [MST-103]
+        acceptance: [mobile_master_detail_email_view, mobile_floating_action_bar_in_editor, responsive_card_tables_on_mobile]
+        tests: [visual-smoke, render-test]
         quota_impact: none
 
 
