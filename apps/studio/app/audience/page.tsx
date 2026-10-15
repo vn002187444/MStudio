@@ -19,11 +19,11 @@ export default function AudiencePage() {
   const [token] = useCmsToken();
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d">("24h");
   const [stats, setStats] = useState({
-    totalViews: 12450,
-    meaningfulReads: 8930,
-    completionRate: 71.7,
-    shares: 420,
-    bookmarks: 310,
+    totalViews: 0,
+    meaningfulReads: 0,
+    completionRate: 0,
+    shares: 0,
+    bookmarks: 0,
   });
   const [topArticles, setTopArticles] = useState<TopArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,31 +32,72 @@ export default function AudiencePage() {
     async function loadData() {
       setLoading(true);
       try {
-        // Fetch recent published articles as real base items
-        const res = await fetch(`${apiBaseUrl()}/articles?limit=10`, { cache: "no-store" });
-        if (res.ok) {
-          const payload = (await res.json()) as { rows?: Array<{ id: string; title: string; slug: string; category_slug?: string; createdAt: string }> };
-          if (Array.isArray(payload.rows) && payload.rows.length > 0) {
-            // Map real articles with calculated interaction metric estimates based on real rows
-            const mapped = payload.rows.map((row, idx) => {
-              const baseViews = Math.max(120, 2400 - idx * 210);
-              const reads = Math.floor(baseViews * (0.65 + (idx % 3) * 0.08));
+        const [overviewRes, topRes] = await Promise.all([
+          fetch(`${apiBaseUrl()}/analytics/overview`, { cache: "no-store" }),
+          fetch(`${apiBaseUrl()}/analytics/top-articles?limit=15`, { cache: "no-store" }),
+        ]);
+
+        if (overviewRes.ok) {
+          const overviewData = (await overviewRes.json()) as {
+            overview?: {
+              totalViews?: number;
+              meaningfulReads?: number;
+              shares?: number;
+              bookmarks?: number;
+            };
+          };
+          const ov = overviewData.overview || {};
+          const totalViews = Number(ov.totalViews ?? 0);
+          const meaningfulReads = Number(ov.meaningfulReads ?? 0);
+          const completionRate =
+            totalViews > 0
+              ? Math.round((meaningfulReads / totalViews) * 1000) / 10
+              : 0;
+
+          setStats({
+            totalViews,
+            meaningfulReads,
+            completionRate,
+            shares: Number(ov.shares ?? 0),
+            bookmarks: Number(ov.bookmarks ?? 0),
+          });
+        }
+
+        if (topRes.ok) {
+          const topData = (await topRes.json()) as {
+            rows?: Array<{
+              id: string;
+              title: string;
+              slug: string;
+              categorySlug?: string;
+              createdAt: string;
+              views?: number;
+              reads?: number;
+            }>;
+          };
+
+          if (Array.isArray(topData.rows)) {
+            const mapped = topData.rows.map((row) => {
+              const views = Number(row.views ?? 0);
+              const reads = Number(row.reads ?? 0);
+              const completionRate =
+                views > 0 ? Math.round((reads / views) * 100) : 0;
               return {
                 id: row.id,
-                title: row.title || row.slug,
+                title: row.title || row.slug || row.id,
                 slug: row.slug || row.id,
-                category: row.category_slug || "thoi-su",
-                views: baseViews,
+                category: row.categorySlug || "tin-tuc",
+                views,
                 reads,
-                completionRate: Math.round((reads / baseViews) * 100),
+                completionRate,
                 publishedAt: row.createdAt,
               };
             });
             setTopArticles(mapped);
           }
         }
-      } catch {
-        // Fallback default
+      } catch (err) {
+        console.error("Failed to load analytics data:", err);
       } finally {
         setLoading(false);
       }
@@ -138,8 +179,8 @@ export default function AudiencePage() {
             <div style={{ fontSize: 28, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.03em" }}>
               {stats.totalViews.toLocaleString("vi-VN")}
             </div>
-            <div style={{ fontSize: 12, color: "#16a34a", marginTop: 4, fontWeight: 500 }}>
-              ↑ +14.2% so với hôm qua
+            <div style={{ fontSize: 12, color: "#64748b", marginTop: 4, fontWeight: 500 }}>
+              Dữ liệu ghi nhận thực tế
             </div>
           </div>
 
@@ -158,8 +199,8 @@ export default function AudiencePage() {
             <div style={{ fontSize: 28, fontWeight: 700, color: "#2563eb", letterSpacing: "-0.03em" }}>
               {stats.meaningfulReads.toLocaleString("vi-VN")}
             </div>
-            <div style={{ fontSize: 12, color: "#16a34a", marginTop: 4, fontWeight: 500 }}>
-              ↑ +8.5% so với hôm qua
+            <div style={{ fontSize: 12, color: "#64748b", marginTop: 4, fontWeight: 500 }}>
+              Độc giả đọc trên 30 giây
             </div>
           </div>
 

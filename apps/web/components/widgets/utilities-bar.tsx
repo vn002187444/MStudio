@@ -18,7 +18,7 @@ export function UtilitiesBar() {
   useEffect(() => {
     // Open-Meteo API: Hanoi (21.0285, 105.8542)
     fetch("https://api.open-meteo.com/v1/forecast?latitude=21.0285&longitude=105.8542&current_weather=true")
-      .then((res) => res.json())
+      .then((res) => res.json() as Promise<{ current_weather?: { temperature: number } }>)
       .then((data) => {
         if (data.current_weather) {
           setWeather({

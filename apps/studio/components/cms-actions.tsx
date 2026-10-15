@@ -62,7 +62,7 @@ export function TokenField({
       setPinError("");
       return;
     }
-    setPinError("Mã PIN không đúng (Gợi ý: 272113000)");
+    setPinError("Mã PIN không chính xác. Vui lòng kiểm tra lại.");
   };
 
   if (token) {
@@ -126,7 +126,7 @@ export function TokenField({
         <div>
           <div style={{ fontSize: "13px", fontWeight: 700 }}>Đăng nhập nhanh quyền Admin bằng mã PIN</div>
           <div style={{ fontSize: "12px", color: "var(--gray)" }}>
-            Nhập mã PIN <strong>272113000</strong> hoặc đăng nhập bằng tài khoản Email
+            Nhập mã PIN bảo mật (9 chữ số) hoặc đăng nhập bằng tài khoản Email
           </div>
         </div>
       </div>

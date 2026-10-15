@@ -104,17 +104,43 @@ async function fetchArticle(
   }
 }
 
-async function fetchRelatedCandidates(articleId: string) {
+async function fetchRelatedArticles(articleId: string, currentCategory?: string) {
   try {
     const response = await fetchApi(
       `/recommendations?articleId=${encodeURIComponent(articleId)}&limit=4`,
       { cache: "no-store" },
     );
-    if (!response.ok) return [];
-    const payload = (await response.json()) as {
-      candidates: Array<{ articleId: string; reason: string }>;
-    };
-    return Array.isArray(payload.candidates) ? payload.candidates : [];
+    let candidates: Array<{ articleId: string; reason: string }> = [];
+    if (response.ok) {
+      const payload = (await response.json()) as {
+        candidates: Array<{ articleId: string; reason: string }>;
+      };
+      if (Array.isArray(payload.candidates)) {
+        candidates = payload.candidates;
+      }
+    }
+
+    const fetched = await Promise.all(
+      candidates.map(async (c) => {
+        const art = await fetchArticle(c.articleId);
+        return art ? { ...art, reason: c.reason } : null;
+      }),
+    );
+    const valid = fetched.filter((item): item is PublishedArticle & { reason: string } => Boolean(item));
+    if (valid.length > 0) return valid;
+
+    // Fallback: nếu chưa có recommendations, lấy 3 bài mới nhất khác bài hiện tại
+    const fallbackRes = await fetchApi(`/articles?limit=4`, { cache: "no-store" });
+    if (fallbackRes.ok) {
+      const data = (await fallbackRes.json()) as { rows?: PublishedArticle[] };
+      if (Array.isArray(data.rows)) {
+        return data.rows
+          .filter((a) => a.id !== articleId)
+          .slice(0, 3)
+          .map((a) => ({ ...a, reason: "Tin nổi bật khác" }));
+      }
+    }
+    return [];
   } catch {
     return [];
   }
@@ -369,7 +395,7 @@ export default async function ArticlePage({
     notFound();
   }
 
-  const related = await fetchRelatedCandidates(article.id);
+  const related = await fetchRelatedArticles(article.id, article.categorySlug);
   const categoryName = (article.categorySlug && CATEGORY_NAMES[article.categorySlug]) || "Tin tức";
 
   return (
@@ -496,23 +522,113 @@ export default async function ArticlePage({
             borderTop: "1px solid var(--border)",
           }}
         >
-          <h2 id="related-heading" style={{ fontSize: "20px", fontWeight: 700, margin: "0 0 16px" }}>
-            Bài viết liên quan
-          </h2>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
-            {related.map((item) => (
-              <li key={item.articleId} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <span style={{ color: "var(--accent, #2563eb)" }}>•</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 16 }}>
+            <h2 id="related-heading" style={{ fontSize: "20px", fontWeight: 700, margin: 0, color: "var(--ink)" }}>
+              Bài viết liên quan
+            </h2>
+            <span style={{ fontSize: "12px", color: "var(--gray)" }}>
+              Gợi ý theo ngữ cảnh đọc
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 16,
+            }}
+          >
+            {related.map((item) => {
+              const itemCat = (item.categorySlug && CATEGORY_NAMES[item.categorySlug]) || item.categorySlug || "Tin tức";
+              return (
                 <a
-                  href={`/bai-viet/${item.articleId}`}
-                  style={{ textDecoration: "none", color: "inherit", fontWeight: 500 }}
+                  key={item.id}
+                  href={`/bai-viet/${item.slug || item.id}`}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    padding: "16px",
+                    borderRadius: "12px",
+                    border: "1px solid var(--border)",
+                    background: "var(--soft, #f8fafc)",
+                    textDecoration: "none",
+                    color: "inherit",
+                    transition: "border-color 0.15s ease, background 0.15s ease",
+                  }}
                 >
-                  Xem bài viết liên quan #{item.articleId.slice(0, 8)}
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          color: "var(--accent, #2563eb)",
+                        }}
+                      >
+                        {itemCat}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          color: "var(--gray)",
+                          background: "var(--white)",
+                          padding: "2px 8px",
+                          borderRadius: "99px",
+                          border: "1px solid var(--border)",
+                        }}
+                      >
+                        {item.reason}
+                      </span>
+                    </div>
+                    <h3
+                      style={{
+                        fontSize: "15px",
+                        fontWeight: 600,
+                        lineHeight: 1.4,
+                        margin: "0 0 8px",
+                        color: "var(--ink)",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {item.title}
+                    </h3>
+                    {item.summary && (
+                      <p
+                        style={{
+                          fontSize: "13px",
+                          color: "var(--gray)",
+                          lineHeight: 1.5,
+                          margin: 0,
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {item.summary}
+                      </p>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: "12px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: "var(--accent, #2563eb)",
+                    }}
+                  >
+                    Đọc tiếp →
+                  </div>
                 </a>
-                <span style={{ fontSize: "12px", color: "var(--gray)" }}>({item.reason})</span>
-              </li>
-            ))}
-          </ul>
+              );
+            })}
+          </div>
         </section>
       ) : null}
 

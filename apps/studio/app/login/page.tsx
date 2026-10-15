@@ -208,7 +208,7 @@ export default function LoginPage() {
                 maxLength={9}
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
-                placeholder="Nhập mã PIN (vd: 272113000)"
+                placeholder="Nhập mã PIN 9 chữ số (vd: 123456789)"
                 style={{
                   width: "100%",
                   boxSizing: "border-box",
@@ -225,7 +225,7 @@ export default function LoginPage() {
                 autoFocus
               />
               <p style={{ fontSize: "12px", color: "var(--gray)", marginTop: "6px", textAlign: "center" }}>
-                Gợi ý: Dùng mã PIN khẩn cấp <strong>272113000</strong> để vào ngay quyền Admin
+                Nhập mã PIN bảo mật do quản trị viên cấp để vào ngay quyền Admin
               </p>
             </div>
             <button
