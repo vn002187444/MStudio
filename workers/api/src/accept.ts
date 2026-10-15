@@ -176,6 +176,9 @@ export function inferCategorySlug(title: string, content: string): string {
   if (/xe|ô tô|xe điện|vinfast|byd|tesla/.test(text)) {
     return "xe";
   }
+  if (/khám phá|khoa học|vũ trụ|thiên văn|khảo cổ|sinh vật|địa chất|thiên nhiên/.test(text)) {
+    return "kham-pha";
+  }
   return "cong-nghe";
 }
 

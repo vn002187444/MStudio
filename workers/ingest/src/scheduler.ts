@@ -38,7 +38,7 @@ export interface SchedulerOptions {
   fetchTimeoutMs?: number;
 }
 
-export const DEFAULT_PAGE_SIZE = 100;
+export const DEFAULT_PAGE_SIZE = 15;
 export const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
 
 interface ApprovedFeedRow extends FetchableFeed {
@@ -71,7 +71,7 @@ export async function listApprovedFeeds(
        ORDER BY f.created_at ASC, f.id ASC
        LIMIT ?`
     : `${APPROVED_FEEDS_SQL}
-       ORDER BY f.created_at ASC, f.id ASC
+       ORDER BY COALESCE(f.last_fetched_at, '') ASC, f.created_at ASC, f.id ASC
        LIMIT ?`;
   const rows = cursor
     ? (
@@ -237,38 +237,23 @@ export async function runScheduler(
     duplicates: 0,
     failed: 0,
   };
-  let cursor: FeedCursor | undefined;
-  do {
-    const page = await listApprovedFeeds(countingDb, pageSize, cursor);
-    result.feeds += page.feeds.length;
-    // Concurrent per-page fetch (FU-12 ADR option A). processSingleFeed
-    // never rejects (per-feed try/catch); allSettled documents the
-    // failure-isolation intent.
-    await Promise.allSettled(
-      page.feeds.map((feed) =>
-        processSingleFeed(
-          feed,
-          wrappedEnv,
-          countingDb,
-          logger,
-          options,
-          result,
-        ),
+  const page = await listApprovedFeeds(countingDb, pageSize);
+  result.feeds += page.feeds.length;
+  // Concurrent per-page fetch (FU-12 ADR option A). processSingleFeed
+  // never rejects (per-feed try/catch); allSettled documents the
+  // failure-isolation intent.
+  await Promise.allSettled(
+    page.feeds.map((feed) =>
+      processSingleFeed(
+        feed,
+        wrappedEnv,
+        countingDb,
+        logger,
+        options,
+        result,
       ),
-    );
-    const currentMode = effectiveQuotaMode(
-      guard.mode(),
-      quotaModeFromEnv(envRecord),
-    );
-    if (ingestThrottleForMode(currentMode, pageSize).skipAll) {
-      logger.info("ingest_stopped_quota", {
-        mode: currentMode,
-        processed: result.feeds,
-      });
-      break;
-    }
-    cursor = page.nextCursor;
-  } while (cursor);
+    ),
+  );
   logger.info("scheduler_complete", {
     feeds: result.feeds,
     enqueued: result.enqueued,

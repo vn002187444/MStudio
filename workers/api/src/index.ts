@@ -1025,12 +1025,51 @@ export default {
   ): Promise<void> {
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     try {
-      await env.DB.prepare(
+      const updateResult = await env.DB.prepare(
         `UPDATE articles 
          SET status = 'published', updated_at = ? 
          WHERE status IN ('needs_review', 'auto_eligible') 
          AND created_at <= ?`,
       ).bind(new Date().toISOString(), fifteenMinutesAgo).run();
+
+      const publishedCount = updateResult.meta.changes ?? 0;
+      if (publishedCount === 0) {
+        const rawItemsResult = await env.DB.prepare(
+          `SELECT id, feed_id AS feedId, source_id AS sourceId, external_id AS externalId,
+                  url, canonical_url AS canonicalUrl, title, published_at AS publishedAt,
+                  fetched_at AS fetchedAt, payload_hash AS payloadHash, status,
+                  created_at AS createdAt
+           FROM raw_items
+           WHERE status = 'incoming'
+           ORDER BY created_at DESC
+           LIMIT 3`
+        ).all();
+
+        const rawItems = rawItemsResult.results ?? [];
+        if (rawItems.length > 0) {
+          const gateway = buildDraftGateway(env as unknown as { GEMINI_API_KEY?: string });
+          for (const rawItem of rawItems) {
+            try {
+              const res = await acceptRawItem(
+                {
+                  db: env.DB,
+                  rawBucket: env.RAW_BUCKET,
+                  gateway,
+                  actor: "auto-draft",
+                },
+                rawItem as any
+              );
+              if (res.articleId) {
+                await env.DB.prepare(
+                  `UPDATE articles SET status = 'auto_eligible', updated_at = ? WHERE id = ?`,
+                ).bind(new Date().toISOString(), res.articleId).run();
+              }
+            } catch (err) {
+              console.error(`Auto-draft fallback failed for raw item ${rawItem.id}:`, err);
+            }
+          }
+        }
+      }
     } catch (err) {
       console.error("Auto-publish cron error:", err);
     }

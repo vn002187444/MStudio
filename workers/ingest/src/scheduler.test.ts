@@ -338,7 +338,7 @@ test("treats non-ok responses as failures", async () => {
   }
 });
 
-test("paginates approved feeds across pages", async () => {
+test("processes one page of feeds per run to avoid throttling", async () => {
   const { env, db, close, queue } = await setup();
   const fetchMock = mockFetch((url) =>
     rssResponse(`${RSS_SAMPLE}\n<!-- ${url} -->`),
@@ -355,12 +355,12 @@ test("paginates approved feeds across pages", async () => {
       pageSize: 2,
     });
     assert.deepEqual(result, {
-      feeds: 5,
-      enqueued: 5,
+      feeds: 2,
+      enqueued: 2,
       duplicates: 0,
       failed: 0,
     });
-    assert.equal(queue.messages.length, 5);
+    assert.equal(queue.messages.length, 2);
   } finally {
     fetchMock.restore();
     close();
