@@ -293,12 +293,43 @@ export function AcceptRejectButtons({ rawItemId }: { rawItemId: string }) {
   }
 
   return (
-    <span>
-      <button disabled={busy} onClick={() => void decide("accept")} type="button">
-        Duyệt
-      </button>{" "}
-      <button disabled={busy} onClick={() => void decide("reject")} type="button">
-        Loại
+    <span style={{ display: "inline-flex", gap: "6px", alignItems: "center" }}>
+      <button
+        disabled={busy}
+        onClick={() => void decide("accept")}
+        type="button"
+        style={{
+          background: "#2563eb",
+          color: "#ffffff",
+          border: "none",
+          padding: "6px 12px",
+          borderRadius: "6px",
+          fontSize: "12px",
+          fontWeight: 600,
+          cursor: busy ? "not-allowed" : "pointer",
+          minHeight: "32px",
+          boxShadow: "0 1px 2px rgba(37,99,235,0.2)",
+        }}
+      >
+        ✓ Duyệt bài
+      </button>
+      <button
+        disabled={busy}
+        onClick={() => void decide("reject")}
+        type="button"
+        style={{
+          background: "#fef2f2",
+          color: "#b91c1c",
+          border: "1px solid #fecaca",
+          padding: "6px 10px",
+          borderRadius: "6px",
+          fontSize: "12px",
+          fontWeight: 600,
+          cursor: busy ? "not-allowed" : "pointer",
+          minHeight: "32px",
+        }}
+      >
+        ✕ Bỏ qua
       </button>
       <ActionMessage message={message} />
     </span>
@@ -368,19 +399,49 @@ export function TransitionPublishButtons({
   }
 
   return (
-    <span>
+    <span style={{ display: "inline-flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
       {targets
         .filter((to) => to !== "published")
         .map((to) => (
-          <span key={to}>
-            <button disabled={busy} onClick={() => void transition(to)} type="button">
-              → {to}
-            </button>{" "}
-          </span>
+          <button
+            key={to}
+            disabled={busy}
+            onClick={() => void transition(to)}
+            type="button"
+            style={{
+              background: "#f3f4f6",
+              color: "#374151",
+              border: "1px solid #e5e7eb",
+              padding: "6px 10px",
+              borderRadius: "6px",
+              fontSize: "12px",
+              fontWeight: 600,
+              cursor: busy ? "not-allowed" : "pointer",
+              minHeight: "32px",
+            }}
+          >
+            → {to}
+          </button>
         ))}
-      {status === "scheduled" ? (
-        <button disabled={busy} onClick={() => void publish()} type="button">
-          Publish
+      {status === "scheduled" || status === "auto_eligible" || status === "human_review" ? (
+        <button
+          disabled={busy}
+          onClick={() => void publish()}
+          type="button"
+          style={{
+            background: "#16a34a",
+            color: "#ffffff",
+            border: "none",
+            padding: "6px 14px",
+            borderRadius: "6px",
+            fontSize: "12px",
+            fontWeight: 700,
+            cursor: busy ? "not-allowed" : "pointer",
+            minHeight: "32px",
+            boxShadow: "0 1px 3px rgba(22,163,74,0.3)",
+          }}
+        >
+          ⚡ Xuất bản ngay
         </button>
       ) : null}
       <ActionMessage message={message} />

@@ -66,44 +66,82 @@ export function StoryClusters() {
           Chưa có cluster nào — duyệt tin ở Incoming để tạo story/article.
         </p>
       ) : (
-        <table style={{ borderCollapse: "collapse", width: "100%" }}>
-          <caption style={{ textAlign: "left" }}>
-            {clusters.length} story cluster (nhóm bài theo storyId)
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col" style={{ textAlign: "left" }}>
-                Story
-              </th>
-              <th scope="col" style={{ textAlign: "left" }}>
-                Tiêu đề mới nhất
-              </th>
-              <th scope="col" style={{ textAlign: "left" }}>Số bài</th>
-              <th scope="col" style={{ textAlign: "left" }}>Trạng thái</th>
-              <th scope="col" style={{ textAlign: "left" }}>Cập nhật</th>
-            </tr>
-          </thead>
-          <tbody>
-            {clusters.map((cluster) => (
-              <tr key={cluster.storyId}>
-                <td>{cluster.storyId.slice(0, 8)}…</td>
-                <td>
-                  {cluster.latestTitle ?? (
-                    <span style={{ color: "var(--gray)" }}>chưa có title</span>
-                  )}
-                </td>
-                <td>
-                  {cluster.articleCount}
-                  {cluster.articleCount > 1
-                    ? ` (${cluster.articleCount - 1} bài con)`
-                    : ""}
-                </td>
-                <td>{cluster.statuses.join(", ")}</td>
-                <td>{formatTime(cluster.latestUpdatedAt)}</td>
+        <div
+          style={{
+            background: "var(--white)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            overflow: "hidden",
+            marginTop: 16,
+          }}
+        >
+          <table className="responsive-table" style={{ borderCollapse: "collapse", width: "100%" }}>
+            <caption style={{ textAlign: "left", padding: "12px 16px", fontWeight: 600, color: "var(--gray)", fontSize: "13px" }}>
+              {clusters.length} story cluster (nhóm bài theo storyId)
+            </caption>
+            <thead>
+              <tr style={{ background: "#f8fafc", borderBottom: "1px solid var(--border)" }}>
+                <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>
+                  Chùm tin (Story ID)
+                </th>
+                <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>
+                  Tiêu đề chùm tin mới nhất
+                </th>
+                <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>Số bài</th>
+                <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>Trạng thái</th>
+                <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>Cập nhật</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {clusters.map((cluster) => (
+                <tr key={cluster.storyId} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td style={{ padding: "12px 16px" }}>
+                    <span style={{ fontWeight: 600, color: "var(--ink)", fontFamily: "monospace" }}>
+                      #{cluster.storyId.slice(0, 8)}…
+                    </span>
+                  </td>
+                  <td style={{ padding: "12px 16px", maxWidth: 360 }}>
+                    <span style={{ fontWeight: cluster.latestTitle ? 600 : 400, color: cluster.latestTitle ? "var(--ink)" : "var(--gray)" }}>
+                      {cluster.latestTitle ?? "Chưa có tiêu đề"}
+                    </span>
+                  </td>
+                  <td style={{ padding: "12px 16px" }}>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        background: "#eff6ff",
+                        color: "#1d4ed8",
+                        padding: "3px 8px",
+                        borderRadius: 6,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {cluster.articleCount} bài
+                      {cluster.articleCount > 1 ? ` (+${cluster.articleCount - 1} con)` : ""}
+                    </span>
+                  </td>
+                  <td style={{ padding: "12px 16px" }}>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        background: "#f1f5f9",
+                        color: "#475569",
+                        padding: "2px 8px",
+                        borderRadius: 999,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {cluster.statuses.join(", ")}
+                    </span>
+                  </td>
+                  <td style={{ padding: "12px 16px", fontSize: 13, color: "var(--gray)" }}>
+                    {formatTime(cluster.latestUpdatedAt)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </TokenGate>
   );

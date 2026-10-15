@@ -54,7 +54,7 @@ function QueueTable({ queue }: { queue: QueueState }) {
       ) : queue.rows.length === 0 ? (
         <p role="status" style={{ color: "var(--gray)" }}>Trống.</p>
       ) : (
-        <table style={{ borderCollapse: "collapse", width: "100%" }}>
+        <table className="responsive-table" style={{ borderCollapse: "collapse", width: "100%", background: "#ffffff", borderRadius: "12px", border: "1px solid var(--border)", overflow: "hidden" }}>
           <caption style={{ textAlign: "left" }}>Bài chờ ở trạng thái {queue.status}</caption>
           <thead>
             <tr>

@@ -153,35 +153,80 @@ export default async function IncomingPage({
         {incoming.rows.length} tin — nguồn, thời gian và trạng thái bên dưới.
       </p>
       <TokenGate>
-      <table style={{ borderCollapse: "collapse", width: "100%" }}>
-        <caption style={{ textAlign: "left" }}>Tin incoming chờ xử lý</caption>
-        <thead>
-          <tr>
-            <th scope="col" style={{ textAlign: "left" }}>Tiêu đề</th>
-            <th scope="col" style={{ textAlign: "left" }}>Nguồn</th>
-            <th scope="col" style={{ textAlign: "left" }}>Thời gian</th>
-            <th scope="col" style={{ textAlign: "left" }}>Trạng thái</th>
-            <th scope="col" style={{ textAlign: "left" }}>Duyệt</th>
-          </tr>
-        </thead>
-        <tbody>
-          {incoming.rows.map((item) => (
-            <tr key={item.id}>
-              <td>
-                <a href={item.canonicalUrl ?? item.url} rel="noreferrer" target="_blank">
-                  {item.title ?? item.url}
-                </a>
-              </td>
-              <td>{sourceNames.get(item.sourceId) ?? item.sourceId.slice(0, 8)}</td>
-              <td>{formatTime(item.publishedAt ?? item.fetchedAt)}</td>
-              <td>{item.status}</td>
-              <td>
-                <AcceptRejectButtons rawItemId={item.id} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div
+          style={{
+            background: "var(--white)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            overflow: "hidden",
+            marginBottom: 16,
+          }}
+        >
+          <table className="responsive-table" style={{ borderCollapse: "collapse", width: "100%" }}>
+            <caption style={{ textAlign: "left", padding: "12px 16px", fontWeight: 600, color: "var(--gray)", fontSize: "13px" }}>
+              Tin incoming đang chờ duyệt hoặc gom cụm xử lý
+            </caption>
+            <thead>
+              <tr style={{ background: "#f8fafc", borderBottom: "1px solid var(--border)" }}>
+                <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>Tiêu đề</th>
+                <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>Nguồn</th>
+                <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>Thời gian</th>
+                <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>Trạng thái</th>
+                <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {incoming.rows.map((item) => (
+                <tr key={item.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td style={{ padding: "12px 16px", maxWidth: 360 }}>
+                    <a
+                      href={item.canonicalUrl ?? item.url}
+                      rel="noreferrer"
+                      target="_blank"
+                      style={{ fontWeight: 600, color: "var(--ink)", textDecoration: "none" }}
+                    >
+                      {item.title ?? item.url}
+                    </a>
+                  </td>
+                  <td style={{ padding: "12px 16px" }}>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        background: "#eff6ff",
+                        color: "#1d4ed8",
+                        padding: "3px 8px",
+                        borderRadius: 6,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {sourceNames.get(item.sourceId) ?? item.sourceId.slice(0, 8)}
+                    </span>
+                  </td>
+                  <td style={{ padding: "12px 16px", fontSize: 13, color: "var(--gray)" }}>
+                    {formatTime(item.publishedAt ?? item.fetchedAt)}
+                  </td>
+                  <td style={{ padding: "12px 16px" }}>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        background: "#f1f5f9",
+                        color: "#475569",
+                        padding: "2px 8px",
+                        borderRadius: 999,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {item.status}
+                    </span>
+                  </td>
+                  <td style={{ padding: "12px 16px" }}>
+                    <AcceptRejectButtons rawItemId={item.id} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </TokenGate>
       {incoming.nextCursor ? (
         <p style={{ marginTop: 16 }}>
