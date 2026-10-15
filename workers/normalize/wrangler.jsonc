@@ -23,7 +23,7 @@
     "consumers": [
       {
         "queue": "mstudio-normalize",
-        "max_batch_size": 100,
+        "max_batch_size": 5,
         "max_retries": 3
       }
     ]

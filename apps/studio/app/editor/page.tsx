@@ -663,6 +663,27 @@ export default function EditorPage() {
           </button>
         </aside>
       </div>
+
+      {/* Mobile Floating Action Bar for Thumb Zone */}
+      <div className="mobile-floating-action-bar">
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => setPreview((prev) => (prev === "mobile" ? "desktop" : "mobile"))}
+          style={{ background: "#ffffff", color: "#0f172a", border: "1px solid var(--border)" }}
+        >
+          {preview === "mobile" ? "🖥️ Desktop" : "📱 Mobile"}
+        </button>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={handleSave}
+          disabled={saveStatus === "saving"}
+          style={{ fontWeight: 700 }}
+        >
+          {saveStatus === "saving" ? "Đang lưu…" : "💾 Lưu bài viết"}
+        </button>
+      </div>
     </main>
   );
 }

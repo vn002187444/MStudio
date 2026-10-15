@@ -130,3 +130,10 @@ export type {
   UpdateFeedRequest,
   UpdateSourceAllowStatusRequest,
 } from "./api.ts";
+export type {
+  EmailRecord,
+  RedirectRecord,
+  SystemSettingRecord,
+  GscOverviewResponse,
+} from "./studio.ts";
+

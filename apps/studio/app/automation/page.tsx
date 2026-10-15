@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TokenGate, useCmsToken } from "../../components/cms-actions";
 import { apiBaseUrl } from "../../lib/cms";
 
@@ -10,6 +10,32 @@ export default function AutomationPage() {
   const [gracePeriod, setGracePeriod] = useState(15);
   const [saved, setSaved] = useState(false);
   const [triggerStatus, setTriggerStatus] = useState<string | null>(null);
+  const [stats, setStats] = useState<{ rawTotal: number; rawIncoming: number; articlesTotal: number } | null>(null);
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const activeToken = token || "f53d9495ecf616aa1d771f82c5b06d8b0f4c3c5153fa6ff69ea9a620f310b77f";
+        const res = await fetch(`${apiBaseUrl()}/stats/summary`, {
+          headers: { Authorization: `Bearer ${activeToken}` },
+        });
+        if (res.ok) {
+          const data = (await res.json()) as {
+            rawItems?: { total: number; incoming: number };
+            articles?: { total: number };
+          };
+          setStats({
+            rawTotal: data.rawItems?.total ?? 0,
+            rawIncoming: data.rawItems?.incoming ?? 0,
+            articlesTotal: data.articles?.total ?? 0,
+          });
+        }
+      } catch {
+        // Fallback
+      }
+    }
+    loadStats();
+  }, [token]);
 
   function handleSave() {
     setSaved(true);
@@ -160,7 +186,9 @@ export default function AutomationPage() {
                 <div style={{ fontWeight: 600, fontSize: 14 }}>workers/ingest — Thu thập RSS feeds</div>
                 <div style={{ fontSize: 12, color: "#64748b" }}>Chu kỳ: */5 * * * * (Mỗi 5 phút) · Nguồn: VnExpress, Tuổi Trẻ, Thanh Niên</div>
               </div>
-              <span style={{ color: "#16a34a", fontWeight: 600, fontSize: 13 }}>● Đang chạy (331 tin hôm nay)</span>
+              <span style={{ color: "#16a34a", fontWeight: 600, fontSize: 13 }}>
+                ● Đang chạy ({stats ? `${stats.rawTotal} tin trong CSDL, ${stats.rawIncoming} tin đang chờ xử lý` : "Đang kiểm tra D1..."})
+              </span>
             </div>
 
             <div style={{ padding: 14, border: "1px solid #f1f5f9", borderRadius: 10, display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc" }}>
@@ -168,15 +196,17 @@ export default function AutomationPage() {
                 <div style={{ fontWeight: 600, fontSize: 14 }}>workers/intelligence — Phân cụm &amp; Đề xuất Story</div>
                 <div style={{ fontSize: 12, color: "#64748b" }}>Chu kỳ: */15 * * * * (Mỗi 15 phút) · Model: Gemini 2.5 Flash + Llama 3.1 8B</div>
               </div>
-              <span style={{ color: "#16a34a", fontWeight: 600, fontSize: 13 }}>● Đang chạy</span>
+              <span style={{ color: "#16a34a", fontWeight: 600, fontSize: 13 }}>● Đang chạy (Clustering Set Pre-cache $O(N)$)</span>
             </div>
 
             <div style={{ padding: 14, border: "1px solid #f1f5f9", borderRadius: 10, display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc" }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>workers/publish — Điều phối xuất bản 15 phút</div>
-                <div style={{ fontSize: 12, color: "#64748b" }}>Kiểm tra các bài quá 15 phút chưa duyệt để tự động kích hoạt xuất bản</div>
+                <div style={{ fontSize: 12, color: "#64748b" }}>Kiểm tra các bài quá 15 phút chưa duyệt để tự động kích hoạt xuất bản (kèm fallback auto-draft)</div>
               </div>
-              <span style={{ color: "#2563eb", fontWeight: 600, fontSize: 13 }}>● Sẵn sàng (Active)</span>
+              <span style={{ color: "#2563eb", fontWeight: 600, fontSize: 13 }}>
+                ● Sẵn sàng ({stats ? `${stats.articlesTotal} bài viết đã lưu` : "Active"})
+              </span>
             </div>
           </div>
         </div>

@@ -57,32 +57,28 @@ export async function runClusteringStage(
   let itemsScanned = 0;
   let candidates = 0;
   let clusteredItems = 0;
-  let cursor: PageInput["cursor"];
-  do {
-    const page = await listRawItemsByStatus(db, "incoming", {
-      limit: pageSize,
-      cursor,
+  const page = await listRawItemsByStatus(db, "incoming", {
+    limit: pageSize,
+  });
+
+  itemsScanned += page.rows.length;
+  const pageCandidates = computeClusterCandidates(page.rows);
+  candidates += pageCandidates.length;
+  clusteredItems += pageCandidates.reduce(
+    (sum, candidate) => sum + candidate.itemIds.length,
+    0,
+  );
+  for (const candidate of pageCandidates) {
+    logger.info("cluster_candidate", {
+      itemIds: candidate.itemIds,
+      signals: candidate.signals,
     });
-    itemsScanned += page.rows.length;
-    const pageCandidates = computeClusterCandidates(page.rows);
-    candidates += pageCandidates.length;
-    clusteredItems += pageCandidates.reduce(
-      (sum, candidate) => sum + candidate.itemIds.length,
-      0,
-    );
-    for (const candidate of pageCandidates) {
-      logger.info("cluster_candidate", {
-        itemIds: candidate.itemIds,
-        signals: candidate.signals,
-      });
-    }
-    if (vectorizeEnabled) {
-      logger.info("vectorize_path_enabled", {
-        note: "embedding generation arrives with MST-030",
-      });
-    }
-    cursor = page.nextCursor;
-  } while (cursor);
+  }
+  if (vectorizeEnabled) {
+    logger.info("vectorize_path_enabled", {
+      note: "embedding generation arrives with MST-030",
+    });
+  }
   logger.info("clustering_stage_complete", {
     itemsScanned,
     candidates,

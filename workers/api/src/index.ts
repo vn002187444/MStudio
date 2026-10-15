@@ -23,6 +23,16 @@ import {
   updateArticleMetadata,
   createAgentRun,
   listRecentAgentRuns,
+  createEmail,
+  listEmails,
+  updateEmailStatus,
+  updateEmailStar,
+  createRedirect,
+  listRedirects,
+  deleteRedirect,
+  incrementRedirectHits,
+  setSystemSetting,
+  getSystemSetting,
   type SessionIdentity,
 } from "@mstudio/db";
 import {
@@ -672,6 +682,27 @@ app.get("/analytics/overview", async (c) => {
   return c.json({ overview: result });
 });
 
+app.get("/stats/summary", async (c) => {
+  const rawCount = await c.env.DB.prepare(
+    `SELECT COUNT(*) as total FROM raw_items`
+  ).first<{ total: number }>();
+  const rawIncoming = await c.env.DB.prepare(
+    `SELECT COUNT(*) as incoming FROM raw_items WHERE status = 'incoming'`
+  ).first<{ incoming: number }>();
+  const articlesCount = await c.env.DB.prepare(
+    `SELECT COUNT(*) as total FROM articles`
+  ).first<{ total: number }>();
+  return c.json({
+    rawItems: {
+      total: rawCount?.total ?? 0,
+      incoming: rawIncoming?.incoming ?? 0,
+    },
+    articles: {
+      total: articlesCount?.total ?? 0,
+    },
+  });
+});
+
 // CMS Story Clusters: aggregate theo story_id (chỉ story có bài),
 // mới nhất trước, limit 50. Public như GET /articles list — chỉ
 // metadata aggregate (storyId, count, statuses, title mới nhất).
@@ -919,6 +950,22 @@ app.post("/email/send", async (c) => {
   }
 
   const emailId = `mail-${Date.now()}`;
+  const now = new Date().toISOString();
+
+  await createEmail(c.env.DB, {
+    id: emailId,
+    direction: "outbound",
+    senderName,
+    senderEmail,
+    recipientEmail: recipient,
+    subject,
+    body: content,
+    category: "Hệ thống",
+    status: sentViaBinding ? "sent" : "failed",
+    starred: 0,
+    createdAt: now,
+  });
+
   return c.json({
     ok: true,
     messageId: emailId,
@@ -927,7 +974,7 @@ app.post("/email/send", async (c) => {
     subject,
     sentViaBinding,
     warning: bindingNotice ? `Đã ghi nhận gửi email (Cloudflare Send Email ghi chú: ${bindingNotice})` : undefined,
-    sentAt: new Date().toISOString(),
+    sentAt: now,
   });
 });
 
@@ -967,6 +1014,252 @@ app.post("/cron/auto-publish", async (c) => {
     publishedCount: publishedIds.length,
     publishedIds,
   });
+});
+
+app.get("/emails", requireRole("admin", "editor"), async (c) => {
+  const url = new URL(c.req.url);
+  const category = url.searchParams.get("category") || undefined;
+  const status = url.searchParams.get("status") || undefined;
+  const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+  const emails = await listEmails(c.env.DB, { category, status, limit });
+  return c.json({ emails });
+});
+
+app.patch("/emails/:id/status", requireRole("admin", "editor"), async (c) => {
+  const id = c.req.param("id");
+  const body = (await c.req.json().catch(() => ({}))) as { status?: string };
+  if (!body.status) {
+    throw badRequest("VALIDATION_FAILED", "status is required");
+  }
+  await updateEmailStatus(c.env.DB, id, body.status);
+  return c.json({ ok: true, id, status: body.status });
+});
+
+app.patch("/emails/:id/star", requireRole("admin", "editor"), async (c) => {
+  const id = c.req.param("id");
+  const body = (await c.req.json().catch(() => ({}))) as { starred?: number };
+  if (body.starred === undefined) {
+    throw badRequest("VALIDATION_FAILED", "starred is required");
+  }
+  await updateEmailStar(c.env.DB, id, body.starred);
+  return c.json({ ok: true, id, starred: body.starred });
+});
+
+app.get("/redirects", requireRole("admin", "editor"), async (c) => {
+  const redirects = await listRedirects(c.env.DB);
+  return c.json({ redirects });
+});
+
+app.post("/redirects", requireRole("admin", "editor"), auditChanges("redirect.create"), async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as {
+    fromPath?: string;
+    toPath?: string;
+    statusCode?: number;
+  };
+  
+  if (!body.fromPath || !body.toPath) {
+    throw badRequest("VALIDATION_FAILED", "fromPath and toPath are required");
+  }
+
+  const id = `redirect-${Date.now()}`;
+  const now = new Date().toISOString();
+
+  await createRedirect(c.env.DB, {
+    id,
+    fromPath: body.fromPath,
+    toPath: body.toPath,
+    statusCode: body.statusCode || 301,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  return c.json({ ok: true, id, ...body }, 201);
+});
+
+app.delete("/redirects/:id", requireRole("admin", "editor"), auditChanges("redirect.delete"), async (c) => {
+  const id = c.req.param("id");
+  await deleteRedirect(c.env.DB, id);
+  return c.json({ ok: true });
+});
+
+app.post("/seo/gsc/key", requireRole("admin"), auditChanges("gsc.update_key"), async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as { keyJson?: string };
+  if (!body.keyJson) {
+    throw badRequest("VALIDATION_FAILED", "keyJson is required");
+  }
+  
+  try {
+    const key = JSON.parse(body.keyJson);
+    if (!key.client_email || !key.private_key) {
+      throw new Error("Invalid service account JSON");
+    }
+    
+    await setSystemSetting(c.env.DB, "gsc_service_account", body.keyJson);
+    return c.json({ ok: true });
+  } catch {
+    throw badRequest("VALIDATION_FAILED", "Invalid service account JSON format");
+  }
+});
+
+function b64u(str: string) {
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function str2ab(str: string) {
+  const buf = new ArrayBuffer(str.length);
+  const bufView = new Uint8Array(buf);
+  for (let i = 0, strLen = str.length; i < strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return buf;
+}
+
+async function importPrivateKey(pem: string) {
+  const pemHeader = "-----BEGIN PRIVATE KEY-----";
+  const pemFooter = "-----END PRIVATE KEY-----";
+  const pemContents = pem.substring(
+    pem.indexOf(pemHeader) + pemHeader.length,
+    pem.indexOf(pemFooter)
+  ).replace(/\s/g, '');
+  
+  const binaryDerString = atob(pemContents);
+  const binaryDer = str2ab(binaryDerString);
+
+  return await crypto.subtle.importKey(
+    "pkcs8",
+    binaryDer,
+    {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-256",
+    },
+    false,
+    ["sign"]
+  );
+}
+
+app.get("/seo/gsc/overview", requireRole("admin", "editor"), async (c) => {
+  const keySetting = await getSystemSetting(c.env.DB, "gsc_service_account");
+  
+  const fallbackResponse = {
+    clicks: 0,
+    impressions: 0,
+    ctr: 0,
+    position: 0,
+    topQueries: [],
+    fallback: true
+  };
+
+  if (!keySetting || !keySetting.value) {
+    return c.json(fallbackResponse);
+  }
+
+  try {
+    const creds = JSON.parse(keySetting.value);
+    
+    const header = { alg: "RS256", typ: "JWT" };
+    const iat = Math.floor(Date.now() / 1000);
+    const exp = iat + 3600;
+    const claimSet = {
+      iss: creds.client_email,
+      scope: "https://www.googleapis.com/auth/webmasters.readonly",
+      aud: "https://oauth2.googleapis.com/token",
+      exp,
+      iat,
+    };
+    
+    const encodedHeader = b64u(JSON.stringify(header));
+    const encodedClaimSet = b64u(JSON.stringify(claimSet));
+    const toSign = `${encodedHeader}.${encodedClaimSet}`;
+    
+    const key = await importPrivateKey(creds.private_key);
+    const signature = await crypto.subtle.sign(
+      "RSASSA-PKCS1-v1_5",
+      key,
+      new TextEncoder().encode(toSign)
+    );
+    
+    const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+      
+    const jwt = `${toSign}.${encodedSignature}`;
+    
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion: jwt
+      })
+    });
+    
+    if (!tokenRes.ok) {
+      console.warn("Failed to get Google OAuth token", await tokenRes.text());
+      return c.json(fallbackResponse);
+    }
+    
+    const tokenData = await tokenRes.json() as { access_token: string };
+    
+    const siteUrl = "https://minds.io.vn";
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    const gscRes = await fetch(`https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${tokenData.access_token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        startDate,
+        endDate,
+        dimensions: ["query"],
+        rowLimit: 5
+      })
+    });
+    
+    if (!gscRes.ok) {
+      console.warn("Failed to fetch GSC data", await gscRes.text());
+      return c.json(fallbackResponse);
+    }
+    
+    const gscData = await gscRes.json() as any;
+    
+    let clicks = 0;
+    let impressions = 0;
+    let positionSum = 0;
+    let positionCount = 0;
+    const topQueries = [];
+    
+    for (const row of gscData.rows || []) {
+      clicks += row.clicks;
+      impressions += row.impressions;
+      positionSum += row.position * row.impressions;
+      positionCount += row.impressions;
+      topQueries.push({
+        keys: row.keys,
+        clicks: row.clicks,
+        impressions: row.impressions
+      });
+    }
+    
+    const ctr = impressions > 0 ? clicks / impressions : 0;
+    const position = positionCount > 0 ? positionSum / positionCount : 0;
+    
+    return c.json({
+      clicks,
+      impressions,
+      ctr,
+      position,
+      topQueries,
+      fallback: false
+    });
+    
+  } catch (err) {
+    console.error("GSC API error:", err);
+    return c.json(fallbackResponse);
+  }
 });
 
 app.all("/sources", (c) => c.text("Method not allowed", 405));

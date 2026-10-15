@@ -343,7 +343,7 @@ test("vectorize kill switch is off by default and opt-in", async () => {
   }
 });
 
-test("clustering stage paginates across pages", async () => {
+test("clustering stage processes one page per run", async () => {
   const { env, db, close, logger } = await setup();
   try {
     const words = ["alpha", "beta", "gamma", "delta", "epsilon"];
@@ -357,12 +357,12 @@ test("clustering stage paginates across pages", async () => {
     const result = await runClusteringStage(env, logger, {
       pageSize: 2,
     });
-    assert.equal(result.itemsScanned, 5);
+    assert.equal(result.itemsScanned, 2);
     assert.equal(result.candidates, 0);
     const complete = logger.logs.find(
       (entry) => entry.message === "clustering_stage_complete",
     );
-    assert.equal(complete?.data.itemsScanned, 5);
+    assert.equal(complete?.data.itemsScanned, 2);
   } finally {
     close();
   }

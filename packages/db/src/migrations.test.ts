@@ -20,6 +20,7 @@ test("migrations create the core and story domain tables", async () => {
       "categories",
       "claims",
       "editorial_decisions",
+      "emails",
       "entities",
       "facts",
       "feeds",
@@ -30,11 +31,13 @@ test("migrations create the core and story domain tables", async () => {
       "raw_items",
       "reader_events",
       "reader_profiles",
+      "redirects",
       "sessions",
       "sources",
       "stories",
       "story_entities",
       "story_sources",
+      "system_settings",
       "users",
     ]);
   } finally {

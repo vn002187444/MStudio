@@ -61,9 +61,16 @@ export function computeClusterCandidates(
     }
   }
 
+  const tokenizedTitles = new Map<string, Set<string>>();
+  for (const item of items) {
+    if (item.title !== undefined) {
+      tokenizedTitles.set(item.id, tokenize(item.title));
+    }
+  }
+
   for (let i = 0; i < items.length; i++) {
     for (let j = i + 1; j < items.length; j++) {
-      if (titlesMatch(items[i], items[j])) {
+      if (titlesMatch(items[i], items[j], tokenizedTitles)) {
         graph.union(items[i].id, items[j].id, "title_similarity");
       }
     }
@@ -75,7 +82,7 @@ export function computeClusterCandidates(
   }));
 }
 
-function titlesMatch(a: RawItemRow, b: RawItemRow): boolean {
+function titlesMatch(a: RawItemRow, b: RawItemRow, tokenizedTitles: Map<string, Set<string>>): boolean {
   if (a.title === undefined || b.title === undefined) {
     return false;
   }
@@ -93,8 +100,13 @@ function titlesMatch(a: RawItemRow, b: RawItemRow): boolean {
   if (Math.abs(publishedA - publishedB) > PUBLISHED_WINDOW_MS) {
     return false;
   }
+  const tokensA = tokenizedTitles.get(a.id);
+  const tokensB = tokenizedTitles.get(b.id);
+  if (!tokensA || !tokensB) {
+    return false;
+  }
   return (
-    jaccardSimilarity(tokenize(a.title), tokenize(b.title)) >=
+    jaccardSimilarity(tokensA, tokensB) >=
     TITLE_SIMILARITY_THRESHOLD
   );
 }

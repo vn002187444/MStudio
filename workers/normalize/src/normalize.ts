@@ -95,14 +95,21 @@ export async function processNormalizeMessage(
 
   const { created, duplicates } = await createRawItems(db, inputs);
   if (source && isRehostable(source.rightsStatus)) {
-    await rehostImages(
-      bucket,
-      db,
-      normalized,
-      source.rightsStatus,
-      logger,
-      options,
-    );
+    try {
+      await rehostImages(
+        bucket,
+        db,
+        normalized.slice(0, 3),
+        source.rightsStatus,
+        logger,
+        options,
+      );
+    } catch (error) {
+      logger.error("batch_rehost_images_failed", {
+        feedId: feed.id,
+        error: error instanceof Error ? error.message : "unknown error",
+      });
+    }
   }
   logger.info("feed_normalized", {
     feedId: message.feedId,

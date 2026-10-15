@@ -31,3 +31,7 @@ export * from "./repositories/auth.ts";
 export * from "./repositories/categories.ts";
 export * from "./repositories/media.ts";
 export * from "./repositories/quota.ts";
+export * from "./repositories/emails.ts";
+export * from "./repositories/redirects.ts";
+export * from "./repositories/system-settings.ts";
+

@@ -199,6 +199,100 @@ a {
   padding: 12px;
 }
 
+/* ---- Mobile Thumb-Zone Floating Action Bar ---- */
+@media (max-width: 767px) {
+  .mobile-floating-action-bar {
+    position: fixed;
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    z-index: 50;
+  }
+  
+  .mobile-floating-action-bar > button,
+  .mobile-floating-action-bar > .btn-primary {
+    flex: 1;
+    min-height: 48px;
+  }
+}
+
+/* ---- Email Client Mobile Master-Detail View ---- */
+@media (max-width: 767px) {
+  .email-client-shell {
+    display: flex !important;
+    flex-direction: column;
+    min-height: calc(100vh - 120px) !important;
+  }
+  .email-col-hidden {
+    display: none !important;
+  }
+  .email-col-folders,
+  .email-col-master,
+  .email-col-detail {
+    flex: 1;
+    display: flex !important;
+    flex-direction: column;
+    overflow: hidden;
+  }
+}
+
+/* ---- Responsive Tables to Cards on Mobile ---- */
+@media (max-width: 767px) {
+  .responsive-table {
+    display: block !important;
+    width: 100% !important;
+    border: none !important;
+  }
+  .responsive-table thead {
+    display: none !important;
+  }
+  .responsive-table tbody {
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .responsive-table tr {
+    display: flex !important;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md);
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+  .responsive-table td {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0 !important;
+    border: none !important;
+    border-bottom: 1px dashed #f0f0f0 !important;
+  }
+  .responsive-table td:last-child {
+    border-bottom: none !important;
+  }
+}
+
+/* Skeleton Loading State */
+.skeleton-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+}
+
+@keyframes pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ---- Studio App Layout & Mobile iOS Experience (MST-090) ---- */
 
 .studio-layout {
