@@ -2,7 +2,6 @@
   "name": "studio",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "npm",
   "dependencies": {
     "@tiptap/extension-image": "^3.31.4",
     "@tiptap/react": "^3.31.4",
