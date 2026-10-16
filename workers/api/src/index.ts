@@ -671,6 +671,13 @@ app.get("/analytics/top-articles", async (c) => {
 });
 
 app.get("/analytics/overview", async (c) => {
+  // ⚡ Bolt: Cache analytics overview query for 60s since it scans the entire events table
+  const cacheKey = "analytics:overview";
+  const cached = await c.env.KV?.get(cacheKey, "json");
+  if (cached) {
+    return c.json({ overview: cached });
+  }
+
   const result = await c.env.DB.prepare(
     `SELECT
        COUNT(CASE WHEN event_type = 'open_article' THEN 1 END) as totalViews,
@@ -679,6 +686,8 @@ app.get("/analytics/overview", async (c) => {
        COUNT(CASE WHEN event_type = 'share' THEN 1 END) as shares
      FROM reader_events`,
   ).first();
+
+  await c.env.KV?.put(cacheKey, JSON.stringify(result), { expirationTtl: 60 });
   return c.json({ overview: result });
 });
 
