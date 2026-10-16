@@ -16,7 +16,9 @@
     "incremental": true,
     "types": ["vinext/types", "node"],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@mstudio/contracts": ["../../packages/contracts/src/index.ts"],
+      "@mstudio/contracts/*": ["../../packages/contracts/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".cloudflare/types"],

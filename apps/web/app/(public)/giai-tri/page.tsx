@@ -8,7 +8,7 @@ import { CategoryTemplate } from "../../../components/article/category-template"
 export const metadata: Metadata = {
   title: "Giải trí | MStudio Channel",
   description: "Giải trí: Ngôi sao, Âm nhạc, Điện ảnh, Showbiz, Scandal — MStudio Channel.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 };
 
 export default function EntertainmentCategoryPage() {

@@ -8,7 +8,7 @@ import { CategoryTemplate } from "../../../../components/article/category-templa
 export const metadata: Metadata = {
   title: "AI Channel | MStudio Channel",
   description: "Tin AI, models, agents, research và công cụ AI — MStudio Channel.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 };
 
 export default function AiChannelCategoryPage() {

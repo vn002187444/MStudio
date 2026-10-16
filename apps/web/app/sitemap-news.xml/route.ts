@@ -13,6 +13,7 @@ import type { NewsSitemapEntry } from "../../lib/seo";
  */
 interface PublishedArticle {
   id: string;
+  slug?: string;
   title: string;
   updatedAt: string;
 }
@@ -30,7 +31,7 @@ export async function GET() {
       for (const article of payload.rows ?? []) {
         if (!isWithinNewsWindow(article.updatedAt)) continue;
         entries.push({
-          loc: `${origin}/bai-viet/${article.id}`,
+          loc: `${origin}/bai-viet/${article.slug || article.id}`,
           title: article.title,
           publicationDate: article.updatedAt,
           publicationName: "MStudio Channel",

@@ -16,6 +16,13 @@ a {
   color: inherit;
 }
 
+/* Ensure buttons on dark backgrounds maintain high-contrast white text */
+a[class*="bg-[var(--black"],
+a.press-scale,
+.btn-primary {
+  color: #ffffff !important;
+}
+
 a,
 button,
 summary {

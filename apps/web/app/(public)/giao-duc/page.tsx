@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Giáo dục | MStudio Channel",
   description:
     "Giáo dục: giáo dục đại học, học bổng, EdTech và xu hướng đào tạo — MStudio Channel.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 };
 
 export default function EducationCategoryPage() {

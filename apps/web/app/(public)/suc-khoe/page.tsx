@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Sức khỏe | MStudio Channel",
   description:
     "Sức khỏe: y tế, dinh dưỡng, tâm lý và lifehacks sức khỏe có nguồn — MStudio Channel.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 };
 
 export default function HealthCategoryPage() {

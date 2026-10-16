@@ -171,10 +171,11 @@ export function LeadStoryCard({ article }: { article: PublishedArticleRecord }) 
         <div className="mt-2 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[var(--border,#E3E5E8)]">
           <a
             href={url}
-            className="press-scale inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-[var(--radius-sm,6px)] bg-[var(--black,#090909)] hover:bg-[var(--ink-700,#3A3A3A)] text-white text-[14px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ai-blue,#2563EB)]"
+            style={{ color: "#ffffff", backgroundColor: "#090909" }}
+            className="press-scale inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-[var(--radius-sm,6px)] bg-[var(--black,#090909)] hover:bg-[var(--ink-700,#3A3A3A)] !text-white text-[14px] font-semibold transition-colors shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ai-blue,#2563EB)]"
           >
-            <span>Xem chi tiết</span>
-            <span aria-hidden="true">→</span>
+            <span style={{ color: "#ffffff" }}>Xem chi tiết</span>
+            <span aria-hidden="true" style={{ color: "#ffffff" }}>→</span>
           </a>
 
           <div className="flex items-center gap-3 text-[13px] text-[var(--gray,#667085)]">

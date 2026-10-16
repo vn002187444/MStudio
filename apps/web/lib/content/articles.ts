@@ -10,6 +10,9 @@ export interface PublishedArticle {
   status: string;
   title: string;
   summary?: string;
+  slug?: string;
+  categorySlug?: string;
+  heroImageUrl?: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -59,7 +62,8 @@ export async function fetchArticleById(id: string): Promise<PublishedArticle | u
 
 /**
  * Đang nóng: pool trending từ GET /recommendations (reader events window),
- * resolve song song tối đa `limit` bài. Không có dữ liệu event = [].
+ * resolve song song tối đa `limit` bài. Fallback sang bài mới nhất nếu chưa
+ * đủ event để trang luôn có nội dung đầy đủ.
  */
 export async function fetchTrendingArticles(limit = 8): Promise<PublishedArticle[]> {
   try {
@@ -67,15 +71,33 @@ export async function fetchTrendingArticles(limit = 8): Promise<PublishedArticle
       `/recommendations?limit=${limit * 2}`,
       { next: { revalidate: 60 } },
     );
-    if (!response.ok) return [];
-    const payload = (await response.json()) as RecommendationsResponse;
-    const trendingIds = (payload.candidates ?? [])
-      .filter((candidate) => candidate.pool === "trending")
-      .slice(0, limit)
-      .map((candidate) => candidate.articleId);
-    const articles = await Promise.all(trendingIds.map((id) => fetchArticleById(id)));
-    return articles.filter((article): article is PublishedArticle => article !== undefined);
+    let trendingArticles: PublishedArticle[] = [];
+    if (response.ok) {
+      const payload = (await response.json()) as RecommendationsResponse;
+      const trendingIds = (payload.candidates ?? [])
+        .filter((candidate) => candidate.pool === "trending")
+        .slice(0, limit)
+        .map((candidate) => candidate.articleId);
+      if (trendingIds.length > 0) {
+        const resolved = await Promise.all(trendingIds.map((id) => fetchArticleById(id)));
+        trendingArticles = resolved.filter((article): article is PublishedArticle => article !== undefined);
+      }
+    }
+
+    if (trendingArticles.length < limit) {
+      const latest = await fetchLatestArticles(limit);
+      const existingIds = new Set(trendingArticles.map((a) => a.id));
+      for (const item of latest) {
+        if (!existingIds.has(item.id)) {
+          trendingArticles.push(item);
+          existingIds.add(item.id);
+          if (trendingArticles.length >= limit) break;
+        }
+      }
+    }
+
+    return trendingArticles;
   } catch {
-    return [];
+    return fetchLatestArticles(limit);
   }
 }

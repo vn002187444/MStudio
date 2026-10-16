@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: AuthorParams): Promise<Metada
   return {
     title: `Tác giả ${name} | MStudio Channel`,
     description: `Bài viết của tác giả ${name} — MStudio Channel.`,
-    robots: { index: false, follow: false },
+    robots: { index: true, follow: true },
   };
 }
 

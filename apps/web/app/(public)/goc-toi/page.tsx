@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "Góc Tối | MStudio Channel",
   description:
     "Góc Tối: Kỳ án, Hồ sơ, Ký sự, Dark History — hồ sơ điều tra, kể chuyện có kiểm chứng.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 };
 
 export default function DarkCategoryPage() {

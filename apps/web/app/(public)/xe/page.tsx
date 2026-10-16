@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Xe | MStudio Channel",
   description:
     "Xe: ô tô, xe máy, EV và thị trường xe Việt Nam & quốc tế — MStudio Channel.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 };
 
 export default function AutoCategoryPage() {

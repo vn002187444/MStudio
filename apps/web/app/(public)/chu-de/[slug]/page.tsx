@@ -4,7 +4,7 @@ import { EntityTemplate } from "../../../../components/discovery/entity-template
 export const metadata: Metadata = {
   title: "Chủ đề | MStudio Channel",
   description: "Trang chủ đề MStudio Channel.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 };
 
 export default function TopicPage() {
