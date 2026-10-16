@@ -12,6 +12,7 @@ export interface StructuredClaim {
 }
 
 export interface EvidenceVerificationOutput {
+  headline?: string;
   summary: string;
   facts: StructuredFact[];
   claims: StructuredClaim[];

@@ -197,7 +197,7 @@ function composeAiDraft(
   rawItem: RawItemRecord,
   source: SourceRecord | undefined,
 ): DraftContent {
-  const title = fallbackTitle(rawItem, source);
+  const title = output.headline?.trim() || fallbackTitle(rawItem, source);
   const parts: string[] = [];
 
   // Sapo lead paragraph

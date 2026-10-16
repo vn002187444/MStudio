@@ -32,15 +32,13 @@ export class WriterValidationError extends Error {
 }
 
 const SYSTEM_PROMPT = [
-  "You are an evidence verification writer for a newsroom.",
+  "You are an evidence verification and news synthesis writer for a professional Vietnamese newsroom.",
   "Given a headline and the evidence text collected for that story,",
   "produce a structured verification as strict JSON with this shape:",
-  '{"summary": string, "facts": [{"text": string, "sourceRefs": [{"sourceId": string}]}],',
+  '{"headline": string, "summary": string, "facts": [{"text": string, "sourceRefs": [{"sourceId": string}]}],',
   ' "claims": [{"text": string, "sourceRefs": [{"sourceId": string}], "confidence"?: number}]}.',
-  "Every fact and claim MUST cite only sourceIds that appear in the",
-  "provided evidence. Do not invent sources. Facts are statements",
-  "directly supported by evidence; claims are assertions needing",
-  "verification with a confidence between 0 and 1.",
+  "CRITICAL LANGUAGE RULE: All output fields (headline, summary, facts, claims) MUST be written in natural, fluent, professional Vietnamese (tiếng Việt chuẩn báo chí). If the evidence or headline is in English or any other language, translate, localize, and synthesize it seamlessly into Vietnamese without losing technical accuracy.",
+  "Every fact and claim MUST cite only sourceIds that appear in the provided evidence. Do not invent sources. Facts are statements directly supported by evidence; claims are assertions needing verification with a confidence between 0 and 1.",
   "Return JSON only, no prose or markdown fences.",
 ].join(" ");
 
@@ -138,9 +136,10 @@ export function parseEvidenceOutput(
   if (!Array.isArray(claims)) {
     throw new WriterValidationError("output.claims must be an array");
   }
+  const headline = typeof parsed.headline === "string" && parsed.headline.trim().length > 0 ? parsed.headline.trim() : undefined;
   const parsedFacts: StructuredFact[] = facts.map(parseStructuredFact);
   const parsedClaims: StructuredClaim[] = claims.map(parseStructuredClaim);
-  return { summary, facts: parsedFacts, claims: parsedClaims };
+  return { headline, summary, facts: parsedFacts, claims: parsedClaims };
 }
 
 export function validateSourceRefs(

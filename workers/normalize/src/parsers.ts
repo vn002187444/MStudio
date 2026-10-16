@@ -177,6 +177,13 @@ function extractImageUrl(block: string): string | undefined {
       if (hit) return hit;
     }
   }
+  // Fallback: Tìm URL ảnh trong thẻ <img> của content/description
+  const imgMatch = /<img\b[^>]*src=["']([^"']+)["']/i.exec(block);
+  if (imgMatch) {
+    const hit = pickHttpUrl(imgMatch[1]);
+    if (hit) return hit;
+  }
+
   return undefined;
 }
 
@@ -201,5 +208,11 @@ function decodeEntities(text: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#8217;/g, "'")
+    .replace(/&#8216;/g, "'")
+    .replace(/&#8220;/g, '"')
+    .replace(/&#8221;/g, '"')
+    .replace(/&#038;/g, "&")
     .replace(/&amp;/g, "&");
 }

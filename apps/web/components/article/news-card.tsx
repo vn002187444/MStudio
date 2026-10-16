@@ -52,6 +52,20 @@ export function formatRelativeTime(iso: string): string {
   }
 }
 
+/** Strip raw HTML tags and entities from external feed titles/summaries */
+export function stripHtml(text?: string): string {
+  if (!text) return "";
+  return text
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** Color-coded category badge styling following design tokens */
 export function getCategoryBadgeClass(categorySlug?: string): string {
   switch (categorySlug) {
@@ -156,14 +170,14 @@ export function LeadStoryCard({ article }: { article: PublishedArticleRecord }) 
             href={url}
             className="hover:text-[var(--brand,#155EEF)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ai-blue,#2563EB)]"
           >
-            {article.title}
+            {stripHtml(article.title)}
           </a>
         </h2>
 
         {/* Summary */}
         {article.summary ? (
           <p className="text-[15px] sm:text-[16px] text-[var(--ink-700,#3A3A3A)] leading-relaxed m-0 line-clamp-3">
-            {article.summary}
+            {stripHtml(article.summary)}
           </p>
         ) : null}
 
@@ -227,7 +241,7 @@ export function CompactNewsCard({
             href={url}
             className="hover:text-[var(--brand,#155EEF)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ai-blue,#2563EB)]"
           >
-            {article.title}
+            {stripHtml(article.title)}
           </a>
         </h3>
 
