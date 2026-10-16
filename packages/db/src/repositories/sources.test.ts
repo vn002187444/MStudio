@@ -5,6 +5,7 @@ import {
   getSource,
   listSources,
   setSourceAllowStatus,
+  updateSource,
   type SourceKind,
 } from "./sources.ts";
 import { openMigratedTestDb } from "../testing/helpers.ts";
@@ -27,6 +28,35 @@ test("creates and reads a source with defaults", async () => {
     const read = await getSource(db, "src-1");
     assert.deepEqual(read, created);
     assert.equal(await getSource(db, "missing"), undefined);
+  } finally {
+    close();
+  }
+});
+
+test("updates source fields", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    await createSource(db, {
+      id: "src-1",
+      name: "Example",
+      originUrl: "https://example.com",
+      kind: "rss",
+      now: "2026-01-01T00:00:00.000Z",
+    });
+    
+    let updated = await updateSource(db, "src-1", { name: "New Name" });
+    assert.equal(updated?.name, "New Name");
+    assert.equal(updated?.originUrl, "https://example.com");
+    
+    updated = await updateSource(db, "src-1", { originUrl: "https://example.com/new" });
+    assert.equal(updated?.name, "New Name");
+    assert.equal(updated?.originUrl, "https://example.com/new");
+    
+    updated = await updateSource(db, "src-1", { name: "Final", originUrl: "https://example.com/final" });
+    assert.equal(updated?.name, "Final");
+    assert.equal(updated?.originUrl, "https://example.com/final");
+    
+    assert.equal(await updateSource(db, "missing", { name: "Test" }), undefined);
   } finally {
     close();
   }

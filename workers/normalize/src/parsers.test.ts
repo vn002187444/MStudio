@@ -302,3 +302,80 @@ test("parseJsonFeed picks http image only", async () => {
   assert.equal(items[0].imageUrl, "https://img.example.com/f.jpg");
   assert.equal(items[1].imageUrl, undefined);
 });
+
+test("parseAtom extracts YouTube Atom feed with media:description and media:thumbnail", async () => {
+  const youtubeAtom = `
+    <feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+      <entry>
+        <id>yt:video:dQw4w9WgXcQ</id>
+        <yt:videoId>dQw4w9WgXcQ</yt:videoId>
+        <title>Never Gonna Give You Up &amp; Never Hurt You</title>
+        <link rel="alternate" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&amp;utm_source=youtube_feed"/>
+        <published>2026-03-28T14:00:00+00:00</published>
+        <media:group>
+          <media:title>Never Gonna Give You Up</media:title>
+          <media:thumbnail url="https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" width="480" height="360"/>
+          <media:description>The official music video for &#8220;Never Gonna Give You Up&#8221; by Rick Astley &#x2014; Remastered!</media:description>
+        </media:group>
+      </entry>
+    </feed>
+  `;
+  const items = parseAtom(youtubeAtom);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].title, "Never Gonna Give You Up & Never Hurt You");
+  assert.equal(items[0].url, "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+  assert.equal(items[0].publishedAt, "2026-03-28T14:00:00+00:00");
+  assert.equal(
+    items[0].content,
+    'The official music video for "Never Gonna Give You Up" by Rick Astley — Remastered!',
+  );
+  assert.equal(
+    items[0].imageUrl,
+    "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+  );
+});
+
+test("parseRss prefers content:encoded over short description and cleans tracking params", async () => {
+  const rss = `
+    <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+      <channel>
+        <item>
+          <title>Tech Breakthrough</title>
+          <link>https://techcrunch.com/2026/04/ai-breakthrough?utm_source=feedburner&amp;utm_medium=feed&amp;fbclid=12345</link>
+          <description>Short summary of the article</description>
+          <content:encoded><![CDATA[<p>Full comprehensive article with deep analysis and rich technical details.</p>]]></content:encoded>
+        </item>
+      </channel>
+    </rss>
+  `;
+  const items = parseRss(rss);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].url, "https://techcrunch.com/2026/04/ai-breakthrough");
+  assert.equal(
+    items[0].content,
+    "<p>Full comprehensive article with deep analysis and rich technical details.</p>",
+  );
+});
+
+test("parseAtom extracts Reddit Atom content with HTML entity decoding", async () => {
+  const redditAtom = `
+    <feed xmlns="http://www.w3.org/2005/Atom">
+      <entry>
+        <title>Discussion on Next Gen AI</title>
+        <link href="https://www.reddit.com/r/technology/comments/abc/discussion/?utm_campaign=frontpage"/>
+        <content type="html">&lt;div&gt;Reddit post body with &#8216;quotes&#8217; &amp; &copy; 2026&lt;/div&gt;</content>
+      </entry>
+    </feed>
+  `;
+  const items = parseAtom(redditAtom);
+  assert.equal(items.length, 1);
+  assert.equal(
+    items[0].url,
+    "https://www.reddit.com/r/technology/comments/abc/discussion/",
+  );
+  assert.equal(
+    items[0].content,
+    "<div>Reddit post body with 'quotes' & © 2026</div>",
+  );
+});
+

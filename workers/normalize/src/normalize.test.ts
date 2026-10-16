@@ -377,7 +377,7 @@ test("unknown source rights keep the hotlink without rehosting", async () => {
     );
     assert.deepEqual(outcome, { created: 1, duplicates: 0 });
     assert.equal(fetched, false);
-    assert.equal(objects.size, 1);
+    assert.equal(objects.size, 2);
     const assets = await db
       .prepare(
         "SELECT COUNT(*) AS count FROM media_assets",
@@ -415,7 +415,7 @@ test("rehost failure does not fail normalization", async () => {
       },
     );
     assert.deepEqual(outcome, { created: 1, duplicates: 0 });
-    assert.equal(objects.size, 1);
+    assert.equal(objects.size, 2);
     assert.ok(
       logger.warns.some(
         (entry) => entry.message === "media_rehost_failed",

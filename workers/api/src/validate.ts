@@ -11,6 +11,7 @@ import type {
   UpdateArticleRequest,
   UpdateFeedRequest,
   UpdateSourceAllowStatusRequest,
+  UpdateSourceRequest,
 } from "@mstudio/contracts";
 
 export type ValidationErrors = Record<string, string[]>;
@@ -159,8 +160,47 @@ export function validateUpdateSourceAllowStatus(
   return { ok: true, value: result.data as UpdateSourceAllowStatusRequest };
 }
 
+const updateSourceSchema = z.object({
+  name: z.string({ message: "required string" }).trim().min(1, "required non-empty string").max(200, "must be at most 200 characters").optional(),
+  originUrl: z.string({ message: "required http(s) URL" }).refine((val) => {
+    try {
+      const u = new URL(val);
+      return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch { return false; }
+  }, "required http(s) URL").optional(),
+  allowStatus: z.enum(ALLOW_STATUSES, { message: `optional one of: ${ALLOW_STATUSES.join(", ")}` }).optional(),
+});
+
+export function validateUpdateSource(
+  body: unknown,
+): ValidationResult<UpdateSourceRequest> {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    return {
+      ok: false,
+      errors: { body: ["expected a JSON object"] },
+    };
+  }
+  const result = updateSourceSchema.safeParse(body);
+  if (!result.success) {
+    return { ok: false, errors: mapZodError(result.error) };
+  }
+  return { ok: true, value: result.data as UpdateSourceRequest };
+}
+
 const updateFeedSchema = z.object({
-  enabled: z.boolean({ message: "required boolean" }),
+  url: z.string({ message: "required http(s) URL" }).refine((val) => {
+    try {
+      const u = new URL(val);
+      return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch { return false; }
+  }, "required http(s) URL").optional(),
+  format: z.enum(FEED_FORMATS, { message: `optional one of: ${FEED_FORMATS.join(", ")}` }).optional(),
+  fetchIntervalSeconds: z.number({ message: "optional integer between 60 and 86400" })
+    .int("optional integer between 60 and 86400")
+    .min(60, "optional integer between 60 and 86400")
+    .max(86400, "optional integer between 60 and 86400")
+    .optional(),
+  enabled: z.boolean({ message: "required boolean" }).optional(),
 });
 
 export function validateUpdateFeed(

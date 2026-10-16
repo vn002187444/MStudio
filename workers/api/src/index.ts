@@ -20,6 +20,9 @@ import {
   listStoryAggregates,
   setFeedEnabled,
   setSourceAllowStatus,
+  updateSource,
+  updateFeed,
+  deleteFeed,
   updateArticleMetadata,
   createAgentRun,
   listRecentAgentRuns,
@@ -47,6 +50,7 @@ import type {
   SourceRecord,
   UpdateFeedRequest,
   UpdateSourceAllowStatusRequest,
+  UpdateSourceRequest,
 } from "@mstudio/contracts";
 import {
   InMemoryQuotaGuard,
@@ -95,6 +99,7 @@ import {
   validateUpdateArticle,
   validateUpdateFeed,
   validateUpdateSourceAllowStatus,
+  validateUpdateSource,
 } from "./validate.ts";
 
 export class ApiError extends Error {
@@ -762,6 +767,42 @@ app.get("/sources/:id", async (c) => {
 });
 
 app.patch(
+  "/sources/:id",
+  rateLimit(),
+  requireRole("admin"),
+  auditChanges("source.update"),
+  async (c) => {
+  const id = c.req.param("id");
+  const body = await readJson(c.req.raw);
+  const validation = validateUpdateSource(body);
+  if (!validation.ok) {
+    throw badRequest(
+      "VALIDATION_FAILED",
+      "invalid source payload",
+      validation.errors,
+    );
+  }
+  const input: UpdateSourceRequest = validation.value;
+  let source = await getSource(c.env.DB, id);
+  if (!source) {
+    throw notFound("SOURCE_NOT_FOUND", `source ${id} not found`);
+  }
+  
+  if (input.name !== undefined || input.originUrl !== undefined) {
+    source = (await updateSource(c.env.DB, id, {
+      name: input.name,
+      originUrl: input.originUrl,
+    }))!;
+  }
+  
+  if (input.allowStatus !== undefined) {
+    source = (await setSourceAllowStatus(c.env.DB, id, input.allowStatus))!;
+  }
+  
+  return c.json(source);
+});
+
+app.patch(
   "/sources/:id/allow-status",
   rateLimit(),
   requireRole("admin"),
@@ -864,11 +905,30 @@ app.patch(
     );
   }
   const input: UpdateFeedRequest = validation.value;
-  const feed = await setFeedEnabled(c.env.DB, id, input.enabled);
+  const feed = await updateFeed(c.env.DB, id, {
+    url: input.url,
+    format: input.format,
+    fetchIntervalSeconds: input.fetchIntervalSeconds,
+    enabled: input.enabled,
+  });
   if (!feed) {
     throw notFound("FEED_NOT_FOUND", `feed ${id} not found`);
   }
   return c.json(feed);
+});
+
+app.delete(
+  "/feeds/:id",
+  rateLimit(),
+  requireRole("admin"),
+  auditChanges("feed.delete"),
+  async (c) => {
+  const id = c.req.param("id");
+  const deleted = await deleteFeed(c.env.DB, id);
+  if (!deleted) {
+    throw notFound("FEED_NOT_FOUND", `feed ${id} not found`);
+  }
+  return c.body(null, 204);
 });
 
 // ---- AI Desk Routes (MST-032) ----

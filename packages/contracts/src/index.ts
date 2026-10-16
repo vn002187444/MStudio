@@ -127,6 +127,7 @@ export type {
   SourceResponse,
   UpdateArticleRequest,
   SaveArticleRevisionRequest,
+  UpdateSourceRequest,
   UpdateFeedRequest,
   UpdateSourceAllowStatusRequest,
 } from "./api.ts";

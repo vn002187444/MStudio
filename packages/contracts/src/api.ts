@@ -27,8 +27,17 @@ export interface UpdateSourceAllowStatusRequest {
   allowStatus: AllowStatus;
 }
 
+export interface UpdateSourceRequest {
+  name?: string;
+  originUrl?: string;
+  allowStatus?: AllowStatus;
+}
+
 export interface UpdateFeedRequest {
-  enabled: boolean;
+  url?: string;
+  format?: FeedFormat;
+  fetchIntervalSeconds?: number;
+  enabled?: boolean;
 }
 
 export interface ListRequest extends PageInput {}

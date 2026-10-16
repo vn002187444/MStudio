@@ -104,6 +104,40 @@ export async function setSourceAllowStatus(
   return getSource(db, id);
 }
 
+export async function updateSource(
+  db: D1Database,
+  id: string,
+  updates: { name?: string; originUrl?: string },
+): Promise<SourceRow | undefined> {
+  const now = new Date().toISOString();
+  let query = "UPDATE sources SET ";
+  const params: any[] = [];
+  
+  if (updates.name !== undefined) {
+    query += "name = ?, ";
+    params.push(updates.name);
+  }
+  if (updates.originUrl !== undefined) {
+    query += "origin_url = ?, ";
+    params.push(updates.originUrl);
+  }
+  
+  if (params.length === 0) {
+    return getSource(db, id);
+  }
+  
+  query += "updated_at = ? WHERE id = ?";
+  params.push(now, id);
+  
+  const result = await db
+    .prepare(query)
+    .bind(...params)
+    .run();
+    
+  if (result.meta.changes === 0) return undefined;
+  return getSource(db, id);
+}
+
 export async function deleteSource(
   db: D1Database,
   id: string,

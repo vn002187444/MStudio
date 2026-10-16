@@ -380,7 +380,7 @@ test("PATCH /feeds/:id disables a feed", async () => {
       request(`/feeds/${feed.id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ enabled: false }),
+        body: JSON.stringify({ enabled: false, url: "https://example.com/updated.xml" }),
       }, adminToken),
       env,
       context() as unknown as ExecutionContext,
@@ -388,19 +388,83 @@ test("PATCH /feeds/:id disables a feed", async () => {
     assert.equal(response.status, 200);
     const updated = (await response.json()) as FeedRecord;
     assert.equal(updated.enabled, false);
+    assert.equal(updated.url, "https://example.com/updated.xml");
   } finally {
     close();
   }
 });
 
-test("PATCH /feeds/:id rejects missing enabled field", async () => {
+test("DELETE /feeds/:id deletes a feed", async () => {
+  const { env, close, adminToken } = await setup();
+  try {
+    const sourceResponse = await worker.fetch(
+      request("/sources", jsonInit({
+        name: "Test",
+        originUrl: "https://example.com",
+        kind: "rss",
+      }), adminToken),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    const source = (await sourceResponse.json()) as SourceRecord;
+    const feedResponse = await worker.fetch(
+      request(`/sources/${source.id}/feeds`, jsonInit({
+        url: "https://example.com/feed.xml",
+        format: "rss",
+      }), adminToken),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    const feed = (await feedResponse.json()) as FeedRecord;
+    const response = await worker.fetch(
+      request(`/feeds/${feed.id}`, { method: "DELETE" }, adminToken),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 204);
+  } finally {
+    close();
+  }
+});
+
+test("PATCH /sources/:id updates a source", async () => {
+  const { env, close, adminToken } = await setup();
+  try {
+    const sourceResponse = await worker.fetch(
+      request("/sources", jsonInit({
+        name: "Test",
+        originUrl: "https://example.com",
+        kind: "rss",
+      }), adminToken),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    const source = (await sourceResponse.json()) as SourceRecord;
+    const response = await worker.fetch(
+      request(`/sources/${source.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: "Updated Test" }),
+      }, adminToken),
+      env,
+      context() as unknown as ExecutionContext,
+    );
+    assert.equal(response.status, 200);
+    const updated = (await response.json()) as SourceRecord;
+    assert.equal(updated.name, "Updated Test");
+  } finally {
+    close();
+  }
+});
+
+test("PATCH /feeds/:id rejects invalid fields", async () => {
   const { env, close, adminToken } = await setup();
   try {
     const response = await worker.fetch(
       request("/feeds/missing", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ fetchIntervalSeconds: "invalid" }),
       }, adminToken),
       env,
       context() as unknown as ExecutionContext,
@@ -408,7 +472,7 @@ test("PATCH /feeds/:id rejects missing enabled field", async () => {
     assert.equal(response.status, 400);
     const body = (await response.json()) as ApiErrorResponse;
     assert.equal(body.error.code, "VALIDATION_FAILED");
-    assert.ok(body.error.details?.enabled);
+    assert.ok(body.error.details?.fetchIntervalSeconds);
   } finally {
     close();
   }

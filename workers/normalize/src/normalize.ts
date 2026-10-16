@@ -15,6 +15,7 @@ import { sha256Hex } from "./sha256.ts";
 
 export interface NormalizedItem extends NormalizedFeedItem {
   imageUrl?: string;
+  content?: string;
 }
 
 export function canonicalUrlCandidate(item: ParsedFeedItem): string {
@@ -36,6 +37,7 @@ export async function normalizeParsedItems(
       title: item.title,
       publishedAt: item.publishedAt,
       imageUrl: item.imageUrl,
+      content: item.content,
       payloadHash: await sha256Hex(
         JSON.stringify([
           item.url,
@@ -79,6 +81,14 @@ export async function processNormalizeMessage(
     throw new Error(`feed ${message.feedId} not found`);
   }
   const source = await getSource(db, feed.sourceId);
+  
+  await Promise.all(
+    normalized.map(async (item) => {
+      const itemContent = item.content ?? item.title ?? "";
+      await bucket.put(item.payloadHash, itemContent);
+    })
+  );
+  
   const inputs = normalized.map((item) => ({
     id: crypto.randomUUID(),
     feedId: feed.id,

@@ -148,6 +148,59 @@ export async function setFeedEnabled(
   return getFeed(db, id);
 }
 
+export async function updateFeed(
+  db: D1Database,
+  id: string,
+  updates: { url?: string; format?: FeedFormat; fetchIntervalSeconds?: number; enabled?: boolean },
+): Promise<FeedRow | undefined> {
+  const now = new Date().toISOString();
+  let query = "UPDATE feeds SET ";
+  const params: any[] = [];
+  
+  if (updates.url !== undefined) {
+    query += "url = ?, ";
+    params.push(updates.url);
+  }
+  if (updates.format !== undefined) {
+    query += "format = ?, ";
+    params.push(updates.format);
+  }
+  if (updates.fetchIntervalSeconds !== undefined) {
+    query += "fetch_interval_seconds = ?, ";
+    params.push(updates.fetchIntervalSeconds);
+  }
+  if (updates.enabled !== undefined) {
+    query += "enabled = ?, ";
+    params.push(updates.enabled ? 1 : 0);
+  }
+  
+  if (params.length === 0) {
+    return getFeed(db, id);
+  }
+  
+  query += "updated_at = ? WHERE id = ?";
+  params.push(now, id);
+  
+  const result = await db
+    .prepare(query)
+    .bind(...params)
+    .run();
+    
+  if (result.meta.changes === 0) return undefined;
+  return getFeed(db, id);
+}
+
+export async function deleteFeed(
+  db: D1Database,
+  id: string,
+): Promise<boolean> {
+  const result = await db
+    .prepare("DELETE FROM feeds WHERE id = ?")
+    .bind(id)
+    .run();
+  return result.meta.changes > 0;
+}
+
 export async function updateFeedFetchResult(
   db: D1Database,
   id: string,

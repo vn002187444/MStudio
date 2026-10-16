@@ -40,19 +40,21 @@ export function parseRss(content: string): ParsedFeedItem[] {
     const link = extractTag(block, "link");
     const guid = extractTag(block, "guid");
     const pubDate = extractTag(block, "pubDate");
+    const encodedContent = extractTag(block, "content:encoded");
     const description = extractTag(block, "description");
+    const rawContent = (encodedContent && encodedContent.length > 0) ? encodedContent : description;
     const url = link ?? guid;
     if (!url) continue;
     items.push({
       externalId: guid ?? undefined,
-      url: decodeEntities(url),
+      url: cleanUrl(decodeEntities(url)),
       title: title === undefined ? undefined : decodeEntities(title),
       publishedAt:
         pubDate === undefined ? undefined : decodeEntities(pubDate),
       content:
-        description === undefined
+        rawContent === undefined
           ? undefined
-          : decodeEntities(description),
+          : decodeEntities(rawContent),
       imageUrl: extractImageUrl(block),
     });
   }
@@ -67,18 +69,29 @@ export function parseAtom(content: string): ParsedFeedItem[] {
     const block = match[1];
     const title = extractTag(block, "title");
     const id = extractTag(block, "id");
+    const published = extractTag(block, "published");
     const updated = extractTag(block, "updated");
-    const summary = extractTag(block, "summary");
+    const contentTag = extractTag(block, "content");
+    const summaryTag = extractTag(block, "summary");
+    const mediaDescription = extractTag(block, "media:description");
+    const rawContent =
+      contentTag && contentTag.length > 0
+        ? contentTag
+        : summaryTag && summaryTag.length > 0
+          ? summaryTag
+          : mediaDescription;
     const link = extractAlternateLink(block) ?? id;
     if (!link) continue;
     items.push({
       externalId: id ?? undefined,
-      url: decodeEntities(link),
+      url: cleanUrl(decodeEntities(link)),
       title: title === undefined ? undefined : decodeEntities(title),
       publishedAt:
-        updated === undefined ? undefined : decodeEntities(updated),
+        (published ?? updated) === undefined
+          ? undefined
+          : decodeEntities(published ?? updated!),
       content:
-        summary === undefined ? undefined : decodeEntities(summary),
+        rawContent === undefined ? undefined : decodeEntities(rawContent),
       imageUrl: extractImageUrl(block),
     });
   }
@@ -100,11 +113,11 @@ export function parseJsonFeed(content: string): ParsedFeedItem[] {
   };
   return (parsed.items ?? [])
     .map((item): ParsedFeedItem | undefined => {
-      const url = item.url ?? item.external_url;
-      if (!url) return undefined;
+      const rawUrl = item.url ?? item.external_url;
+      if (!rawUrl) return undefined;
       return {
         externalId: item.id ?? undefined,
-        url,
+        url: cleanUrl(decodeEntities(rawUrl)),
         title: item.title,
         publishedAt: item.date_published,
         content: item.content_html ?? item.content_text,
@@ -200,19 +213,94 @@ function extractAlternateLink(block: string): string | undefined {
   return any ? any[1] : undefined;
 }
 
-function decodeEntities(text: string): string {
-  return text
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&#8217;/g, "'")
-    .replace(/&#8216;/g, "'")
-    .replace(/&#8220;/g, '"')
-    .replace(/&#8221;/g, '"')
-    .replace(/&#038;/g, "&")
-    .replace(/&amp;/g, "&");
+export function cleanUrl(rawUrl: string): string {
+  try {
+    const parsed = new URL(rawUrl);
+    const trackingPrefixes = ["utm_"];
+    const trackingKeys = new Set([
+      "fbclid",
+      "gclid",
+      "msclkid",
+      "mc_cid",
+      "mc_eid",
+      "ref_src",
+      "_ga",
+      "_hsenc",
+      "_hsmi",
+    ]);
+    const keysToDelete: string[] = [];
+    for (const key of parsed.searchParams.keys()) {
+      const lower = key.toLowerCase();
+      if (
+        trackingKeys.has(lower) ||
+        trackingPrefixes.some((prefix) => lower.startsWith(prefix))
+      ) {
+        keysToDelete.push(key);
+      }
+    }
+    for (const key of keysToDelete) {
+      parsed.searchParams.delete(key);
+    }
+    return parsed.toString();
+  } catch {
+    return rawUrl;
+  }
 }
+
+export function decodeEntities(text: string): string {
+  const unwrapped = text.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1");
+  return unwrapped.replace(/&(?:[a-z\d]+|#\d+|#x[a-f\d]+);/gi, (entity) => {
+    const lower = entity.toLowerCase();
+    switch (lower) {
+      case "&amp;":
+        return "&";
+      case "&lt;":
+        return "<";
+      case "&gt;":
+        return ">";
+      case "&quot;":
+        return '"';
+      case "&apos;":
+      case "&#39;":
+        return "'";
+      case "&nbsp;":
+        return " ";
+      case "&mdash;":
+        return "—";
+      case "&ndash;":
+        return "–";
+      case "&hellip;":
+        return "…";
+      case "&#8217;":
+        return "'";
+      case "&#8216;":
+        return "'";
+      case "&#8220;":
+        return '"';
+      case "&#8221;":
+        return '"';
+      case "&#038;":
+        return "&";
+      case "&copy;":
+        return "©";
+      case "&reg;":
+        return "®";
+      case "&trade;":
+        return "™";
+      default:
+        if (lower.startsWith("&#x")) {
+          const code = parseInt(lower.slice(3, -1), 16);
+          if (!isNaN(code) && code > 0 && code <= 0x10ffff) {
+            return String.fromCodePoint(code);
+          }
+        } else if (lower.startsWith("&#")) {
+          const code = parseInt(lower.slice(2, -1), 10);
+          if (!isNaN(code) && code > 0 && code <= 0x10ffff) {
+            return String.fromCodePoint(code);
+          }
+        }
+        return entity;
+    }
+  });
+}
+

@@ -7,6 +7,8 @@ import {
   listFeedsBySource,
   setFeedEnabled,
   updateFeedFetchResult,
+  updateFeed,
+  deleteFeed,
 } from "./feeds.ts";
 import { createSource } from "./sources.ts";
 import { openMigratedTestDb } from "../testing/helpers.ts";
@@ -40,6 +42,55 @@ test("creates and reads a feed", async () => {
     assert.equal(feed.fetchIntervalSeconds, 900);
     const read = await getFeed(db, "feed-1");
     assert.deepEqual(read, feed);
+  } finally {
+    close();
+  }
+});
+
+test("updates feed fields", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    await seedSource(db, "src-1");
+    await createFeed(db, {
+      id: "feed-1",
+      sourceId: "src-1",
+      url: "https://example.com/feed.xml",
+      format: "rss",
+      now: "2026-01-01T00:00:00.000Z",
+    });
+    
+    let updated = await updateFeed(db, "feed-1", { url: "https://example.com/new.xml" });
+    assert.equal(updated?.url, "https://example.com/new.xml");
+    
+    updated = await updateFeed(db, "feed-1", { format: "atom", fetchIntervalSeconds: 1800, enabled: false });
+    assert.equal(updated?.format, "atom");
+    assert.equal(updated?.fetchIntervalSeconds, 1800);
+    assert.equal(updated?.enabled, false);
+    
+    assert.equal(await updateFeed(db, "missing", { url: "test" }), undefined);
+  } finally {
+    close();
+  }
+});
+
+test("deletes a feed", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    await seedSource(db, "src-1");
+    await createFeed(db, {
+      id: "feed-1",
+      sourceId: "src-1",
+      url: "https://example.com/feed.xml",
+      format: "rss",
+      now: "2026-01-01T00:00:00.000Z",
+    });
+    
+    let deleted = await deleteFeed(db, "feed-1");
+    assert.equal(deleted, true);
+    assert.equal(await getFeed(db, "feed-1"), undefined);
+    
+    deleted = await deleteFeed(db, "missing");
+    assert.equal(deleted, false);
   } finally {
     close();
   }
