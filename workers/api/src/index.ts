@@ -684,19 +684,19 @@ app.get("/analytics/overview", async (c) => {
 
 app.get("/stats/summary", async (c) => {
   // ⚡ Bolt: Batch independent D1 count queries into a single HTTP request to reduce latency
-  const [rawCount, rawIncoming, articlesCount] = await c.env.DB.batch<{ total?: number; incoming?: number }>([
-    c.env.DB.prepare(`SELECT COUNT(*) as total FROM raw_items`),
-    c.env.DB.prepare(`SELECT COUNT(*) as incoming FROM raw_items WHERE status = 'incoming'`),
-    c.env.DB.prepare(`SELECT COUNT(*) as total FROM articles`),
+  const [rawCount, rawIncoming, articlesCount] = await Promise.all([
+    c.env.DB.prepare(`SELECT COUNT(*) as total FROM raw_items`).first<{ total: number }>(),
+    c.env.DB.prepare(`SELECT COUNT(*) as incoming FROM raw_items WHERE status = 'incoming'`).first<{ incoming: number }>(),
+    c.env.DB.prepare(`SELECT COUNT(*) as total FROM articles`).first<{ total: number }>(),
   ]);
 
   return c.json({
     rawItems: {
-      total: rawCount?.results?.[0]?.total ?? 0,
-      incoming: rawIncoming?.results?.[0]?.incoming ?? 0,
+      total: rawCount?.total ?? 0,
+      incoming: rawIncoming?.incoming ?? 0,
     },
     articles: {
-      total: articlesCount?.results?.[0]?.total ?? 0,
+      total: articlesCount?.total ?? 0,
     },
   });
 });
