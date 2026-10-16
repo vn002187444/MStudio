@@ -1,4 +1,4 @@
-import type { PublishedArticleRecord } from "@mstudio/contracts";
+import type { PublishedArticleRecord } from "../../lib/contracts";
 import { fetchApi } from "../../lib/api";
 import { CompactNewsCard, LeadStoryCard } from "./news-card";
 

@@ -1,4 +1,4 @@
-import type { PublishedArticleRecord } from "@mstudio/contracts";
+import type { PublishedArticleRecord } from "../../lib/contracts";
 
 export const CATEGORY_NAMES: Record<string, string> = {
   "thoi-su": "Thời sự",

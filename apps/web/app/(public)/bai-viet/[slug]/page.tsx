@@ -11,7 +11,7 @@ import {
 import { SourceBlock } from "../../../../components/article/source-block";
 import { BlocksRenderer, headingsFromBlocks } from "../../../../components/article/blocks-renderer";
 import { CATEGORY_FALLBACK_IMAGES } from "../../../../components/article/news-card";
-import { parseArticleBlocksBody } from "../../../../../../packages/contracts/src/blocks.ts";
+import { parseArticleBlocksBody } from "../../../../lib/contracts";
 
 /**
  * Bài viết là runtime-only: không prerender/ISR cache tại edge vì
