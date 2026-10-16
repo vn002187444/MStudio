@@ -174,16 +174,18 @@ export default async function PublicHomePage() {
             <p className="newsletter-desc">
               Nhận tóm tắt 5 phút những sự kiện AI và kinh tế quan trọng nhất vào 7:00 sáng mỗi ngày.
             </p>
-            <div className="newsletter-form">
+            <form className="newsletter-form">
               <input
                 type="email"
                 placeholder="email@cuaban.com"
                 className="newsletter-input"
+                aria-label="Địa chỉ email"
+                required
               />
-              <button type="button" className="newsletter-btn">
+              <button type="submit" className="newsletter-btn">
                 Đăng ký
               </button>
-            </div>
+            </form>
           </section>
         </aside>
       </div>
