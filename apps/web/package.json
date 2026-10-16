@@ -21,8 +21,8 @@
     "@vitejs/plugin-rsc": "^0.5.36",
     "cf": "^1.0.0-beta.13",
     "tailwindcss": "latest",
-    "typescript": "latest",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "wrangler": "^4.148.0"
   },
   "type": "module",
   "scripts": {
