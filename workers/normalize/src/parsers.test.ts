@@ -379,3 +379,54 @@ test("parseAtom extracts Reddit Atom content with HTML entity decoding", async (
   );
 });
 
+test("decodes Vietnamese HTML entities in title and content", async () => {
+  const feed = `
+    <rss version="2.0">
+      <channel>
+        <item>
+          <title>Chủ tịch FIFA xin lỗi, c&ocirc;ng bố mỗi li&ecirc;n đo&agrave;n nhận 25 triệu USD, c&oacute; Việt Nam</title>
+          <link>https://example.com/fifa</link>
+          <description>C&ocirc;ng li&ecirc;n đo&agrave;n c&oacute;</description>
+        </item>
+      </channel>
+    </rss>
+  `;
+  const items = parseRss(feed);
+  assert.equal(items.length, 1);
+  assert.equal(
+    items[0].title,
+    "Chủ tịch FIFA xin lỗi, công bố mỗi liên đoàn nhận 25 triệu USD, có Việt Nam",
+  );
+  assert.equal(items[0].content, "Công liên đoàn có");
+});
+
+test("extracts image url correctly from media:content without type/medium, escaped img, and data-src", async () => {
+  const feed = `
+    <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+      <channel>
+        <item>
+          <title>Media Content</title>
+          <link>https://example.com/1</link>
+          <media:content url="https://example.com/media.jpg" />
+        </item>
+        <item>
+          <title>Escaped Img</title>
+          <link>https://example.com/2</link>
+          <description>&lt;img src="https://example.com/escaped.jpg"&gt;</description>
+        </item>
+        <item>
+          <title>Data Src</title>
+          <link>https://example.com/3</link>
+          <description><img data-src="https://example.com/datasrc.png" /></description>
+        </item>
+      </channel>
+    </rss>
+  `;
+  const items = parseRss(feed);
+  assert.equal(items.length, 3);
+  assert.equal(items[0].imageUrl, "https://example.com/media.jpg");
+  assert.equal(items[1].imageUrl, "https://example.com/escaped.jpg");
+  assert.equal(items[2].imageUrl, "https://example.com/datasrc.png");
+});
+
+

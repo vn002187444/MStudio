@@ -20,6 +20,7 @@ interface RawItemRowRaw {
   payloadHash: string;
   status: RawItemStatus;
   createdAt: string;
+  imageUrl?: string | null;
 }
 
 export interface NewRawItem {
@@ -40,7 +41,7 @@ const RAW_ITEM_SELECT = `
   SELECT id, feed_id AS feedId, source_id AS sourceId, external_id AS externalId,
          url, canonical_url AS canonicalUrl, title, published_at AS publishedAt,
          fetched_at AS fetchedAt, payload_hash AS payloadHash, status,
-         created_at AS createdAt
+         created_at AS createdAt, image_url AS imageUrl
   FROM raw_items
 `;
 
@@ -51,6 +52,7 @@ function toRawItemRow(row: RawItemRowRaw): RawItemRow {
     canonicalUrl: row.canonicalUrl ?? undefined,
     title: row.title ?? undefined,
     publishedAt: row.publishedAt ?? undefined,
+    imageUrl: row.imageUrl ?? undefined,
   };
 }
 

@@ -183,6 +183,7 @@ function extractImageUrl(block: string): string | undefined {
     }
     if (name === "link" && rel.toLowerCase() !== "enclosure") continue;
     if (
+      name === "media:content" ||
       type.toLowerCase().startsWith("image/") ||
       medium.toLowerCase() === "image"
     ) {
@@ -190,9 +191,17 @@ function extractImageUrl(block: string): string | undefined {
       if (hit) return hit;
     }
   }
-  // Fallback: Tìm URL ảnh trong thẻ <img> của content/description
-  const imgMatch = /<img\b[^>]*src=["']([^"']+)["']/i.exec(block);
-  if (imgMatch) {
+
+  // Xử lý các thẻ bị escaped trong XML (VD: &lt;img src="..."&gt;)
+  const unescapedBlock = block
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"');
+
+  // Fallback: Tìm URL ảnh trong thẻ <img> của content/description (hỗ trợ cả data-src và src)
+  const imgPattern = /<img\b[^>]*(?:data-src|src)=["']([^"']+)["']/gi;
+  let imgMatch: RegExpExecArray | null;
+  while ((imgMatch = imgPattern.exec(unescapedBlock)) !== null) {
     const hit = pickHttpUrl(imgMatch[1]);
     if (hit) return hit;
   }
@@ -287,6 +296,46 @@ export function decodeEntities(text: string): string {
         return "®";
       case "&trade;":
         return "™";
+      case "&ocirc;":
+        return "ô";
+      case "&ecirc;":
+        return "ê";
+      case "&agrave;":
+        return "à";
+      case "&aacute;":
+        return "á";
+      case "&oacute;":
+        return "ó";
+      case "&ograve;":
+        return "ò";
+      case "&otilde;":
+        return "õ";
+      case "&ugrave;":
+        return "ù";
+      case "&uacute;":
+        return "ú";
+      case "&yacute;":
+        return "ý";
+      case "&atilde;":
+        return "ã";
+      case "&acirc;":
+        return "â";
+      case "&egrave;":
+        return "è";
+      case "&eacute;":
+        return "é";
+      case "&igrave;":
+        return "ì";
+      case "&iacute;":
+        return "í";
+      case "&icirc;":
+        return "î";
+      case "&iuml;":
+        return "ï";
+      case "&ccedil;":
+        return "ç";
+      case "&ntilde;":
+        return "ñ";
       default:
         if (lower.startsWith("&#x")) {
           const code = parseInt(lower.slice(3, -1), 16);

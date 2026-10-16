@@ -31,6 +31,7 @@ import worker from "./index.ts";
 import {
   acceptRawItem,
   buildDraftGateway,
+  generateSlug,
   rejectRawItem,
   RawItemDecisionConflictError,
 } from "./accept.ts";
@@ -607,3 +608,54 @@ test("buildDraftGateway reads GEMINI_API_KEY from env", () => {
     true,
   );
 });
+
+test("generateSlug decodes HTML entities before generating slug", () => {
+  const rawTitle =
+    "Chủ tịch FIFA xin lỗi, c&ocirc;ng bố mỗi li&ecirc;n đo&agrave;n nhận 25 triệu USD, c&oacute; Việt Nam";
+  const slug = generateSlug(rawTitle);
+  assert.equal(
+    slug,
+    "chu-tich-fifa-xin-loi-cong-bo-moi-lien-doan-nhan-25-trieu-usd-co-viet-nam",
+  );
+});
+
+test("acceptRawItem preserves imageUrl as heroImageUrl on article", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    await createSource(db, {
+      id: "source-image",
+      name: "Source with image",
+      originUrl: "https://example.com",
+      kind: "rss",
+      now: NOW,
+    });
+    await createFeed(db, {
+      id: "feed-image",
+      sourceId: "source-image",
+      url: "https://example.com/feed",
+      format: "rss",
+      now: NOW,
+    });
+    const { row: rawItem } = await createRawItem(db, {
+      id: "item-image-1",
+      feedId: "feed-image",
+      sourceId: "source-image",
+      url: "https://example.com/article-with-image",
+      title: "Article with hero image",
+      fetchedAt: NOW,
+      payloadHash: "hash-img-1",
+      imageUrl: "https://example.com/hero.jpg",
+    });
+
+    const result = await acceptRawItem(
+      { db, actor: "editor-1", now: NOW },
+      rawItem,
+    );
+
+    const article = await getArticle(db, result.articleId);
+    assert.equal(article?.heroImageUrl, "https://example.com/hero.jpg");
+  } finally {
+    close();
+  }
+});
+

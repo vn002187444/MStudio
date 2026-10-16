@@ -84,11 +84,107 @@ async function readRawPayload(
   }
 }
 
+export function decodeEntities(text: string): string {
+  const unwrapped = text.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1");
+  return unwrapped.replace(/&(?:[a-z\d]+|#\d+|#x[a-f\d]+);/gi, (entity) => {
+    const lower = entity.toLowerCase();
+    switch (lower) {
+      case "&amp;":
+        return "&";
+      case "&lt;":
+        return "<";
+      case "&gt;":
+        return ">";
+      case "&quot;":
+        return '"';
+      case "&apos;":
+      case "&#39;":
+        return "'";
+      case "&nbsp;":
+        return " ";
+      case "&mdash;":
+        return "—";
+      case "&ndash;":
+        return "–";
+      case "&hellip;":
+        return "…";
+      case "&#8217;":
+      case "&#8216;":
+        return "'";
+      case "&#8220;":
+      case "&#8221;":
+        return '"';
+      case "&#038;":
+        return "&";
+      case "&copy;":
+        return "©";
+      case "&reg;":
+        return "®";
+      case "&trade;":
+        return "™";
+      case "&ocirc;":
+        return "ô";
+      case "&ecirc;":
+        return "ê";
+      case "&agrave;":
+        return "à";
+      case "&aacute;":
+        return "á";
+      case "&oacute;":
+        return "ó";
+      case "&ograve;":
+        return "ò";
+      case "&otilde;":
+        return "õ";
+      case "&ugrave;":
+        return "ù";
+      case "&uacute;":
+        return "ú";
+      case "&yacute;":
+        return "ý";
+      case "&atilde;":
+        return "ã";
+      case "&acirc;":
+        return "â";
+      case "&egrave;":
+        return "è";
+      case "&eacute;":
+        return "é";
+      case "&igrave;":
+        return "ì";
+      case "&iacute;":
+        return "í";
+      case "&icirc;":
+        return "î";
+      case "&iuml;":
+        return "ï";
+      case "&ccedil;":
+        return "ç";
+      case "&ntilde;":
+        return "ñ";
+      default:
+        if (lower.startsWith("&#x")) {
+          const code = parseInt(lower.slice(3, -1), 16);
+          if (!isNaN(code) && code > 0 && code <= 0x10ffff) {
+            return String.fromCodePoint(code);
+          }
+        } else if (lower.startsWith("&#")) {
+          const code = parseInt(lower.slice(2, -1), 10);
+          if (!isNaN(code) && code > 0 && code <= 0x10ffff) {
+            return String.fromCodePoint(code);
+          }
+        }
+        return entity;
+    }
+  });
+}
+
 function fallbackTitle(
   rawItem: RawItemRecord,
   source: SourceRecord | undefined,
 ): string {
-  return rawItem.title?.trim() || source?.name || rawItem.url;
+  const raw = rawItem.title?.trim() || source?.name || rawItem.url;
+  return decodeEntities(raw);
 }
 
 function attributionBlock(
@@ -140,7 +236,7 @@ function composeRawDraft(
 }
 
 export function generateSlug(text: string): string {
-  const normalized = text
+  const normalized = decodeEntities(text)
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -355,6 +451,7 @@ export async function acceptRawItem(
     metaDescription,
     canonicalUrl,
     keywords,
+    heroImageUrl: rawItem.imageUrl || undefined,
     sourceCount: 1,
     qualityScore: 88,
     now,

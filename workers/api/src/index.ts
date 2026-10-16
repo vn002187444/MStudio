@@ -1391,7 +1391,7 @@ export default {
           `SELECT id, feed_id AS feedId, source_id AS sourceId, external_id AS externalId,
                   url, canonical_url AS canonicalUrl, title, published_at AS publishedAt,
                   fetched_at AS fetchedAt, payload_hash AS payloadHash, status,
-                  created_at AS createdAt
+                  created_at AS createdAt, image_url AS imageUrl
            FROM raw_items
            WHERE status = 'incoming'
            ORDER BY created_at DESC
