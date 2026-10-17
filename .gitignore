@@ -10,3 +10,4 @@ dist/
 Demo/
 qa-audit-report.json
 *report.json
+.engram/
