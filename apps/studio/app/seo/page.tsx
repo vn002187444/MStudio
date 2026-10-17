@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { TokenGate, useCmsToken } from "../../components/cms-actions";
 import { apiBaseUrl } from "../../lib/cms";
-import type { RedirectRecord, GscOverviewResponse } from "../../../../packages/contracts/src/studio";
+import type { RedirectRecord, GscOverviewResponse, GscHealthStatus } from "../../../packages/contracts/src/studio.ts";
 
 type SeoTab = "onpage" | "schema" | "redirects" | "gsc" | "images";
 
@@ -29,6 +29,8 @@ export default function SeoDiscoveryPage() {
   const [gscOverview, setGscOverview] = useState<GscOverviewResponse | null>(null);
   const [gscLoading, setGscLoading] = useState(false);
   const [gscError, setGscError] = useState<string | null>(null);
+  const [gscHealth, setGscHealth] = useState<GscHealthStatus | null>(null);
+  const [healthLoading, setHealthLoading] = useState(false);
 
   // Compute On-Page Score (Rank Math Algorithm)
   function computeScore() {
@@ -112,12 +114,13 @@ export default function SeoDiscoveryPage() {
   }, [token]);
 
   // Fetch GSC Overview
-  const loadGscOverview = useCallback(async () => {
+  const loadGscOverview = useCallback(async (force = false) => {
     try {
       setGscLoading(true);
       setGscError(null);
       const activeToken = token || "f53d9495ecf616aa1d771f82c5b06d8b0f4c3c5153fa6ff69ea9a620f310b77f";
-      const res = await fetch(`${apiBaseUrl()}/seo/gsc/overview`, {
+      const url = `${apiBaseUrl()}/seo/gsc/overview` + (force ? "?force=true" : "");
+      const res = await fetch(url, {
         headers: { Authorization: `Bearer ${activeToken}` },
       });
       if (res.ok) {
@@ -134,10 +137,49 @@ export default function SeoDiscoveryPage() {
     }
   }, [token]);
 
+  const loadGscHealth = useCallback(async () => {
+    try {
+      setHealthLoading(true);
+      const activeToken = token || "f53d9495ecf616aa1d771f82c5b06d8b0f4c3c5153fa6ff69ea9a620f310b77f";
+      const res = await fetch(`${apiBaseUrl()}/seo/gsc/health`, {
+        headers: { Authorization: `Bearer ${activeToken}` },
+      });
+      if (res.ok) {
+        const data = (await res.json()) as GscHealthStatus;
+        setGscHealth(data);
+      }
+    } catch (err) {
+      // ignore
+    } finally {
+      setHealthLoading(false);
+    }
+  }, [token]);
+
+  const verifyGscConnection = async () => {
+    try {
+      setHealthLoading(true);
+      const activeToken = token || "f53d9495ecf616aa1d771f82c5b06d8b0f4c3c5153fa6ff69ea9a620f310b77f";
+      const res = await fetch(`${apiBaseUrl()}/seo/gsc/verify`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${activeToken}` },
+      });
+      if (res.ok) {
+        const data = (await res.json()) as GscHealthStatus;
+        setGscHealth(data);
+        alert(data.status === "connected" ? "Kết nối GSC thành công!" : "Lỗi kết nối: " + (data.errorMessage || "Không xác định"));
+      }
+    } catch (err) {
+      alert("Lỗi: " + err);
+    } finally {
+      setHealthLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadRedirects();
     loadGscOverview();
-  }, [loadRedirects, loadGscOverview]);
+    loadGscHealth();
+  }, [loadRedirects, loadGscOverview, loadGscHealth]);
 
   async function handleAddRedirect() {
     if (!newFrom.trim() || !newTo.trim()) return;
@@ -599,6 +641,214 @@ export default function SeoDiscoveryPage() {
         {/* Tab 4: GSC Integration & Real Analytics */}
         {activeTab === "gsc" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Service Account Quota & Health Status Card */}
+            <div
+              style={{
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: 16,
+                padding: 24,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#0f172a" }}>
+                      Khóa Hạn Ngạch &amp; Trạng Thái Google Service Account
+                    </h2>
+                    {gscHealth?.status === "connected" ? (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          padding: "3px 10px",
+                          borderRadius: 999,
+                          background: "#dcfce7",
+                          color: "#166534",
+                          border: "1px solid #bbf7d0",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#16a34a" }} />
+                        Đang hoạt động (Connected)
+                      </span>
+                    ) : gscHealth?.status === "error" ? (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          padding: "3px 10px",
+                          borderRadius: 999,
+                          background: "#fee2e2",
+                          color: "#991b1b",
+                          border: "1px solid #fecaca",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#dc2626" }} />
+                        Lỗi kết nối API
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          padding: "3px 10px",
+                          borderRadius: 999,
+                          background: "#fef3c7",
+                          color: "#92400e",
+                          border: "1px solid #fde68a",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b" }} />
+                        Chưa cấu hình Service Account Key
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ color: "#64748b", fontSize: 14, margin: "6px 0 0" }}>
+                    Tự động đồng bộ và bảo vệ hạn ngạch Google Indexing API (200 URLs/ngày) &amp; Search Analytics.
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={verifyGscConnection}
+                    disabled={healthLoading}
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      border: "1px solid #cbd5e1",
+                      background: "#f8fafc",
+                      color: "#1e293b",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: healthLoading ? "not-allowed" : "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    {healthLoading ? "Đang kiểm tra…" : "Kiểm tra kết nối ngay"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => loadGscOverview(true)}
+                    disabled={gscLoading}
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      border: "1px solid #2563eb",
+                      background: "#2563eb",
+                      color: "#ffffff",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: gscLoading ? "not-allowed" : "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    {gscLoading ? "Đang làm mới…" : "Làm mới Analytics"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Service Account Details */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                  gap: 16,
+                  marginTop: 20,
+                  padding: 16,
+                  background: "#f8fafc",
+                  borderRadius: 12,
+                  border: "1px solid #f1f5f9",
+                  fontSize: 13,
+                }}
+              >
+                <div>
+                  <div style={{ color: "#64748b", fontSize: 12, fontWeight: 600 }}>Client Email</div>
+                  <div style={{ fontWeight: 700, color: "#0f172a", marginTop: 4, wordBreak: "break-all" }}>
+                    {gscHealth?.clientEmail || "Chưa có dữ liệu"}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ color: "#64748b", fontSize: 12, fontWeight: 600 }}>Google Cloud Project ID</div>
+                  <div style={{ fontWeight: 700, color: "#0f172a", marginTop: 4 }}>
+                    {gscHealth?.projectId || "Chưa có dữ liệu"}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ color: "#64748b", fontSize: 12, fontWeight: 600 }}>Kiểm tra gần nhất</div>
+                  <div style={{ fontWeight: 700, color: "#0f172a", marginTop: 4 }}>
+                    {gscHealth?.lastCheckedAt ? new Date(gscHealth.lastCheckedAt).toLocaleString("vi-VN") : "Chưa kiểm tra"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Indexing API Daily Quota Bar */}
+              <div style={{ marginTop: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>
+                    Hạn ngạch Google Indexing API hôm nay:
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: (gscHealth?.indexingQuotaUsedToday ?? 0) >= 200 ? "#dc2626" : (gscHealth?.indexingQuotaUsedToday ?? 0) >= 150 ? "#d97706" : "#2563eb" }}>
+                    {gscHealth?.indexingQuotaUsedToday ?? 0} / {gscHealth?.indexingQuotaLimit ?? 200} URLs đã ping
+                  </span>
+                </div>
+                <div style={{ width: "100%", height: 10, background: "#e2e8f0", borderRadius: 999, overflow: "hidden" }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      borderRadius: 999,
+                      width: `${Math.min(100, (((gscHealth?.indexingQuotaUsedToday ?? 0) / (gscHealth?.indexingQuotaLimit || 200)) * 100))}%`,
+                      background: (gscHealth?.indexingQuotaUsedToday ?? 0) >= 200 ? "#dc2626" : (gscHealth?.indexingQuotaUsedToday ?? 0) >= 150 ? "#f59e0b" : "#16a34a",
+                      transition: "width 0.3s ease",
+                    }}
+                  />
+                </div>
+                <div style={{ fontSize: 12, color: "#64748b", marginTop: 6, display: "flex", justifyContent: "space-between" }}>
+                  <span>Hệ thống Cloudflare Worker tự động ngắt gửi ping khi đạt 200 URLs/ngày nhằm tránh bị Google phạt lỗi 429.</span>
+                  {(gscHealth?.indexingQuotaUsedToday ?? 0) >= 200 && (
+                    <span style={{ color: "#dc2626", fontWeight: 700 }}>Đã chạm trần 200/ngày - Đã kích hoạt khóa an toàn</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Circuit breaker / Cache Notice */}
+              {gscOverview?.quotaLocked && (
+                <div
+                  style={{
+                    marginTop: 16,
+                    padding: "12px 16px",
+                    background: "#fef3c7",
+                    border: "1px solid #fde68a",
+                    borderRadius: 8,
+                    fontSize: 13,
+                    color: "#92400e",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>⚠️</span>
+                  <div>
+                    <strong>Cảnh báo Circuit Breaker:</strong> Google Analytics API vừa chạm giới hạn hoặc trả về lỗi. Hệ thống đang bảo vệ và phục vụ an toàn từ dữ liệu bộ nhớ đệm D1 (Lưu lúc: {gscOverview.cachedAt ? new Date(gscOverview.cachedAt).toLocaleTimeString("vi-VN") : "vừa xong"}).
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Status & Overview Metrics Banner */}
             <div
               style={{
@@ -615,46 +865,24 @@ export default function SeoDiscoveryPage() {
                     Google Search Console API (Live Dashboard)
                   </h2>
                   <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>
-                    Theo dõi lượt click, hiển thị và thứ hạng từ khóa thực tế từ máy chủ tìm kiếm Google.
+                    Theo dõi lượt click, hiển thị và thứ hạng từ khóa thực tế từ máy chủ tìm kiếm Google (28 ngày qua).
                   </p>
                 </div>
 
                 <div>
-                  {gscOverview?.fallback ? (
+                  {gscOverview?.isCached && (
                     <span
                       style={{
                         fontSize: 12,
-                        fontWeight: 700,
+                        fontWeight: 600,
                         padding: "4px 10px",
                         borderRadius: 999,
-                        background: "#fef3c7",
-                        color: "#92400e",
-                        border: "1px solid #fde68a",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
+                        background: "#f1f5f9",
+                        color: "#475569",
+                        border: "1px solid #e2e8f0",
                       }}
                     >
-                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b" }} />
-                      Chế độ Fallback / Chưa đồng bộ Key
-                    </span>
-                  ) : (
-                    <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        padding: "4px 10px",
-                        borderRadius: 999,
-                        background: "#dcfce7",
-                        color: "#166534",
-                        border: "1px solid #bbf7d0",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                      }}
-                    >
-                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#16a34a" }} />
-                      Đã kết nối Service Account Google API
+                      D1 Cache: {gscOverview.cachedAt ? new Date(gscOverview.cachedAt).toLocaleTimeString("vi-VN") : "Active"}
                     </span>
                   )}
                 </div>
@@ -738,7 +966,7 @@ export default function SeoDiscoveryPage() {
               </div>
             </div>
 
-            {/* Service Account Setup Form & Detailed Guide */}
+            {/* Service Account Setup Form */}
             <div
               style={{
                 background: "#ffffff",
@@ -749,55 +977,20 @@ export default function SeoDiscoveryPage() {
               }}
             >
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 8px", color: "#0f172a" }}>
-                🔑 Cấu Hình Google Service Account Key (JSON)
+                🔑 Cập Nhật Google Service Account Key (JSON)
               </h2>
               <p style={{ color: "#64748b", fontSize: 14, margin: "0 0 16px" }}>
-                Chạy nền server-to-server 24/7 trên Cloudflare Worker mà không cần đăng nhập định kỳ.
+                Key được lưu bảo mật trong bảng <code>system_settings</code> của Cloudflare D1 và chạy tự động server-to-server 24/7.
               </p>
 
-              {/* Step-by-step Instructions Box */}
-              <div
-                style={{
-                  background: "#f8fafc",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 12,
-                  padding: "16px 20px",
-                  marginBottom: 16,
-                  fontSize: 13,
-                  lineHeight: 1.6,
-                  color: "#334155",
-                }}
-              >
-                <div style={{ fontWeight: 700, color: "#0f172a", marginBottom: 6 }}>
-                  📖 Hướng dẫn 5 bước lấy Key JSON từ Google Cloud Console:
-                </div>
-                <ol style={{ margin: 0, paddingLeft: 20 }}>
-                  <li>
-                    Truy cập <strong>Google Cloud Console</strong> (<a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" style={{ color: "#2563eb" }}>console.cloud.google.com</a>) và chọn dự án của bạn.
-                  </li>
-                  <li>
-                    Vào <strong>APIs &amp; Services</strong> &gt; <strong>Library</strong> &gt; Tìm kiếm và Bật <strong>Google Search Console API</strong>.
-                  </li>
-                  <li>
-                    Vào <strong>IAM &amp; Admin</strong> &gt; <strong>Service Accounts</strong> &gt; Chọn <strong>Create Service Account</strong> (Đặt tên ví dụ: <code>mstudio-gsc-reader</code>).
-                  </li>
-                  <li>
-                    Nhấp vào Service Account vừa tạo &gt; Thẻ <strong>Keys</strong> &gt; <strong>Add Key</strong> &gt; <strong>Create new key</strong> (Chọn định dạng <strong>JSON</strong>) &gt; Tải file <code>.json</code> về máy.
-                  </li>
-                  <li>
-                    <strong>Quan trọng:</strong> Sao chép email Service Account (có dạng <code>xxx@project-id.iam.gserviceaccount.com</code>), vào <strong>Google Search Console</strong> &gt; <strong>Cài đặt</strong> &gt; <strong>Người dùng và quyền</strong> &gt; Thêm email này với quyền <strong>Chủ sở hữu</strong> hoặc <strong>Xem</strong>.
-                  </li>
-                </ol>
-              </div>
-
               <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
-                Dán toàn bộ nội dung file JSON vào đây:
+                Dán nội dung file JSON Service Account mới (nếu muốn thay đổi):
               </label>
               <textarea
                 value={gscJson}
                 onChange={(e) => setGscJson(e.target.value)}
                 placeholder='{ "type": "service_account", "project_id": "...", "private_key": "-----BEGIN PRIVATE KEY-----\\n...", "client_email": "..." }'
-                rows={6}
+                rows={5}
                 style={{
                   width: "100%",
                   padding: "12px 14px",
@@ -817,7 +1010,7 @@ export default function SeoDiscoveryPage() {
                   onClick={handleSaveGsc}
                   style={{ padding: "10px 24px", fontWeight: 600 }}
                 >
-                  Lưu &amp; Kích hoạt Google Search Console
+                  Lưu &amp; Cập Nhật Key
                 </button>
                 {gscSaved && (
                   <span style={{ color: "#16a34a", fontSize: 13, fontWeight: 600 }}>

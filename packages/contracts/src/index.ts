@@ -136,5 +136,6 @@ export type {
   RedirectRecord,
   SystemSettingRecord,
   GscOverviewResponse,
+  GscHealthStatus,
 } from "./studio.ts";
 

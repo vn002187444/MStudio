@@ -1,3 +1,4 @@
+import { getGscOverviewWithCache, checkGscHealth, pingGoogleIndexingApi } from "./gsc";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import {
@@ -1198,129 +1199,29 @@ async function importPrivateKey(pem: string) {
 }
 
 app.get("/seo/gsc/overview", requireRole("admin", "editor"), async (c) => {
-  const keySetting = await getSystemSetting(c.env.DB, "gsc_service_account");
-  
-  const fallbackResponse = {
-    clicks: 0,
-    impressions: 0,
-    ctr: 0,
-    position: 0,
-    topQueries: [],
-    fallback: true
-  };
-
-  if (!keySetting || !keySetting.value) {
-    return c.json(fallbackResponse);
-  }
-
-  try {
-    const creds = JSON.parse(keySetting.value);
-    
-    const header = { alg: "RS256", typ: "JWT" };
-    const iat = Math.floor(Date.now() / 1000);
-    const exp = iat + 3600;
-    const claimSet = {
-      iss: creds.client_email,
-      scope: "https://www.googleapis.com/auth/webmasters.readonly",
-      aud: "https://oauth2.googleapis.com/token",
-      exp,
-      iat,
-    };
-    
-    const encodedHeader = b64u(JSON.stringify(header));
-    const encodedClaimSet = b64u(JSON.stringify(claimSet));
-    const toSign = `${encodedHeader}.${encodedClaimSet}`;
-    
-    const key = await importPrivateKey(creds.private_key);
-    const signature = await crypto.subtle.sign(
-      "RSASSA-PKCS1-v1_5",
-      key,
-      new TextEncoder().encode(toSign)
-    );
-    
-    const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature)))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-      
-    const jwt = `${toSign}.${encodedSignature}`;
-    
-    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: jwt
-      })
-    });
-    
-    if (!tokenRes.ok) {
-      console.warn("Failed to get Google OAuth token", await tokenRes.text());
-      return c.json(fallbackResponse);
-    }
-    
-    const tokenData = await tokenRes.json() as { access_token: string };
-    
-    const siteUrl = "https://minds.io.vn";
-    const endDate = new Date().toISOString().split('T')[0];
-    const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    
-    const gscRes = await fetch(`https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${tokenData.access_token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        startDate,
-        endDate,
-        dimensions: ["query"],
-        rowLimit: 5
-      })
-    });
-    
-    if (!gscRes.ok) {
-      console.warn("Failed to fetch GSC data", await gscRes.text());
-      return c.json(fallbackResponse);
-    }
-    
-    const gscData = await gscRes.json() as any;
-    
-    let clicks = 0;
-    let impressions = 0;
-    let positionSum = 0;
-    let positionCount = 0;
-    const topQueries = [];
-    
-    for (const row of gscData.rows || []) {
-      clicks += row.clicks;
-      impressions += row.impressions;
-      positionSum += row.position * row.impressions;
-      positionCount += row.impressions;
-      topQueries.push({
-        keys: row.keys,
-        clicks: row.clicks,
-        impressions: row.impressions
-      });
-    }
-    
-    const ctr = impressions > 0 ? clicks / impressions : 0;
-    const position = positionCount > 0 ? positionSum / positionCount : 0;
-    
-    return c.json({
-      clicks,
-      impressions,
-      ctr,
-      position,
-      topQueries,
-      fallback: false
-    });
-    
-  } catch (err) {
-    console.error("GSC API error:", err);
-    return c.json(fallbackResponse);
-  }
+  const force = c.req.query("force") === "true";
+  const data = await getGscOverviewWithCache(c.env.DB, force);
+  return c.json(data);
 });
+
+app.get("/seo/gsc/health", requireRole("admin", "editor"), async (c) => {
+  const statusStr = await getSystemSetting(c.env.DB, "gsc_service_account_status");
+  if (statusStr && statusStr.value) {
+    try {
+      return c.json(JSON.parse(statusStr.value));
+    } catch (e) {
+      // ignore
+    }
+  }
+  const status = await checkGscHealth(c.env.DB);
+  return c.json(status);
+});
+
+app.post("/seo/gsc/verify", requireRole("admin"), async (c) => {
+  const status = await checkGscHealth(c.env.DB);
+  return c.json(status);
+});
+
 
 app.all("/sources", (c) => c.text("Method not allowed", 405));
 app.all("/raw-items", (c) => c.text("Method not allowed", 405));
@@ -1386,6 +1287,21 @@ export default {
       ).bind(new Date().toISOString(), fifteenMinutesAgo).run();
 
       const publishedCount = updateResult.meta.changes ?? 0;
+      if (publishedCount > 0) {
+        // Find newly published articles to ping indexing API
+        const newlyPublished = await env.DB.prepare(
+          `SELECT slug FROM articles 
+           WHERE status = 'published' AND updated_at = ?`
+        ).bind(new Date().toISOString()).all<{slug: string}>();
+        
+        for (const row of newlyPublished.results || []) {
+           const url = `https://minds.io.vn/${row.slug}`;
+           await pingGoogleIndexingApi(env.DB, url);
+        }
+      }
+      
+      // Periodically check GSC health
+      await checkGscHealth(env.DB);
       if (publishedCount === 0) {
         const rawItemsResult = await env.DB.prepare(
           `SELECT id, feed_id AS feedId, source_id AS sourceId, external_id AS externalId,
