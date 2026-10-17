@@ -36,4 +36,18 @@ export interface GscOverviewResponse {
   position: number;
   topQueries: { keys: string[]; clicks: number; impressions: number }[];
   fallback: boolean;
+  cachedAt?: string;
+  isCached?: boolean;
+  quotaLocked?: boolean;
+}
+
+export interface GscHealthStatus {
+  status: "connected" | "warning" | "error" | "missing";
+  clientEmail?: string;
+  projectId?: string;
+  lastCheckedAt: string;
+  indexingQuotaUsedToday: number;
+  indexingQuotaLimit: number;
+  analyticsStatus: "active" | "cached" | "circuit_broken" | "error";
+  errorMessage?: string;
 }
