@@ -470,17 +470,11 @@ export default async function ArticlePage({
       {article.videoUrl ? (
         <VideoEmbed url={article.videoUrl} />
       ) : (
-        <div style={{ margin: "0 0 24px", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)", background: "var(--soft, #f1f5f9)" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={article.heroImageUrl || (CATEGORY_FALLBACK_IMAGES[article.categorySlug || "cong-nghe"] ?? CATEGORY_FALLBACK_IMAGES["cong-nghe"])}
-            alt={article.title}
-            referrerPolicy="no-referrer"
-            loading="eager"
-            decoding="async"
-            style={{ width: "100%", maxHeight: 480, objectFit: "cover", display: "block" }}
-          />
-        </div>
+        <ArticleHero
+          imageUrl={article.heroImageUrl || (CATEGORY_FALLBACK_IMAGES[article.categorySlug || "cong-nghe"] ?? CATEGORY_FALLBACK_IMAGES["cong-nghe"])}
+          alt={article.title}
+          seed={article.slug || article.id}
+        />
       )}
 
       {article.summary ? (

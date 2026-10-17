@@ -1,4 +1,4 @@
-import { BentoGrid, BentoCard } from "@mstudio/ui";
+import { BentoGrid, BentoCard, BrandLogo } from "@mstudio/ui";
 
 /**
  * Editorial Deep Void Bento Footer (MST-110).
@@ -13,9 +13,9 @@ export function EditorialFooter() {
           {/* Brand Col */}
           <BentoCard colSpan={4} className="bg-[var(--void-surface)] border-white/5 p-8 flex flex-col justify-between">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-white mb-4">
-                MSTUDIO <span className="font-normal text-white/60">CHANNEL</span>
-              </h2>
+              <div className="mb-6">
+                <BrandLogo variant="channel" size="lg" isDark={true} />
+              </div>
               <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm">
                 Tạp chí công nghệ, kinh tế và trí tuệ nhân tạo thế hệ mới. Tiên phong áp dụng AI trong kiểm chứng và xuất bản tin tức theo thời gian thực.
               </p>

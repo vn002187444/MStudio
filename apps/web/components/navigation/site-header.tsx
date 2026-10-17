@@ -1,4 +1,5 @@
 import { fetchPrimaryNav, trendingTopics } from "./taxonomy";
+import { BrandLogo } from "@mstudio/ui";
 
 /**
  * Site header (MST-110 Hybrid Glassmorphic).
@@ -29,9 +30,7 @@ export async function SiteHeader() {
     <header className="site-header glass-shell fixed top-0 w-full z-[var(--z-sticky)]">
       {/* Desktop Main Navigation Bar (72px) */}
       <div className="desktop-bar h-[72px] text-white">
-        <a className="brand text-white" href="/" translate="no">
-          MSTUDIO <span>CHANNEL</span>
-        </a>
+        <BrandLogo variant="channel" size="md" isDark={true} />
 
         <nav aria-label="Chuyên mục chính" className="desktop-nav flex-1 min-w-0">
           <div className="flex items-center gap-2 w-full">
@@ -98,9 +97,7 @@ export async function SiteHeader() {
 
       {/* Mobile Bar (56px) */}
       <div className="mobile-bar h-[56px] text-white">
-        <a className="brand text-white" href="/" translate="no">
-          MSTUDIO <span>CHANNEL</span>
-        </a>
+        <BrandLogo variant="channel" size="sm" isDark={true} />
 
         <div className="flex items-center gap-2">
           <a

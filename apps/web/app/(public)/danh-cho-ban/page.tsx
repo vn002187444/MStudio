@@ -234,7 +234,7 @@ export default async function ForYouPage() {
                   const imageUrl =
                     article.heroImageUrl && article.heroImageUrl.trim() !== ""
                       ? article.heroImageUrl
-                      : ""[categorySlug] ?? ""["cong-nghe"];
+                      : `https://placehold.co/800x450/eeeeee/999999.webp?text=${encodeURIComponent(categoryName)}`;
 
                   return (
                     <article

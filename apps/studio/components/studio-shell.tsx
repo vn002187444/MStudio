@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SpringButton } from "@mstudio/ui";
+import { SpringButton, BrandLogo } from "@mstudio/ui";
 
 interface NavItem {
   href: string;
@@ -65,9 +65,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         >
           {mobileMenuOpen ? "✕" : "☰"}
         </button>
-        <div className="font-bold text-sm tracking-widest text-white">
-          <span className="text-white/60">MSTUDIO</span> STUDIO
-        </div>
+        <BrandLogo variant="studio" size="sm" isDark={true} />
         <Link href="/editor" className="text-blue-400 font-medium text-sm">
           + Viết
         </Link>
@@ -80,10 +78,8 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         }`}
         aria-label="Điều hướng Studio"
       >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-white/10 shrink-0">
-          <p className="font-bold tracking-widest text-sm m-0 text-white">
-            <span className="text-white/60 font-normal">MSTUDIO</span> STUDIO
-          </p>
+        <div className="flex items-center justify-between h-16 px-4 border-b border-white/10 shrink-0">
+          <BrandLogo variant="studio" size="sm" isDark={true} />
           <span className="hud-text text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border hud-border hud-bg animate-pulse">
             LIVE
           </span>
