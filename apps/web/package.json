@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@mstudio/ui": "workspace:*",
     "@vercel/og": "^1.0.3",
     "@vinext/cloudflare": "^1.0.1",
+    "date-fns": "^4.4.0",
     "react": "latest",
     "react-dom": "latest",
     "react-server-dom-webpack": "^19.3.0",

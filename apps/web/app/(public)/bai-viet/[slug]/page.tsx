@@ -10,7 +10,7 @@ import {
 } from "../../../../components/article/table-of-contents";
 import { SourceBlock } from "../../../../components/article/source-block";
 import { BlocksRenderer, headingsFromBlocks } from "../../../../components/article/blocks-renderer";
-import { CATEGORY_FALLBACK_IMAGES } from "../../../../components/article/news-card";
+
 import { parseArticleBlocksBody } from "../../../../lib/contracts";
 
 /**

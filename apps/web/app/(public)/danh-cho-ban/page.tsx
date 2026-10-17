@@ -6,13 +6,6 @@ import {
   fetchLatestArticles,
   type PublishedArticle,
 } from "../../../lib/content/articles";
-import {
-  CATEGORY_NAMES,
-  CATEGORY_FALLBACK_IMAGES,
-  formatRelativeTime,
-  getCategoryBadgeClass,
-} from "../../../components/article/news-card";
-import { FollowTopicButton, HideTopicButton } from "../../../components/discovery/follow-controls";
 
 export const metadata: Metadata = {
   title: "Dành cho bạn | MStudio Channel",
@@ -241,7 +234,7 @@ export default async function ForYouPage() {
                   const imageUrl =
                     article.heroImageUrl && article.heroImageUrl.trim() !== ""
                       ? article.heroImageUrl
-                      : CATEGORY_FALLBACK_IMAGES[categorySlug] ?? CATEGORY_FALLBACK_IMAGES["cong-nghe"];
+                      : ""[categorySlug] ?? ""["cong-nghe"];
 
                   return (
                     <article

@@ -102,3 +102,30 @@
     --text-body: 18px;
   }
 }
+
+/* ── Hybrid Glassmorphic Portal (MST-110) ── */
+:root {
+  /* Colors - Void Dark Zones */
+  --void-deep: #09090D;
+  --void-surface: #0D1117;
+  
+  /* Colors - Solar Frosted Light Zones */
+  --solar-light: #F8FAFC;
+  --solar-surface: #F1F5F9;
+
+  /* Glassmorphism Specs */
+  --glass-backdrop-filter: blur(20px) saturate(180%);
+  --glass-bg-gradient: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 100%);
+  --glass-border: 1px solid rgba(255,255,255,0.12);
+  --glass-box-shadow: inset 0 1px 1px 0 rgba(255,255,255,0.2), 0 20px 40px -15px rgba(0,0,0,0.3);
+
+  /* Setproduct Bento Grid Radii Math */
+  --bento-padding: 16px;
+  --bento-radius-outer: 24px;
+  --bento-radius-inner: calc(var(--bento-radius-outer) - var(--bento-padding));
+  --bento-radius-lg-outer: 32px;
+  --bento-radius-lg-inner: calc(var(--bento-radius-lg-outer) - var(--bento-padding));
+
+  /* Motion springs */
+  --motion-spring-bouncy: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}

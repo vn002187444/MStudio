@@ -1,13 +1,15 @@
-/**
- * Table of Contents (proposal §7): trích heading markdown (## / ###)
- * từ body, render sticky bên phải trên desktop. Không có heading thì
- * render nothing — body hiện tại là đoạn văn thuần.
- */
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { GlassCard } from "@mstudio/ui";
+
 export interface TocHeading {
-  level: 2 | 3;
+  level: number;
   text: string;
   id: string;
 }
+
+export type TocItem = TocHeading;
 
 export function slugifyHeading(text: string): string {
   return text
@@ -41,21 +43,66 @@ export function extractHeadings(body: string): TocHeading[] {
   return headings;
 }
 
-export function TableOfContents({ headings }: { headings: TocHeading[] }) {
-  if (headings.length === 0) return null;
+export function TableOfContents({
+  headings,
+  items,
+}: {
+  headings?: TocHeading[];
+  items?: TocHeading[];
+}) {
+  const activeList = items || headings || [];
+  const [activeId, setActiveId] = useState<string>("");
+
+  useEffect(() => {
+    if (activeList.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-100px 0px -80% 0px" }
+    );
+
+    activeList.forEach((item) => {
+      const element = document.getElementById(item.id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [activeList]);
+
+  if (activeList.length === 0) return null;
+
   return (
-    <aside aria-label="Mục lục bài viết" className="article-toc">
-      <h2 style={{ fontSize: "var(--text-base)" }}>Mục lục</h2>
-      <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-        {headings.map((heading) => (
-          <li
-            key={heading.id}
-            style={{ marginLeft: heading.level === 3 ? 16 : 0 }}
-          >
-            <a href={`#${heading.id}`}>{heading.text}</a>
-          </li>
-        ))}
-      </ul>
-    </aside>
+    <nav aria-label="Mục lục bài viết" className="hidden lg:block sticky top-[96px] w-[260px] float-right ml-8 mb-8 z-[var(--z-sticky)]">
+      <GlassCard variant="hybrid" className="p-5 shadow-xl border-black/5 bg-white/60">
+        <h4 className="text-[13px] font-bold uppercase tracking-widest text-[var(--gray)] mb-4 pb-2 border-b border-black/5">
+          Mục lục
+        </h4>
+        <ul className="flex flex-col gap-2.5 text-[14px]">
+          {activeList.map((item) => (
+            <li
+              key={item.id}
+              style={{ paddingLeft: `${(item.level - 2) * 12}px` }}
+            >
+              <a
+                href={`#${item.id}`}
+                className={`block transition-colors duration-200 line-clamp-2 ${
+                  activeId === item.id
+                    ? "text-[var(--brand)] font-bold"
+                    : "text-[var(--ink-700)] hover:text-[var(--ink)]"
+                }`}
+              >
+                {item.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </GlassCard>
+    </nav>
   );
 }

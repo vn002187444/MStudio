@@ -1,85 +1,80 @@
-import { primaryNav } from "./taxonomy";
+import { BentoGrid, BentoCard } from "@mstudio/ui";
 
 /**
- * Editorial Footer (PLAN.md page blueprint).
- * 3-column grid: Sitemap links | About + Contact | Social icons.
+ * Editorial Deep Void Bento Footer (MST-110).
+ * Displays branding, sitemap, transparency manifest.
  * Server Component.
  */
 export function EditorialFooter() {
   return (
-    <footer className="editorial-footer" role="contentinfo">
-      <div className="container-content">
-        <div className="footer-grid">
-          {/* Column 1: Brand + Sitemap */}
-          <div className="footer-col">
-            <p className="brand footer-brand" translate="no">
-              MSTUDIO <span>CHANNEL</span>
-            </p>
-            <p className="footer-tagline">
-              Tạp chí tin tức công nghệ, kinh tế &amp; phân tích đa nguồn thông minh.
-            </p>
-            <nav aria-label="Sitemap chân trang">
-              <ul className="footer-sitemap">
-                {primaryNav.slice(0, 8).map((item) => (
-                  <li key={item.href}>
-                    <a href={item.href}>{item.label}</a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
-
-          {/* Column 2: About & Legal */}
-          <div className="footer-col">
-            <h3 className="footer-heading">Về chúng tôi</h3>
-            <ul className="footer-links">
-              <li>
-                <a href="/gioi-thieu">Giới thiệu</a>
-              </li>
-              <li>
-                <a href="/lien-he">Liên hệ</a>
-              </li>
-              <li>
-                <a href="/chinh-sach-bao-mat">Chính sách bảo mật</a>
-              </li>
-              <li>
-                <a href="/dieu-khoan-su-dung">Điều khoản sử dụng</a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 3: Social + CMS */}
-          <div className="footer-col">
-            <h3 className="footer-heading">Kết nối</h3>
-            <div className="footer-social">
-              <a href="/feed.xml" aria-label="RSS Feed" className="footer-social-link">
-                {/* RSS icon */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M4 11a9 9 0 0 1 9 9" />
-                  <path d="M4 4a16 16 0 0 1 16 16" />
-                  <circle cx="5" cy="19" r="1" />
-                </svg>
-                <span>RSS</span>
-              </a>
+    <footer className="w-full bg-[var(--void-deep)] text-[var(--solar-light)] pt-16 pb-24 border-t border-[var(--void-surface)] mt-24">
+      <div className="container-content max-w-[var(--container)] mx-auto px-4 md:px-8">
+        <BentoGrid className="mb-12">
+          {/* Brand Col */}
+          <BentoCard colSpan={4} className="bg-[var(--void-surface)] border-white/5 p-8 flex flex-col justify-between">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-white mb-4">
+                MSTUDIO <span className="font-normal text-white/60">CHANNEL</span>
+              </h2>
+              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm">
+                Tạp chí công nghệ, kinh tế và trí tuệ nhân tạo thế hệ mới. Tiên phong áp dụng AI trong kiểm chứng và xuất bản tin tức theo thời gian thực.
+              </p>
             </div>
+            
             <a
               href="/cms"
               target="_blank"
               rel="noopener noreferrer"
-              className="footer-cms-pill"
+              className="inline-flex items-center gap-2 w-fit px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-sm font-medium transition-colors text-white"
             >
               <span aria-hidden="true">✍️</span>
-              <span>Biên tập / CMS</span>
+              Cổng Biên tập Studio CMS
             </a>
-          </div>
-        </div>
+          </BentoCard>
 
-        {/* Copyright */}
-        <div className="footer-bottom">
-          <p>
-            © {new Date().getFullYear()} MStudio Channel. Tòa soạn số đa nguồn &amp; AI
-            Evidence-first.
-          </p>
+          {/* Sitemap Col */}
+          <BentoCard colSpan={4} className="bg-[var(--void-surface)] border-white/5 p-8">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-white/40 mb-6">Khám phá</h3>
+            <ul className="columns-2 gap-4 text-sm font-medium">
+              {[
+                { href: "/moi-nhat", label: "Tin mới nhất" },
+                { href: "/cong-nghe", label: "Công nghệ" },
+                { href: "/kinh-doanh", label: "Kinh doanh" },
+                { href: "/the-gioi", label: "Thế giới" },
+                { href: "/ai-channel", label: "AI Channel" },
+                { href: "/khoa-hoc", label: "Khoa học" },
+                { href: "/xe", label: "Xe" },
+                { href: "/doi-song", label: "Đời sống" },
+              ].map((link) => (
+                <li key={link.href} className="mb-3 break-inside-avoid">
+                  <a href={link.href} className="text-white/70 hover:text-white transition-colors">{link.label}</a>
+                </li>
+              ))}
+            </ul>
+          </BentoCard>
+
+          {/* Legal / Social Col */}
+          <BentoCard colSpan={4} className="bg-[var(--void-surface)] border-white/5 p-8">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-white/40 mb-6">MStudio Lineage</h3>
+            <p className="text-xs text-white/50 leading-relaxed mb-6">
+              Nội dung được tổng hợp đa nguồn và đối chiếu sự thật bằng mô hình ngôn ngữ lớn (LLM). Mọi sự can thiệp từ ban biên tập đều được ghi nhận vào Lineage Manifest.
+            </p>
+            
+            <h3 className="text-sm font-bold uppercase tracking-widest text-white/40 mb-4 mt-8">Thông tin</h3>
+            <ul className="space-y-2 text-sm font-medium">
+              <li><a href="/gioi-thieu" className="text-white/70 hover:text-white transition-colors">Về chúng tôi</a></li>
+              <li><a href="/chinh-sach-bao-mat" className="text-white/70 hover:text-white transition-colors">Chính sách bảo mật</a></li>
+              <li><a href="/dieu-khoan-su-dung" className="text-white/70 hover:text-white transition-colors">Điều khoản sử dụng</a></li>
+              <li><a href="/lien-he" className="text-white/70 hover:text-white transition-colors">Liên hệ tòa soạn</a></li>
+            </ul>
+          </BentoCard>
+        </BentoGrid>
+
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/40 font-medium">
+          <p>© {new Date().getFullYear()} MStudio Channel. Phiên bản hệ thống: v2.0 (Hybrid Glassmorphic).</p>
+          <div className="flex gap-4">
+            <span>Powered by Cloudflare Workers & Vinext</span>
+          </div>
         </div>
       </div>
     </footer>

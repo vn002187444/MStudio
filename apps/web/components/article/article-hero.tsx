@@ -1,23 +1,22 @@
+import { GlassCard, GlassBadge, AmbientGlow } from "@mstudio/ui";
+
 /**
- * ArticleHero — tầng A→B→C media fallback (FU-15).
- * - imageUrl (tầng A hotlink / tầng B R2 resolvedUrl): render <img> + credit.
- * - Không có ảnh: placeholder CSS deterministic theo seed (tầng C),
- *   đúng visual_effects_v1 (không 3D/glow/marquee).
+ * ArticleHero (MST-110 Hybrid Glassmorphic).
+ * Immersive glass article hero with verified badge.
  */
 
 interface ArticleHeroProps {
   imageUrl?: string;
   credit?: string;
   alt?: string;
-  /** Seed ổn định (vd article/story id) để placeholder nhất quán. */
   seed?: string;
 }
 
 const PLACEHOLDER_TONES = [
-  "linear-gradient(135deg, var(--ink-900), var(--ink-700))",
-  "linear-gradient(135deg, var(--ink-800), var(--gray))",
-  "linear-gradient(45deg, var(--ink-900), var(--ink-800))",
-  "linear-gradient(45deg, var(--soft), var(--border))",
+  "linear-gradient(135deg, var(--void-deep), var(--void-surface))",
+  "linear-gradient(135deg, #0f172a, #1e293b)",
+  "linear-gradient(45deg, #1e1b4b, #312e81)",
+  "linear-gradient(45deg, #022c22, #064e3b)",
 ] as const;
 
 function toneIndex(seed: string): number {
@@ -29,36 +28,44 @@ function toneIndex(seed: string): number {
 }
 
 export function ArticleHero({ imageUrl, credit, alt, seed }: ArticleHeroProps) {
-  if (imageUrl) {
-    return (
-      <figure className="article-hero" style={{ margin: "0 0 24px" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imageUrl}
-          alt={alt ?? ""}
-          loading="lazy"
-          style={{
-            aspectRatio: "16 / 9",
-            borderRadius: "var(--radius-md)",
-            display: "block",
-            objectFit: "cover",
-            width: "100%",
-          }}
-        />
-        {credit ? (
-          <figcaption style={{ color: "var(--gray)", fontSize: "var(--text-sm)", marginTop: 8 }}>
-            Ảnh: {credit}
-          </figcaption>
-        ) : null}
-      </figure>
-    );
-  }
+  const gradient = PLACEHOLDER_TONES[toneIndex(seed ?? "mstudio")];
+
   return (
-    <div
-      aria-hidden="true"
-      className="article-hero-slot"
-      role="presentation"
-      style={{ background: PLACEHOLDER_TONES[toneIndex(seed ?? "mstudio")] }}
-    />
+    <figure className="relative w-full mb-8 rounded-[var(--bento-radius-lg-outer)] overflow-hidden group">
+      {/* Background Container */}
+      <div className="relative aspect-[16/9] md:aspect-[2/1] w-full overflow-hidden bg-[var(--void-deep)]">
+        {imageUrl ? (
+          <>
+            <AmbientGlow color="rgba(255,255,255,0.15)" className="z-10 opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageUrl}
+              alt={alt ?? ""}
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+            />
+            {/* Subtle bottom gradient for overlay text visibility if needed */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none z-10" />
+          </>
+        ) : (
+          <div aria-hidden="true" className="absolute inset-0" style={{ background: gradient }} />
+        )}
+
+        {/* Floating Badges */}
+        <div className="absolute top-4 right-4 z-20 flex gap-2">
+          <GlassBadge className="bg-black/40 border-white/20 text-white backdrop-blur-xl shadow-lg">
+            <span className="text-emerald-400 mr-1">✓</span> Đã xác thực
+          </GlassBadge>
+        </div>
+      </div>
+
+      {credit && (
+        <figcaption className="absolute bottom-4 right-4 z-20">
+          <GlassCard variant="dark" className="px-3 py-1.5 rounded-full text-[11px] text-white/80 font-medium border-white/10 shadow-lg">
+            Ảnh: {credit}
+          </GlassCard>
+        </figcaption>
+      )}
+    </figure>
   );
 }
