@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { primaryNav } from "../../../components/navigation/taxonomy";
+import { CATEGORY_FALLBACK_IMAGES } from "../../../components/article/news-card";
 import { fetchApi } from "../../../lib/api";
 import {
   fetchArticleById,
@@ -234,7 +235,7 @@ export default async function ForYouPage() {
                   const imageUrl =
                     article.heroImageUrl && article.heroImageUrl.trim() !== ""
                       ? article.heroImageUrl
-                      : `https://placehold.co/800x450/eeeeee/999999.webp?text=${encodeURIComponent(categoryName)}`;
+                      : CATEGORY_FALLBACK_IMAGES[categorySlug] ?? CATEGORY_FALLBACK_IMAGES["cong-nghe"];
 
                   return (
                     <article

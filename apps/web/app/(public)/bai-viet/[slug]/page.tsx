@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { apiBaseUrl, fetchApi } from "../../../../lib/api";
 import { newsArticleJsonLd, siteOrigin } from "../../../../lib/seo";
 import { ArticleHero } from "../../../../components/article/article-hero";
+import { CATEGORY_FALLBACK_IMAGES } from "../../../../components/article/news-card";
 import { cleanText } from "@mstudio/ui";
 import {
   extractHeadings,
