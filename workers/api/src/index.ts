@@ -677,9 +677,12 @@ app.get("/analytics/top-articles", async (c) => {
 });
 
 app.get("/analytics/overview", async (c) => {
-  // ⚡ Bolt: Cache analytics overview query for 60s since it scans the entire events table
+  // ⚡ Bolt: Cache analytics overview query for 60s since it scans the entire events table.
+  // KV là optional: chưa khai báo binding trong wrangler.jsonc nên cast để typecheck;
+  // khi bind KV namespace thì cache tự kích hoạt, chưa bind thì bỏ qua (no-op).
+  const kv = (c.env as unknown as { KV?: KVNamespace }).KV;
   const cacheKey = "analytics:overview";
-  const cached = await c.env.KV?.get(cacheKey, "json");
+  const cached = await kv?.get(cacheKey, "json");
   if (cached) {
     return c.json({ overview: cached });
   }
@@ -693,7 +696,7 @@ app.get("/analytics/overview", async (c) => {
      FROM reader_events`,
   ).first();
 
-  await c.env.KV?.put(cacheKey, JSON.stringify(result), { expirationTtl: 60 });
+  await kv?.put(cacheKey, JSON.stringify(result), { expirationTtl: 60 });
   return c.json({ overview: result });
 });
 
@@ -1057,6 +1060,7 @@ app.post("/cron/auto-publish", async (c) => {
   const candidates = await c.env.DB.prepare(
     `SELECT id, status, created_at FROM articles
      WHERE status IN ('needs_review', 'auto_eligible', 'drafted')
+     AND current_revision_id IS NOT NULL
      AND created_at <= ?
      LIMIT 20`,
   ).bind(fifteenMinutesAgo).all();
@@ -1066,10 +1070,17 @@ app.post("/cron/auto-publish", async (c) => {
 
   for (const row of candidates.results ?? []) {
     try {
-      await c.env.DB.prepare(
-        `UPDATE articles SET status = 'published', updated_at = ? WHERE id = ?`,
+      // Phải set published_revision_id + publish_key, nếu không bài sẽ bị
+      // reader query (INNER JOIN article_revisions) ẩn khỏi người đọc.
+      const res = await c.env.DB.prepare(
+        `UPDATE articles
+         SET status = 'published',
+             published_revision_id = current_revision_id,
+             publish_key = id || ':' || current_revision_id,
+             updated_at = ?
+         WHERE id = ? AND current_revision_id IS NOT NULL`,
       ).bind(now, row.id).run();
-      publishedIds.push(row.id as string);
+      if ((res.meta.changes ?? 0) > 0) publishedIds.push(row.id as string);
     } catch (err) {
       console.error(`Auto publish failed for ${row.id}:`, err);
     }
@@ -1285,13 +1296,21 @@ export default {
     _ctx: ExecutionContext,
   ): Promise<void> {
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    const now = new Date().toISOString();
     try {
+      // Auto-publish PHẢI kèm published_revision_id, nếu không reader query
+      // (PUBLISHED_ARTICLE_SELECT dùng INNER JOIN article_revisions) sẽ ẩn
+      // bài khỏi người đọc dù status = 'published'.
       const updateResult = await env.DB.prepare(
         `UPDATE articles 
-         SET status = 'published', updated_at = ? 
+         SET status = 'published',
+             published_revision_id = current_revision_id,
+             publish_key = id || ':' || current_revision_id,
+             updated_at = ? 
          WHERE status IN ('needs_review', 'auto_eligible') 
+         AND current_revision_id IS NOT NULL
          AND created_at <= ?`,
-      ).bind(new Date().toISOString(), fifteenMinutesAgo).run();
+      ).bind(now, fifteenMinutesAgo).run();
 
       const publishedCount = updateResult.meta.changes ?? 0;
       if (publishedCount > 0) {
@@ -1299,7 +1318,7 @@ export default {
         const newlyPublished = await env.DB.prepare(
           `SELECT slug FROM articles 
            WHERE status = 'published' AND updated_at = ?`
-        ).bind(new Date().toISOString()).all<{slug: string}>();
+        ).bind(now).all<{slug: string}>();
         
         for (const row of newlyPublished.results || []) {
            const url = `https://minds.io.vn/${row.slug}`;
