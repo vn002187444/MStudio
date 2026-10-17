@@ -1,0 +1,3 @@
+## 2024-10-18 - Batching Query Execution in Recommendations
+**Learning:** In the D1 database and Cloudflare Workers setup, independent queries inside an async pipeline (e.g. `listFreshArticleIds`, `listTrendingArticles`, `listRelatedArticles`) can and should be executed concurrently. The `.all()` calls on prepared statements can be parallelized effectively using `Promise.all()` to unblock slow sequential I/O operations without exceeding sub-request limits on the free tier. This fits well for compiling recommendation candidate pools.
+**Action:** When gathering data from multiple sources/tables that don't depend on each other, wrap their execution in a `Promise.all()` to decrease overall request latency.
