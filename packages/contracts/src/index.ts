@@ -114,6 +114,9 @@ export type {
   SitemapEntry,
   SitemapEvent,
   SitemapEventKind,
+  LlmsArticleEntry,
+  LlmsCategoryEntry,
+  LlmsTxtOptions,
 } from "./seo.ts";
 export type {
   ApiErrorResponse,
