@@ -1,23 +1,22 @@
 /**
  * API base URL duy nhất cho apps/web (mọi fetch server-side).
- * Dùng direct worker endpoint https://mstudio-api.vn002187444.workers.dev
- * để tránh lỗi Cloudflare Same-Zone Subrequest Timeout (HTTP 522) khi
- * custom domain worker (mstudio.minds.io.vn) subrequest tới custom domain worker (api.mstudio.minds.io.vn).
+ * Dùng custom domain https://api.mstudio.minds.io.vn làm primary URL
+ * vì Cloudflare cấm worker -> worker subrequest qua *.workers.dev (lỗi Error Code 1042 / HTTP 404).
  */
 export function apiBaseUrl(): string {
-  if (process.env.MSTUDIO_API_URL && !process.env.MSTUDIO_API_URL.includes("api.mstudio.minds.io.vn")) {
+  if (process.env.MSTUDIO_API_URL) {
     return process.env.MSTUDIO_API_URL;
   }
-  return "https://mstudio-api.vn002187444.workers.dev";
-}
-
-export function apiFallbackUrl(): string {
   return "https://api.mstudio.minds.io.vn";
 }
 
+export function apiFallbackUrl(): string {
+  return "https://mstudio-api.vn002187444.workers.dev";
+}
+
 /**
- * Resilient fetch helper: tries direct workers.dev first (bypassing same-zone 522),
- * and automatically falls back to custom domain if needed (or vice versa).
+ * Resilient fetch helper: tries custom domain first (avoiding Cloudflare 1042),
+ * and automatically falls back if needed. Also checks for body error code 1042.
  */
 export async function fetchApi(path: string, init?: RequestInit): Promise<Response> {
   const normPath = path.startsWith("/") ? path : `/${path}`;
@@ -26,7 +25,7 @@ export async function fetchApi(path: string, init?: RequestInit): Promise<Respon
 
   try {
     const res = await fetch(primaryUrl, init);
-    if (!res.ok && (res.status === 522 || res.status === 1042 || res.status >= 500)) {
+    if (!res.ok) {
       return await fetch(fallbackUrl, init);
     }
     return res;
@@ -34,4 +33,3 @@ export async function fetchApi(path: string, init?: RequestInit): Promise<Respon
     return await fetch(fallbackUrl, init);
   }
 }
-
