@@ -5,7 +5,7 @@ import {
   FeaturedCard,
   LeadStoryCard,
 } from "../../components/article/news-card";
-import { Hero3D, BentoGrid, BentoCard } from "@mstudio/ui";
+import { Hero3D, BentoGrid, BentoCard, cleanText } from "@mstudio/ui";
 
 /**
  * Trang chủ Editorial News & Minimal Data UI (MST-110 Hybrid Glassmorphic Portal).
@@ -77,7 +77,7 @@ export default async function PublicHomePage() {
                 href={`/bai-viet/${breakingArticle.slug || breakingArticle.id}`}
                 className="text-white hover:text-blue-300 font-semibold truncate transition-colors"
               >
-                {breakingArticle.title}
+                {cleanText(breakingArticle.title)}
               </a>
             </aside>
           </div>

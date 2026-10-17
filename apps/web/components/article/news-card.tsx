@@ -1,7 +1,7 @@
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import type { PublishedArticleRecord } from "../../lib/contracts";
-import { TiltCard, GlassBadge, AmbientGlow } from "@mstudio/ui";
+import { TiltCard, GlassBadge, AmbientGlow, cleanText } from "@mstudio/ui";
 
 export const CATEGORY_NAMES: Record<string, string> = {
   "thoi-su": "Thời sự",
@@ -31,7 +31,7 @@ export function formatRelativeTime(dateString: string) {
 }
 
 function stripHtml(html: string) {
-  return html.replace(/<[^>]*>?/gm, "");
+  return cleanText(html);
 }
 
 function getArticleImageUrl(article: PublishedArticleRecord) {

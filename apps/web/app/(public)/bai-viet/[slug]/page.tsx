@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { apiBaseUrl, fetchApi } from "../../../../lib/api";
 import { newsArticleJsonLd, siteOrigin } from "../../../../lib/seo";
 import { ArticleHero } from "../../../../components/article/article-hero";
+import { cleanText } from "@mstudio/ui";
 import {
   extractHeadings,
   slugifyHeading,
@@ -456,7 +457,7 @@ export default async function ArticlePage({
       </div>
 
       <h1 style={{ fontSize: "var(--text-4xl, 36px)", lineHeight: 1.25, fontWeight: 800, margin: "0 0 16px" }}>
-        {article.title}
+        {cleanText(article.title)}
       </h1>
 
       <p style={{ color: "var(--gray)", fontSize: "var(--text-sm, 14px)", margin: "0 0 24px" }}>
