@@ -118,6 +118,12 @@ export type {
   LlmsCategoryEntry,
   LlmsTxtOptions,
 } from "./seo.ts";
+export {
+  CATEGORY_FALLBACK_IMAGES,
+  DEFAULT_FALLBACK_CATEGORY,
+  resolveCategoryFallbackImage,
+  resolveHeroImageUrl,
+} from "./media.ts";
 export type {
   ApiErrorResponse,
   CreateFeedRequest,

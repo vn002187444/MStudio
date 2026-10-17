@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { D1Database, R2Bucket, R2Object } from "@cloudflare/workers-types";
 import type { RawItemRecord } from "@mstudio/contracts";
+import { CATEGORY_FALLBACK_IMAGES } from "@mstudio/contracts";
 import {
   createFeed,
   createRawItem,
@@ -654,6 +655,47 @@ test("acceptRawItem preserves imageUrl as heroImageUrl on article", async () => 
 
     const article = await getArticle(db, result.articleId);
     assert.equal(article?.heroImageUrl, "https://example.com/hero.jpg");
+  } finally {
+    close();
+  }
+});
+
+test("acceptRawItem falls back to the category image when imageUrl is missing", async () => {
+  const { db, close } = await openMigratedTestDb();
+  const expected = CATEGORY_FALLBACK_IMAGES["cong-nghe"];
+  try {
+    await createSource(db, {
+      id: "source-noimage",
+      name: "Source without image",
+      originUrl: "https://example.com",
+      kind: "rss",
+      now: NOW,
+    });
+    await createFeed(db, {
+      id: "feed-noimage",
+      sourceId: "source-noimage",
+      url: "https://example.com/feed",
+      format: "rss",
+      now: NOW,
+    });
+    const { row: rawItem } = await createRawItem(db, {
+      id: "item-noimage-1",
+      feedId: "feed-noimage",
+      sourceId: "source-noimage",
+      url: "https://example.com/article-without-image",
+      title: "Article without hero image",
+      fetchedAt: NOW,
+      payloadHash: "hash-noimg-1",
+    });
+
+    const result = await acceptRawItem(
+      { db, actor: "editor-1", now: NOW },
+      rawItem,
+    );
+
+    const article = await getArticle(db, result.articleId);
+    assert.equal(article?.heroImageUrl, expected);
+    assert.equal(article?.ogImageUrl, expected);
   } finally {
     close();
   }

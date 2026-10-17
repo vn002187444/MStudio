@@ -6,6 +6,7 @@ import type {
   RawItemRejectResult,
   SourceRecord,
 } from "@mstudio/contracts";
+import { resolveHeroImageUrl } from "@mstudio/contracts";
 import {
   addRevision,
   addStorySource,
@@ -440,6 +441,7 @@ export async function acceptRawItem(
   const metaDescription = truncateSummary(draft.summary || title, 160);
   const canonicalUrl = `https://mstudio.minds.io.vn/bai-viet/${slug}`;
   const keywords = extractKeywords(title, categorySlug);
+  const heroImageUrl = resolveHeroImageUrl(rawItem.imageUrl, categorySlug);
 
   const article = await createArticle(deps.db, {
     id: crypto.randomUUID(),
@@ -451,7 +453,8 @@ export async function acceptRawItem(
     metaDescription,
     canonicalUrl,
     keywords,
-    heroImageUrl: rawItem.imageUrl || undefined,
+    heroImageUrl,
+    ogImageUrl: heroImageUrl,
     sourceCount: 1,
     qualityScore: 88,
     now,
