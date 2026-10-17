@@ -252,29 +252,39 @@ export function generateSlug(text: string): string {
 
 export function inferCategorySlug(title: string, content: string): string {
   const text = `${title} ${content}`.toLowerCase();
-  if (/ai|trí tuệ nhân tạo|bán dẫn|chip|công nghệ|số hóa|phần mềm|apple|google|meta|viễn thông/.test(text)) {
+  if (
+    /\bai\b|trí tuệ nhân tạo|machine learning|học máy|bán dẫn|semiconductor|\bchip\b|công nghệ|số hóa|phần mềm|apple|google|microsoft|nvidia|\bmeta\b|\bopenai\b|viễn thông|\bstartup\b/.test(
+      text,
+    )
+  ) {
     return "cong-nghe";
   }
-  if (/kinh tế|chứng khoán|thị trường|ngân hàng|lãi suất|giá vàng|usd|bất động sản|doanh nghiệp|lạm phát/.test(text)) {
+  if (/kinh tế|chứng khoán|thị trường|ngân hàng|lãi suất|giá vàng|\busd\b|nhà đất|bất động sản|doanh nghiệp|lạm phát|\bfed\b|inflation|interest rate|\bgdp\b|oil price|stock market/.test(text)) {
     return "kinh-doanh";
   }
-  if (/thế giới|quốc tế|mỹ|trung quốc|nga|ukraine|châu âu|bầu cử|ngoại giao|liên hợp quốc/.test(text)) {
+  if (/thế giới|quốc tế|mỹ|trung quốc|\bnga\b|ukraine|châu âu|bầu cử|ngoại giao|liên hợp quốc|nato|putin|trump|\bcongress\b|white house|\bworld\b|diplomat/.test(text)) {
     return "the-gioi";
   }
-  if (/pháp luật|môi trường|giao thông|đời sống|văn hóa|thể thao/.test(text)) {
+  if (/pháp luật|môi trường|giao thông|đời sống|văn hóa/.test(text)) {
     return "doi-song";
   }
-  if (/sức khỏe|y tế|bệnh viện|thuốc|vaccine/.test(text)) {
+  if (/sức khỏe|y tế|bệnh viện|thuốc|vaccine|disease|hospital/.test(text)) {
     return "suc-khoe";
   }
-  if (/giáo dục|đại học|học sinh|thi cử/.test(text)) {
+  if (/giáo dục|đại học|học sinh|thi cử|university|\bexam\b/.test(text)) {
     return "giao-duc";
   }
-  if (/xe|ô tô|xe điện|vinfast|byd|tesla/.test(text)) {
+  if (/\bxe\b|ô tô|xe điện|vinfast|byd|\btesla\b|\bev\b|electric vehicle/.test(text)) {
     return "xe";
   }
-  if (/khám phá|khoa học|vũ trụ|thiên văn|khảo cổ|sinh vật|địa chất|thiên nhiên/.test(text)) {
+  if (/khám phá|khoa học|vũ trụ|thiên văn|khảo cổ|sinh vật|địa chất|thiên nhiên|\bnasa\b|archaeology/.test(text)) {
     return "kham-pha";
+  }
+  if (/bóng đá|cầu thủ|đội tuyển|giải đấu|thể thao|world cup|\bfootball\b|\bsoccer\b|tournament|\bmatch\b/.test(text)) {
+    return "the-thao";
+  }
+  if (/phim\b|âm nhạc|ca sĩ|showbiz|giải trí|\bmovie\b|\bfilm\b|\bmusic\b|celebrity/.test(text)) {
+    return "giai-tri";
   }
   return "cong-nghe";
 }

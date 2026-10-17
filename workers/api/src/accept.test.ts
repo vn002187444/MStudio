@@ -33,6 +33,7 @@ import {
   acceptRawItem,
   buildDraftGateway,
   generateSlug,
+  inferCategorySlug,
   rejectRawItem,
   RawItemDecisionConflictError,
 } from "./accept.ts";
@@ -699,5 +700,54 @@ test("acceptRawItem falls back to the category image when imageUrl is missing", 
   } finally {
     close();
   }
+});
+
+test("inferCategorySlug does not match short keywords as substrings", () => {
+  assert.equal(
+    inferCategorySlug("Tai nạn giao thông nghiêm trọng trên quốc lộ", ""),
+    "doi-song",
+  );
+  assert.equal(
+    inferCategorySlug("Xem phim bom tấn cuối tuần này", ""),
+    "giai-tri",
+  );
+  assert.equal(
+    inferCategorySlug("Chứng khoán giảm mạnh phiên đầu tuần", ""),
+    "kinh-doanh",
+  );
+  assert.equal(
+    inferCategorySlug("Tổng thống Nga thăm Trung Quốc", ""),
+    "the-gioi",
+  );
+  assert.equal(
+    inferCategorySlug("Hà Nội siết giao dịch nhà đất 2 giá", ""),
+    "kinh-doanh",
+  );
+});
+
+test("inferCategorySlug classifies English articles by topic", () => {
+  assert.equal(
+    inferCategorySlug(
+      "Trump's diesel deal with Putin draws criticism from a frustrated Congress",
+      "",
+    ),
+    "the-gioi",
+  );
+  assert.equal(
+    inferCategorySlug("OpenAI unveils a new artificial intelligence model", ""),
+    "cong-nghe",
+  );
+  assert.equal(
+    inferCategorySlug("Fed holds interest rate steady as inflation cools", ""),
+    "kinh-doanh",
+  );
+  assert.equal(
+    inferCategorySlug("Câu lạc bộ bóng đá thắng trận chung kết", ""),
+    "the-thao",
+  );
+  assert.equal(
+    inferCategorySlug("Một bài viết về ẩm thực và du lịch", ""),
+    "cong-nghe",
+  );
 });
 
