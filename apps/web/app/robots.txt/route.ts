@@ -13,6 +13,8 @@ export function GET() {
     `Sitemap: ${origin}/sitemap.xml`,
     `Sitemap: ${origin}/sitemap-news.xml`,
     "",
+    `# LLMs & AI discovery: ${origin}/llms.txt`,
+    "",
   ].join("\n");
   return new Response(body, {
     headers: { "content-type": "text/plain; charset=utf-8" },

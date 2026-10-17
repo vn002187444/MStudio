@@ -60,3 +60,28 @@ export interface ArticleJsonLd {
   };
   image?: string[];
 }
+
+export interface LlmsCategoryEntry {
+  slug: string;
+  name: string;
+  description?: string;
+}
+
+export interface LlmsArticleEntry {
+  id: string;
+  slug?: string;
+  title: string;
+  summary?: string;
+  categorySlug?: string;
+  updatedAt?: string;
+}
+
+export interface LlmsTxtOptions {
+  siteTitle?: string;
+  siteDescription?: string;
+  siteOrigin: string;
+  categories?: LlmsCategoryEntry[];
+  articles?: LlmsArticleEntry[];
+  optionalLinks?: Array<{ title: string; url: string; description?: string }>;
+}
+

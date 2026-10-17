@@ -10,7 +10,17 @@ export {
   isWithinNewsWindow,
   NEWS_WINDOW_MS,
 } from "../../../packages/seo/src/sitemap.ts";
-export type { SitemapEntry, NewsSitemapEntry } from "../../../packages/contracts/src/seo.ts";
+export {
+  buildLlmsTxt,
+  buildLlmsFullTxt,
+} from "../../../packages/seo/src/llms.ts";
+export type {
+  SitemapEntry,
+  NewsSitemapEntry,
+  LlmsCategoryEntry,
+  LlmsArticleEntry,
+  LlmsTxtOptions,
+} from "../../../packages/contracts/src/seo.ts";
 export { newsArticleJsonLd } from "./seo/json-ld.ts";
 
 /**
