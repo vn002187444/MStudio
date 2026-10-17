@@ -1,4 +1,4 @@
-import { getGscOverviewWithCache, checkGscHealth, pingGoogleIndexingApi } from "./gsc";
+import { getGscOverviewWithCache, checkGscHealth, pingGoogleIndexingApi } from "./gsc.ts";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import {
@@ -677,6 +677,13 @@ app.get("/analytics/top-articles", async (c) => {
 });
 
 app.get("/analytics/overview", async (c) => {
+  // ⚡ Bolt: Cache analytics overview query for 60s since it scans the entire events table
+  const cacheKey = "analytics:overview";
+  const cached = await c.env.KV?.get(cacheKey, "json");
+  if (cached) {
+    return c.json({ overview: cached });
+  }
+
   const result = await c.env.DB.prepare(
     `SELECT
        COUNT(CASE WHEN event_type = 'open_article' THEN 1 END) as totalViews,
@@ -685,19 +692,19 @@ app.get("/analytics/overview", async (c) => {
        COUNT(CASE WHEN event_type = 'share' THEN 1 END) as shares
      FROM reader_events`,
   ).first();
+
+  await c.env.KV?.put(cacheKey, JSON.stringify(result), { expirationTtl: 60 });
   return c.json({ overview: result });
 });
 
 app.get("/stats/summary", async (c) => {
-  const rawCount = await c.env.DB.prepare(
-    `SELECT COUNT(*) as total FROM raw_items`
-  ).first<{ total: number }>();
-  const rawIncoming = await c.env.DB.prepare(
-    `SELECT COUNT(*) as incoming FROM raw_items WHERE status = 'incoming'`
-  ).first<{ incoming: number }>();
-  const articlesCount = await c.env.DB.prepare(
-    `SELECT COUNT(*) as total FROM articles`
-  ).first<{ total: number }>();
+  // ⚡ Bolt: Batch independent D1 count queries into a single HTTP request to reduce latency
+  const [rawCount, rawIncoming, articlesCount] = await Promise.all([
+    c.env.DB.prepare(`SELECT COUNT(*) as total FROM raw_items`).first<{ total: number }>(),
+    c.env.DB.prepare(`SELECT COUNT(*) as incoming FROM raw_items WHERE status = 'incoming'`).first<{ incoming: number }>(),
+    c.env.DB.prepare(`SELECT COUNT(*) as total FROM articles`).first<{ total: number }>(),
+  ]);
+
   return c.json({
     rawItems: {
       total: rawCount?.total ?? 0,

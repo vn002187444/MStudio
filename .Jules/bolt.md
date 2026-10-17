@@ -1,3 +1,7 @@
-## 2026-10-13 - [Zero-cost 3D Canvas Hero & CSS Motion Springs]
-**Learning:** React Server Components combined with standard CSS variables can mimic heavy WebGL effects. Implemented a zero-dependency `<Hero3D>` procedural canvas shader (< 12KB) which respects `prefers-reduced-motion` and pauses `requestAnimationFrame` on intersection observe for zero Cloudflare CPU impact and unmeasurable CWV regressions (LCP < 0.8s).
-**Action:** Created `hero-3d.tsx` as an isolated pure client component and layered CSS filters with mathematical scaling (e.g., Setproduct Bento grid `R_inner = R_outer - Padding`) via `tokens.css` to allow global styling updates without polluting JS bundles.
+## 2024-05-14 - Optimize Cloudflare D1 Queries
+**Learning:** Cloudflare D1 queries executed sequentially (using `await` on each `.first()` or `.all()` call) can be optimized by batching them with `db.batch()` which sends multiple SQL statements in a single HTTP request to the D1 database, reducing latency.
+**Action:** Use `Promise.all()` (or `db.batch()`) for independent D1 read queries in the same route.
+
+## 2026-10-16 - Cache Expensive Analytics Queries
+**Learning:** Analytics queries that count entire tables (like `reader_events`) become very slow as data grows and don't need real-time precision.
+**Action:** Use KV caching with `expirationTtl` to cache expensive aggregation queries and reduce D1 read load.
