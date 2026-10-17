@@ -1,511 +1,257 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { authedFetch, TokenGate } from "./cms-actions";
-import {
-  apiBaseUrl,
-  formatTime,
-  webBaseUrl,
-  type ArticleStatus,
-  type PublishedArticleRow,
-} from "../lib/cms";
+import { fetchApi } from "../lib/api";
+import { type ArticleRecord } from "../../../packages/contracts/src/schema.ts";
+import { StudioShell } from "./studio-shell";
+import { BentoGrid, BentoCard } from "@mstudio/ui";
 
-const DRAFT_GROUP: readonly ArticleStatus[] = ["drafted", "ai_qa"];
-const REVIEW_GROUP: readonly ArticleStatus[] = [
-  "human_review",
-  "auto_eligible",
-  "hold",
-];
-const SCHEDULED_GROUP: readonly ArticleStatus[] = ["scheduled"];
-const LIVE_GROUP: readonly ArticleStatus[] = ["published", "updated", "corrected"];
+const DRAFT_GROUP = ["draft"];
+const REVIEW_GROUP = ["needs_review", "approved"];
+const SCHEDULED_GROUP = ["scheduled"];
+const LIVE_GROUP = ["published", "archived"];
 
-const COUNT_STATUSES: readonly ArticleStatus[] = [
-  ...DRAFT_GROUP,
-  ...REVIEW_GROUP,
-  ...SCHEDULED_GROUP,
-  ...LIVE_GROUP,
-  "retracted",
-];
+type StatusCounts = Record<string, number>;
 
-const quickLinks: readonly { href: string; label: string }[] = [
-  { href: "/overview", label: "Overview" },
-  { href: "/editor", label: "Editor" },
-  { href: "/newsroom/incoming", label: "Incoming" },
-  { href: "/clusters", label: "Story Clusters" },
-  { href: "/drafts", label: "Drafts" },
-  { href: "/newsroom/needs-review", label: "Needs Review" },
-  { href: "/scheduled", label: "Scheduled" },
-  { href: "/newsroom/published", label: "Published" },
-  { href: "/audience", label: "Audience & Views" },
-  { href: "/seo", label: "SEO & Discovery" },
-  { href: "/newsroom/sources", label: "Sources" },
-];
-
-async function fetchRecent(): Promise<PublishedArticleRow[]> {
-  try {
-    const response = await fetch(`${apiBaseUrl()}/articles?limit=5`, {
-      cache: "no-store",
-    });
-    if (!response.ok) return [];
-    const payload = (await response.json()) as { rows?: PublishedArticleRow[] };
-    return Array.isArray(payload.rows) ? payload.rows : [];
-  } catch {
-    return [];
-  }
-}
-
-async function fetchStatusCounts(
-  token: string,
-): Promise<{
-  counts: Map<ArticleStatus, number> | undefined;
-  error?: string;
-}> {
-  if (!token) {
-    return {
-      counts: new Map(
-        COUNT_STATUSES.map((status) => [status, 0] as const),
-      ),
-    };
-  }
-  try {
-    const response = await authedFetch(
-      `${apiBaseUrl()}/articles/counts`,
-      token,
-      { cache: "no-store" },
-    );
-    if (!response.ok) {
-      return { counts: undefined, error: `HTTP ${response.status}` };
-    }
-    const payload = (await response.json()) as {
-      counts?: Partial<Record<ArticleStatus, number>>;
-    };
-    const counts = new Map<ArticleStatus, number>();
-    for (const status of COUNT_STATUSES) {
-      counts.set(status, Number(payload.counts?.[status] ?? 0));
-    }
-    return { counts };
-  } catch {
-    return { counts: undefined, error: "Không gọi được API" };
-  }
-}
-
-function sumGroup(
-  counts: Map<ArticleStatus, number>,
-  statuses: readonly ArticleStatus[],
-): number {
-  let total = 0;
-  for (const status of statuses) {
-    total += counts.get(status) ?? 0;
-  }
-  return total;
+function sumGroup(counts: StatusCounts, statuses: string[]) {
+  return statuses.reduce((sum, s) => sum + (counts[s] ?? 0), 0);
 }
 
 function StatusCard({
-  title,
-  href,
-  total,
   counts,
-  statuses,
+  href,
   icon,
+  statuses,
+  title,
+  total,
 }: {
-  title: string;
+  counts: StatusCounts;
   href: string;
-  total: number;
-  counts: Map<ArticleStatus, number>;
-  statuses: readonly ArticleStatus[];
   icon: string;
+  statuses: string[];
+  title: string;
+  total: number;
 }) {
   return (
-    <li
-      style={{
-        background: "var(--white)",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius-md)",
-        padding: "16px 18px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-        transition: "transform 0.15s ease, box-shadow 0.15s ease",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-      }}
+    <a
+      href={href}
+      className="glass-panel p-[var(--bento-padding)] rounded-xl flex flex-col gap-2 transition-all hover:-translate-y-1 hover:border-blue-500/30 group"
     >
-      <div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-          <span style={{ fontSize: 20 }}>{icon}</span>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              color: "var(--gray)",
-              background: "#f1f5f9",
-              padding: "2px 8px",
-              borderRadius: 999,
-            }}
-          >
-            {title}
-          </span>
-        </div>
-        <p style={{ fontSize: "var(--text-3xl)", fontWeight: 800, margin: "2px 0 6px", color: "var(--ink)" }}>
-          {total}
-        </p>
+      <div className="flex items-center gap-2 mb-2">
+        <span aria-hidden="true" className="text-xl group-hover:scale-110 transition-transform">{icon}</span>
+        <span className="font-semibold text-white group-hover:text-blue-400 transition-colors">{title}</span>
       </div>
-      <div>
-        <p style={{ color: "var(--gray)", fontSize: "12px", margin: "0 0 10px", lineHeight: 1.4 }}>
-          {statuses
-            .map((status) => `${status}: ${counts.get(status) ?? 0}`)
-            .join(" · ")}
-        </p>
-        <a
-          href={href}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            fontSize: "13px",
-            fontWeight: 600,
-            color: "var(--ai-blue)",
-            textDecoration: "none",
-          }}
-        >
-          Chi tiết ➜
-        </a>
+      <div className="text-3xl font-bold text-white mb-2">{total}</div>
+      <div className="flex flex-col gap-1 text-[11px] text-white/50">
+        {statuses.map((status) => (
+          <div key={status} className="flex justify-between">
+            <span>{status}:</span>
+            <span className="font-medium text-white/80">{counts[status] ?? 0}</span>
+          </div>
+        ))}
       </div>
-    </li>
+    </a>
   );
 }
 
+function webBaseUrl() {
+  if (typeof window !== "undefined") {
+    if (window.location.hostname === "localhost") return "http://localhost:5173";
+    if (window.location.hostname.endsWith("pages.dev")) return "https://mstudio-channel.pages.dev";
+  }
+  return "https://mstudio.minds.io.vn";
+}
+
+function formatTime(dateString: string) {
+  try {
+    const d = new Date(dateString);
+    return d.toLocaleString("vi-VN", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+  } catch {
+    return dateString;
+  }
+}
+
 export function OverviewDashboard() {
-  const [counts, setCounts] = useState<
-    Map<ArticleStatus, number> | undefined
-  >(undefined);
-  const [countsError, setCountsError] = useState<string | undefined>(undefined);
-  const [recent, setRecent] = useState<PublishedArticleRow[] | undefined>(
-    undefined,
-  );
+  const [counts, setCounts] = useState<StatusCounts | null>(null);
+  const [countsError, setCountsError] = useState("");
+  const [recent, setRecent] = useState<ArticleRecord[] | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    let token = "";
-    try {
-      token = window.localStorage.getItem("mstudio-cms-token") ?? "";
-    } catch {
-      token = "";
+    async function load() {
+      try {
+        const cResp = await fetchApi("/articles/counts");
+        if (cResp.ok) {
+          const cData = await cResp.json();
+          setCounts(cData.counts ?? {});
+        } else {
+          setCountsError(await cResp.text());
+        }
+      } catch (err: any) {
+        setCountsError(err.message);
+      }
+      try {
+        const rResp = await fetchApi("/articles?limit=5");
+        if (rResp.ok) {
+          const rData = await rResp.json();
+          setRecent(rData.rows ?? []);
+        }
+      } catch (err) {
+        // ignore for now
+      }
     }
-    void fetchRecent().then((rows) => {
-      if (!cancelled) setRecent(rows);
-    });
-    void fetchStatusCounts(token).then((result) => {
-      if (cancelled) return;
-      setCounts(result.counts);
-      setCountsError(result.error);
-    });
-    return () => {
-      cancelled = true;
-    };
+    void load();
   }, []);
+
+  const quickLinks = [
+    { href: "/editor", label: "+ Viết bài mới" },
+    { href: "/newsroom/incoming", label: "Duyệt Incoming" },
+    { href: "/audience", label: "Xem thống kê" },
+    { href: "/email", label: "Hộp thư Email" },
+  ];
 
   return (
     <TokenGate>
-      {/* Automation Pipeline Funnel Banner */}
-      <section
-        aria-label="Luồng tự động hoá tin tức"
-        style={{
-          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-          color: "#ffffff",
-          borderRadius: "var(--radius-lg)",
-          padding: "20px 24px",
-          marginBottom: 24,
-          boxShadow: "0 4px 14px rgba(15, 23, 42, 0.12)",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+      <div className="max-w-[var(--container)] mx-auto w-full">
+        {/* Header HUD */}
+        <header className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h2 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "#f8fafc" }}>
-              ⚡ Luồng Vận Hành Tự Động (AI News Pipeline)
-            </h2>
-            <p style={{ fontSize: "12.5px", color: "#94a3b8", margin: "4px 0 0" }}>
-              Mỗi 15 phút: Quét RSS ➔ Gom chùm tin ➔ AI Desk viết bài ➔ Chờ duyệt ➔ Tự động phát hành
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Telemetry & Metrics</h1>
+            <p className="text-white/60">Quản trị bài viết, hiệu suất biên tập và thông lượng hệ thống theo thời gian thực.</p>
           </div>
-          <span
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              padding: "4px 10px",
-              background: "rgba(34, 197, 94, 0.2)",
-              color: "#4ade80",
-              border: "1px solid rgba(34, 197, 94, 0.3)",
-              borderRadius: 999,
-            }}
-          >
-            ● HỆ THỐNG ĐANG CHẠY 24/7
-          </span>
-        </div>
+          <div className="flex items-center gap-2 glass-panel px-4 py-2 rounded-full border-emerald-500/20 bg-emerald-500/5">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse glow-meter" />
+            <span className="text-emerald-400 font-bold text-xs uppercase tracking-wider">Hệ thống đang chạy 24/7</span>
+          </div>
+        </header>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-            gap: 12,
-          }}
-        >
-          <a
-            href="/newsroom/incoming"
-            style={{
-              background: "rgba(255, 255, 255, 0.07)",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
-              borderRadius: "var(--radius-md)",
-              padding: "12px 14px",
-              color: "#ffffff",
-              textDecoration: "none",
-              display: "block",
-            }}
-          >
-            <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: 4 }}>1. Thu thập</div>
-            <div style={{ fontWeight: 700, fontSize: "14px" }}>📥 Tin thô RSS</div>
-          </a>
+        {/* Pipeline Flow Bento Grid */}
+        <section className="mb-8">
+          <BentoGrid>
+            {/* Step 1 */}
+            <BentoCard colSpan={2} className="glass-panel p-4 border-white/10 hover:border-blue-500/30 transition-colors group cursor-pointer" onClick={() => window.location.href='/newsroom/incoming'}>
+              <div className="text-xs text-white/50 mb-1 font-medium tracking-wide">1. THU THẬP</div>
+              <div className="font-bold text-white text-base group-hover:text-blue-400 transition-colors">📥 Tin thô RSS</div>
+            </BentoCard>
 
-          <a
-            href="/clusters"
-            style={{
-              background: "rgba(255, 255, 255, 0.07)",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
-              borderRadius: "var(--radius-md)",
-              padding: "12px 14px",
-              color: "#ffffff",
-              textDecoration: "none",
-              display: "block",
-            }}
-          >
-            <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: 4 }}>2. Phân loại</div>
-            <div style={{ fontWeight: 700, fontSize: "14px" }}>🧩 Gom chùm tin</div>
-          </a>
+            {/* Step 2 */}
+            <BentoCard colSpan={2} className="glass-panel p-4 border-white/10 hover:border-blue-500/30 transition-colors group cursor-pointer" onClick={() => window.location.href='/clusters'}>
+              <div className="text-xs text-white/50 mb-1 font-medium tracking-wide">2. PHÂN LOẠI</div>
+              <div className="font-bold text-white text-base group-hover:text-blue-400 transition-colors">🧩 Gom chùm tin</div>
+            </BentoCard>
 
-          <a
-            href="/drafts"
-            style={{
-              background: "rgba(255, 255, 255, 0.07)",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
-              borderRadius: "var(--radius-md)",
-              padding: "12px 14px",
-              color: "#ffffff",
-              textDecoration: "none",
-              display: "block",
-            }}
-          >
-            <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: 4 }}>3. AI biên soạn</div>
-            <div style={{ fontWeight: 700, fontSize: "14px" }}>🤖 Bản thảo ({counts ? sumGroup(counts, DRAFT_GROUP) : "…"})</div>
-          </a>
+            {/* Step 3 */}
+            <BentoCard colSpan={3} className="glass-panel p-4 border-white/10 hover:border-blue-500/30 transition-colors group cursor-pointer" onClick={() => window.location.href='/drafts'}>
+              <div className="text-xs text-white/50 mb-1 font-medium tracking-wide">3. AI BIÊN SOẠN</div>
+              <div className="font-bold text-white text-base group-hover:text-blue-400 transition-colors">🤖 Bản thảo ({counts ? sumGroup(counts, DRAFT_GROUP) : "…"})</div>
+            </BentoCard>
 
-          <a
-            href="/newsroom/needs-review"
-            style={{
-              background: "rgba(255, 255, 255, 0.07)",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
-              borderRadius: "var(--radius-md)",
-              padding: "12px 14px",
-              color: "#ffffff",
-              textDecoration: "none",
-              display: "block",
-            }}
-          >
-            <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: 4 }}>4. Hàng đợi 15m</div>
-            <div style={{ fontWeight: 700, fontSize: "14px" }}>⏱️ Chờ duyệt ({counts ? sumGroup(counts, REVIEW_GROUP) : "…"})</div>
-          </a>
+            {/* Step 4 */}
+            <BentoCard colSpan={3} className="glass-panel p-4 border-white/10 hover:border-blue-500/30 transition-colors group cursor-pointer" onClick={() => window.location.href='/newsroom/needs-review'}>
+              <div className="text-xs text-amber-500/70 mb-1 font-medium tracking-wide">4. HÀNG ĐỢI 15M</div>
+              <div className="font-bold text-white text-base group-hover:text-amber-400 transition-colors">⏱️ Chờ duyệt ({counts ? sumGroup(counts, REVIEW_GROUP) : "…"})</div>
+            </BentoCard>
 
-          <a
-            href="/newsroom/published"
-            style={{
-              background: "rgba(255, 255, 255, 0.07)",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
-              borderRadius: "var(--radius-md)",
-              padding: "12px 14px",
-              color: "#ffffff",
-              textDecoration: "none",
-              display: "block",
-            }}
-          >
-            <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: 4 }}>5. Đang phát hành</div>
-            <div style={{ fontWeight: 700, fontSize: "14px", color: "#4ade80" }}>🚀 Live ({counts ? sumGroup(counts, LIVE_GROUP) : "…"})</div>
-          </a>
-        </div>
-      </section>
-
-      {counts ? (
-        <section aria-labelledby="overview-counts" style={{ marginBottom: 24 }}>
-          <h2 id="overview-counts" style={{ fontSize: "var(--text-xl)", margin: "0 0 12px" }}>
-            Số liệu theo trạng thái bài viết
-          </h2>
-          {countsError ? (
-            <p role="alert" style={{ color: "var(--breaking-red)" }}>Lỗi tải số liệu: {countsError}</p>
-          ) : null}
-          <ul
-            style={{
-              display: "grid",
-              gap: 16,
-              gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))",
-              listStyle: "none",
-              margin: 0,
-              padding: 0,
-            }}
-          >
-            <StatusCard
-              counts={counts}
-              href="/drafts"
-              icon="📝"
-              statuses={DRAFT_GROUP}
-              title="Bản nháp"
-              total={sumGroup(counts, DRAFT_GROUP)}
-            />
-            <StatusCard
-              counts={counts}
-              href="/newsroom/needs-review"
-              icon="⏳"
-              statuses={REVIEW_GROUP}
-              title="Chờ duyệt"
-              total={sumGroup(counts, REVIEW_GROUP)}
-            />
-            <StatusCard
-              counts={counts}
-              href="/scheduled"
-              icon="📅"
-              statuses={SCHEDULED_GROUP}
-              title="Đã lên lịch"
-              total={sumGroup(counts, SCHEDULED_GROUP)}
-            />
-            <StatusCard
-              counts={counts}
-              href="/newsroom/published"
-              icon="🌐"
-              statuses={LIVE_GROUP}
-              title="Đang phát hành"
-              total={sumGroup(counts, LIVE_GROUP)}
-            />
-          </ul>
+            {/* Step 5 */}
+            <BentoCard colSpan={2} className="glass-panel p-4 border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/50 transition-colors group cursor-pointer" onClick={() => window.location.href='/newsroom/published'}>
+              <div className="text-xs text-emerald-500/70 mb-1 font-medium tracking-wide">5. PHÁT HÀNH</div>
+              <div className="font-bold text-emerald-400 text-base">🚀 Live ({counts ? sumGroup(counts, LIVE_GROUP) : "…"})</div>
+            </BentoCard>
+          </BentoGrid>
         </section>
-      ) : (
-        <p role="status" style={{ color: "var(--gray)" }}>
-          Đang tải số liệu…
-        </p>
-      )}
 
-      <section aria-labelledby="overview-recent" style={{ marginBottom: 24 }}>
-        <h2 id="overview-recent" style={{ fontSize: "var(--text-xl)", margin: "0 0 12px" }}>
-          5 bài mới phát hành gần nhất
-        </h2>
-        {!recent ? (
-          <p role="status" style={{ color: "var(--gray)" }}>
-            Đang tải bài mới nhất…
-          </p>
-        ) : recent.length === 0 ? (
-          <p role="status" style={{ color: "var(--gray)" }}>
-            Chưa có bài reader-visible nào — duyệt ở Incoming rồi publish tại
-            Needs Review.
-          </p>
-        ) : (
-          <div
-            style={{
-              background: "var(--white)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-              overflow: "hidden",
-            }}
-          >
-            <table className="responsive-table" style={{ borderCollapse: "collapse", width: "100%" }}>
-              <caption style={{ textAlign: "left", padding: "12px 16px", fontWeight: 600, color: "var(--gray)", fontSize: "13px" }}>
-                Bài viết reader-visible đã phát hành trên hệ thống TinFlow
-              </caption>
-              <thead>
-                <tr style={{ background: "#f8fafc", borderBottom: "1px solid var(--border)" }}>
-                  <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>
-                    Tiêu đề bài viết
-                  </th>
-                  <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>
-                    Trạng thái
-                  </th>
-                  <th scope="col" style={{ textAlign: "left", padding: "12px 16px", fontSize: "13px" }}>
-                    Cập nhật
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {recent.map((article) => (
-                  <tr key={article.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td style={{ padding: "12px 16px" }}>
-                      <a
-                        href={`${webBaseUrl()}/bai-viet/${article.id}`}
-                        rel="noreferrer"
-                        style={{ fontWeight: 600, color: "var(--ink)", textDecoration: "none" }}
-                        target="_blank"
-                      >
-                        {article.title}
-                      </a>
-                    </td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <span
-                        style={{
-                          fontSize: 12,
-                          background: "#dcfce7",
-                          color: "#15803d",
-                          padding: "2px 8px",
-                          borderRadius: 999,
-                          fontWeight: 600,
-                        }}
-                      >
-                        ● {article.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: "12px 16px", color: "var(--gray)", fontSize: "13px" }}>
-                      {formatTime(article.updatedAt)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+        {/* Status Metrics */}
+        <section className="mb-12">
+          <h2 className="text-lg font-bold text-white/80 mb-4 border-b border-white/10 pb-2">Trạng thái khối lượng bài viết</h2>
+          {countsError && <p className="text-red-400 text-sm mb-4 bg-red-950/50 p-2 rounded">Lỗi tải số liệu: {countsError}</p>}
+          {counts ? (
+            <BentoGrid>
+              <BentoCard colSpan={3} className="p-0 border-none bg-transparent">
+                <StatusCard counts={counts} href="/drafts" icon="📝" statuses={DRAFT_GROUP} title="Bản nháp" total={sumGroup(counts, DRAFT_GROUP)} />
+              </BentoCard>
+              <BentoCard colSpan={3} className="p-0 border-none bg-transparent">
+                <StatusCard counts={counts} href="/newsroom/needs-review" icon="⏳" statuses={REVIEW_GROUP} title="Chờ duyệt" total={sumGroup(counts, REVIEW_GROUP)} />
+              </BentoCard>
+              <BentoCard colSpan={3} className="p-0 border-none bg-transparent">
+                <StatusCard counts={counts} href="/scheduled" icon="📅" statuses={SCHEDULED_GROUP} title="Đã lên lịch" total={sumGroup(counts, SCHEDULED_GROUP)} />
+              </BentoCard>
+              <BentoCard colSpan={3} className="p-0 border-none bg-transparent">
+                <StatusCard counts={counts} href="/newsroom/published" icon="🌐" statuses={LIVE_GROUP} title="Đang phát hành" total={sumGroup(counts, LIVE_GROUP)} />
+              </BentoCard>
+            </BentoGrid>
+          ) : (
+            <div className="h-32 glass-panel flex items-center justify-center text-white/50 text-sm rounded-[var(--bento-radius-outer)]">
+              Đang đồng bộ telemetry...
+            </div>
+          )}
+        </section>
 
-      <section aria-labelledby="overview-links">
-        <h2 id="overview-links" style={{ fontSize: "var(--text-xl)", margin: "0 0 12px" }}>
-          Lối tắt chức năng CMS
-        </h2>
-        <ul
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-            gap: 10,
-            listStyle: "none",
-            margin: 0,
-            padding: 0,
-          }}
-        >
-          {quickLinks.map((link) => (
-            <li key={link.href}>
-              <a
-                href={link.href}
-                style={{
-                  display: "block",
-                  padding: "12px 14px",
-                  background: "var(--white)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--radius-sm)",
-                  color: "var(--ink)",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "13.5px",
-                  textAlign: "center",
-                  transition: "background 0.15s ease",
-                }}
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
+        {/* Recent & Links Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <section className="lg:col-span-2">
+            <h2 className="text-lg font-bold text-white/80 mb-4 border-b border-white/10 pb-2">Bài viết phát hành gần nhất</h2>
+            {!recent ? (
+              <div className="glass-panel p-8 text-center text-white/50 text-sm rounded-[var(--bento-radius-outer)]">Đang truy xuất CSDL D1...</div>
+            ) : recent.length === 0 ? (
+              <div className="glass-panel p-8 text-center text-white/50 text-sm rounded-[var(--bento-radius-outer)]">Chưa có bài viết nào được xuất bản.</div>
+            ) : (
+              <div className="glass-panel rounded-[var(--bento-radius-outer)] overflow-x-auto">
+                <table className="w-full text-left text-sm whitespace-nowrap">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/5">
+                      <th className="p-4 font-semibold text-white/70">Tiêu đề</th>
+                      <th className="p-4 font-semibold text-white/70">Trạng thái</th>
+                      <th className="p-4 font-semibold text-white/70">Cập nhật</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {recent.map((article) => (
+                      <tr key={article.id} className="hover:bg-white/5 transition-colors">
+                        <td className="p-4">
+                          <a
+                            href={`${webBaseUrl()}/bai-viet/${article.slug || article.id}`}
+                            rel="noreferrer"
+                            className="font-medium text-white hover:text-blue-400 transition-colors"
+                            target="_blank"
+                          >
+                            {article.title}
+                          </a>
+                        </td>
+                        <td className="p-4">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            {article.status}
+                          </span>
+                        </td>
+                        <td className="p-4 text-white/50">
+                          {formatTime(article.updatedAt)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-white/80 mb-4 border-b border-white/10 pb-2">Lệnh thao tác nhanh</h2>
+            <div className="flex flex-col gap-2">
+              {quickLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="glass-panel p-4 rounded-xl text-center font-semibold text-sm hover:bg-white/10 hover:border-white/30 transition-all active:scale-[0.98]"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
     </TokenGate>
   );
 }

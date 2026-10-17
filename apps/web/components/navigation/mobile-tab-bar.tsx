@@ -1,14 +1,11 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { SpringButton } from "@mstudio/ui";
 
 /**
- * Mobile App-Like Tab Bar (MST-075 / FU-25):
- * - Hiển thị cố định ở chân màn hình trên điện thoại (ẩn trên desktop `md:hidden`).
- * - Chuẩn iOS Safe Area Insets (`env(safe-area-inset-bottom)`).
- * - Hiệu ứng kính mờ Frosted Glass (`frosted-glass`) + tactile press (`press-scale`).
- * - 4 Tab chuẩn PLAN: Trang chủ, Khám phá, Tìm kiếm, Đã lưu.
- * - Chấm chỉ báo active dưới icon + chuyển màu.
+ * Mobile App-Like Tab Bar (MST-110 Hybrid Glassmorphic).
+ * - Floating glass dock with spring feedback.
  */
 
 interface TabItem {
@@ -106,9 +103,9 @@ export function MobileTabBar() {
   return (
     <nav
       aria-label="Điều hướng nhanh di động"
-      className="mobile-tab-bar fixed bottom-0 left-0 right-0 z-[var(--z-overlay)] md:hidden frosted-glass bg-white/90 border-t border-black/[0.08] pt-1.5 pb-[max(env(safe-area-inset-bottom),8px)]"
+      className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-[var(--z-overlay)] md:hidden w-[calc(100%-32px)] max-w-[400px]"
     >
-      <ul className="flex items-center justify-around m-0 p-0 list-none">
+      <ul className="glass-shell rounded-full flex items-center justify-around m-0 p-1.5 list-none shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] border border-white/20">
         {TABS.map((tab) => {
           const isActive =
             tab.href === "/"
@@ -117,27 +114,21 @@ export function MobileTabBar() {
 
           return (
             <li key={tab.href} className="flex-1 flex justify-center">
-              <a
-                href={tab.href}
-                aria-current={isActive ? "page" : undefined}
-                className={`press-scale flex flex-col items-center justify-center min-h-[44px] min-w-[44px] px-3 py-0.5 text-center no-underline transition-colors duration-150 ${
-                  isActive
-                    ? "text-[var(--ink)] font-semibold"
-                    : "text-[var(--text-secondary)] hover:text-[var(--ink)] font-medium"
-                }`}
-              >
-                <div className="relative flex flex-col items-center justify-center">
-                  <TabIcon id={tab.id} />
-                  <span
-                    aria-hidden="true"
-                    className={`tab-active-dot transition-all duration-150 ${
-                      isActive ? "opacity-100 scale-100" : "opacity-0 scale-50"
-                    }`}
-                  />
-                </div>
-                <span className="text-[11px] leading-tight mt-0.5 tracking-tight">
-                  {tab.label}
-                </span>
+              <a href={tab.href} aria-current={isActive ? "page" : undefined} className="block w-full text-inherit no-underline">
+                <SpringButton
+                  className={`w-full flex flex-col items-center justify-center min-h-[48px] py-1 text-center no-underline transition-colors duration-150 rounded-full ${
+                    isActive
+                      ? "text-[var(--ink)] font-semibold bg-white/40 shadow-sm"
+                      : "text-[var(--text-secondary)] hover:text-[var(--ink)] font-medium bg-transparent hover:bg-white/20"
+                  }`}
+                >
+                  <span className="flex flex-col items-center justify-center gap-0.5">
+                    <TabIcon id={tab.id} />
+                    <span className="text-[10px] leading-tight tracking-tight">
+                      {tab.label}
+                    </span>
+                  </span>
+                </SpringButton>
               </a>
             </li>
           );

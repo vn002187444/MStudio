@@ -1,13 +1,9 @@
 import { fetchPrimaryNav, trendingTopics } from "./taxonomy";
 
 /**
- * Site header (MST-012 editorial shell).
- * - Frosted Glass effect: backdrop-filter blur(16px) saturate(180%) + rgba(9, 9, 9, 0.85).
- * - Header height: 72px desktop / 56px mobile (PLAN.md).
- * - Desktop: sticky header + full taxonomy nav + search icon + CMS button.
- * - Trending strip: đặt bên dưới thanh điều hướng chính (PLAN.md).
- * - Mobile: compact bar + menu <details> (native, keyboard-accessible, no JS).
- * - Nav items từ DB (MST-072), fallback hardcode khi API lỗi.
+ * Site header (MST-110 Hybrid Glassmorphic).
+ * - Floating frosted glass header.
+ * - Glassmorphism spec from packages/ui.
  * Server Component.
  */
 export async function SiteHeader() {
@@ -30,10 +26,10 @@ export async function SiteHeader() {
   const otherNavItems = primaryNav.filter((item) => !primaryLabels.includes(item.label));
 
   return (
-    <header className="site-header frosted-glass bg-black/85">
+    <header className="site-header glass-shell fixed top-0 w-full z-[var(--z-sticky)]">
       {/* Desktop Main Navigation Bar (72px) */}
-      <div className="desktop-bar h-[72px]">
-        <a className="brand" href="/" translate="no">
+      <div className="desktop-bar h-[72px] text-white">
+        <a className="brand text-white" href="/" translate="no">
           MSTUDIO <span>CHANNEL</span>
         </a>
 
@@ -42,7 +38,7 @@ export async function SiteHeader() {
             <ul className="flex gap-1 overflow-x-auto whitespace-nowrap scrollbar-none flex-1">
               {mainNavItems.map((item) => (
                 <li key={item.href} className="shrink-0">
-                  <a href={item.href} className="desktop-nav-link">
+                  <a href={item.href} className="desktop-nav-link text-white/80 hover:text-white transition-colors">
                     {item.label}
                   </a>
                 </li>
@@ -50,11 +46,11 @@ export async function SiteHeader() {
             </ul>
             {otherNavItems.length > 0 && (
               <details className="desktop-dropdown relative shrink-0">
-                <summary className="desktop-nav-link cursor-pointer list-none">Khác ▾</summary>
-                <ul className="desktop-dropdown-menu">
+                <summary className="desktop-nav-link cursor-pointer list-none text-white/80 hover:text-white transition-colors">Khác ▾</summary>
+                <ul className="desktop-dropdown-menu glass-shell text-white border border-white/10 mt-2">
                   {otherNavItems.map((item) => (
                     <li key={item.href}>
-                      <a href={item.href}>{item.label}</a>
+                      <a href={item.href} className="hover:bg-white/10">{item.label}</a>
                     </li>
                   ))}
                 </ul>
@@ -66,7 +62,7 @@ export async function SiteHeader() {
         <div className="flex items-center gap-3">
           <a
             href="/tim-kiem"
-            className="header-search"
+            className="header-search text-white/80 hover:text-white"
             aria-label="Tìm kiếm bài viết"
             title="Tìm kiếm"
           >
@@ -91,7 +87,7 @@ export async function SiteHeader() {
             href="/cms"
             target="_blank"
             rel="noopener noreferrer"
-            className="header-cms-btn"
+            className="header-cms-btn bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-colors"
             title="Truy cập Cổng Biên tập Studio CMS"
           >
             <span aria-hidden="true">✍️</span>
@@ -101,8 +97,8 @@ export async function SiteHeader() {
       </div>
 
       {/* Mobile Bar (56px) */}
-      <div className="mobile-bar h-[56px]">
-        <a className="brand" href="/" translate="no">
+      <div className="mobile-bar h-[56px] text-white">
+        <a className="brand text-white" href="/" translate="no">
           MSTUDIO <span>CHANNEL</span>
         </a>
 
@@ -111,7 +107,7 @@ export async function SiteHeader() {
             href="/cms"
             target="_blank"
             rel="noopener noreferrer"
-            className="header-cms-btn header-cms-btn--mobile"
+            className="header-cms-btn header-cms-btn--mobile bg-white/10 hover:bg-white/20 border border-white/20 text-white"
             title="Biên tập CMS"
           >
             <span aria-hidden="true">✍️</span>
@@ -119,27 +115,27 @@ export async function SiteHeader() {
           </a>
 
           <details className="mobile-menu group">
-            <summary aria-label="Mở menu chuyên mục">Menu</summary>
+            <summary aria-label="Mở menu chuyên mục" className="text-white">Menu</summary>
             <nav aria-label="Chuyên mục (di động)">
-              <div className="mobile-menu-drawer grid grid-cols-2 gap-x-4 gap-y-2">
-                <div className="col-span-2 text-[var(--white)] font-bold mb-2">Chuyên mục chính</div>
+              <div className="mobile-menu-drawer glass-shell border border-white/10 mt-2 grid grid-cols-2 gap-x-4 gap-y-2">
+                <div className="col-span-2 text-white font-bold mb-2">Chuyên mục chính</div>
                 {mainNavItems.map((item) => (
-                  <a href={item.href} key={item.href}>
+                  <a href={item.href} key={item.href} className="text-white/80 hover:text-white">
                     {item.label}
                   </a>
                 ))}
                 {otherNavItems.length > 0 && (
                   <>
-                    <div className="col-span-2 text-[var(--white)] font-bold mt-4 mb-2">Khác</div>
+                    <div className="col-span-2 text-white font-bold mt-4 mb-2">Khác</div>
                     {otherNavItems.map((item) => (
-                      <a href={item.href} key={item.href}>
+                      <a href={item.href} key={item.href} className="text-white/80 hover:text-white">
                         {item.label}
                       </a>
                     ))}
                   </>
                 )}
-                <div className="col-span-2 border-t border-[var(--ink-800)] mt-4 pt-4">
-                  <div className="text-[var(--white)] font-bold mb-2">Tòa soạn CMS</div>
+                <div className="col-span-2 border-t border-white/10 mt-4 pt-4">
+                  <div className="text-white font-bold mb-2">Tòa soạn CMS</div>
                   <a
                     href="/cms"
                     target="_blank"
@@ -155,14 +151,14 @@ export async function SiteHeader() {
         </div>
       </div>
 
-      {/* Trending Strip — Moved BELOW navigation (PLAN.md) */}
-      <div className="trending-strip border-t border-[var(--ink-800)]">
-        <p className="trending-label">Đang nóng</p>
+      {/* Trending Strip */}
+      <div className="trending-strip border-t border-white/10 text-white/90 bg-white/5">
+        <p className="trending-label text-white font-semibold">Đang nóng</p>
         <nav aria-label="Chủ đề đang nóng">
           <ul className="trending-list">
             {trendingTopics.map((topic) => (
               <li key={topic.href}>
-                <a href={topic.href}>{topic.label}</a>
+                <a href={topic.href} className="hover:text-white text-white/70 transition-colors">{topic.label}</a>
               </li>
             ))}
           </ul>

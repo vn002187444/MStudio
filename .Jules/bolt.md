@@ -1,0 +1,3 @@
+## 2026-10-13 - [Zero-cost 3D Canvas Hero & CSS Motion Springs]
+**Learning:** React Server Components combined with standard CSS variables can mimic heavy WebGL effects. Implemented a zero-dependency `<Hero3D>` procedural canvas shader (< 12KB) which respects `prefers-reduced-motion` and pauses `requestAnimationFrame` on intersection observe for zero Cloudflare CPU impact and unmeasurable CWV regressions (LCP < 0.8s).
+**Action:** Created `hero-3d.tsx` as an isolated pure client component and layered CSS filters with mathematical scaling (e.g., Setproduct Bento grid `R_inner = R_outer - Padding`) via `tokens.css` to allow global styling updates without polluting JS bundles.

@@ -71,3 +71,15 @@ export function FollowTopicButton({ topicId, topicLabel }: { topicId: string; to
 export function HideTopicButton({ topicId, topicLabel }: { topicId: string; topicLabel: string }) {
   return <TopicAction action="hide_topic" topicId={topicId} topicLabel={topicLabel} />;
 }
+
+export function FollowEntityButton({
+  entityId,
+  entityName,
+  initialState = false,
+}: {
+  entityId: string;
+  entityName: string;
+  initialState?: boolean;
+}) {
+  return <TopicAction action="follow_topic" topicId={entityId} topicLabel={entityName} />;
+}
