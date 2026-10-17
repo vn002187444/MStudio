@@ -55,8 +55,8 @@ export function getArticleImageUrl(article: PublishedArticleRecord): string {
   if (article.heroImageUrl && article.heroImageUrl.trim() !== "") {
     return article.heroImageUrl;
   }
-  const category = article.categorySlug || "cong-nghe";
-  return CATEGORY_FALLBACK_IMAGES[category] ?? CATEGORY_FALLBACK_IMAGES["cong-nghe"];
+  const category = article.categorySlug || "thoi-su";
+  return CATEGORY_FALLBACK_IMAGES[category] ?? CATEGORY_FALLBACK_IMAGES["thoi-su"];
 }
 
 export function LeadStoryCard({ article }: { article: PublishedArticleRecord }) {

@@ -10,6 +10,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="vi">
       <head>
+        {/* Brand Identity: Dynamic SVG Favicon & PWA Manifest */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/favicon.svg" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content="#07080B" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
+
         {/* Preconnect & DNS-Prefetch for Core Origins */}
         <link rel="preconnect" href="https://api.mstudio.minds.io.vn" />
         <link rel="dns-prefetch" href="https://api.mstudio.minds.io.vn" />

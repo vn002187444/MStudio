@@ -16,7 +16,7 @@ test("every canonical category maps to an https image", async () => {
 });
 
 test("resolveCategoryFallbackImage falls back to the default category", async () => {
-  const expected = CATEGORY_FALLBACK_IMAGES["cong-nghe"];
+  const expected = CATEGORY_FALLBACK_IMAGES[DEFAULT_FALLBACK_CATEGORY];
   assert.equal(resolveCategoryFallbackImage("the-gioi"), CATEGORY_FALLBACK_IMAGES["the-gioi"]);
   assert.equal(resolveCategoryFallbackImage("unknown-category"), expected);
   assert.equal(resolveCategoryFallbackImage(null), expected);

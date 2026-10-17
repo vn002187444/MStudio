@@ -64,7 +64,7 @@ export function TableOfContents({
           }
         });
       },
-      { rootMargin: "-100px 0px -80% 0px" }
+      { rootMargin: "-100px 0px -70% 0px" }
     );
 
     activeList.forEach((item) => {
@@ -78,31 +78,41 @@ export function TableOfContents({
   if (activeList.length === 0) return null;
 
   return (
-    <nav aria-label="Mục lục bài viết" className="hidden lg:block sticky top-[96px] w-[260px] float-right ml-8 mb-8 z-[var(--z-sticky)]">
-      <GlassCard variant="hybrid" className="p-5 shadow-xl border-black/5 bg-white/60">
-        <h4 className="text-[13px] font-bold uppercase tracking-widest text-[var(--gray)] mb-4 pb-2 border-b border-black/5">
-          Mục lục
-        </h4>
-        <ul className="flex flex-col gap-2.5 text-[14px]">
-          {activeList.map((item) => (
-            <li
-              key={item.id}
-              style={{ paddingLeft: `${(item.level - 2) * 12}px` }}
-            >
-              <a
-                href={`#${item.id}`}
-                className={`block transition-colors duration-200 line-clamp-2 ${
-                  activeId === item.id
-                    ? "text-[var(--brand)] font-bold"
-                    : "text-[var(--ink-700)] hover:text-[var(--ink)]"
-                }`}
+    <nav aria-label="Mục lục bài viết" className="w-full">
+      <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur-xl shadow-xl">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2 rounded-full bg-cyan-400" />
+            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">
+              Mục lục nội dung
+            </h4>
+          </div>
+          <span className="text-[10px] font-mono text-slate-400">{activeList.length} mục</span>
+        </div>
+
+        <ul className="flex flex-col gap-1.5 text-xs">
+          {activeList.map((item) => {
+            const isActive = activeId === item.id;
+            return (
+              <li
+                key={item.id}
+                style={{ paddingLeft: `${(item.level - 2) * 10}px` }}
               >
-                {item.text}
-              </a>
-            </li>
-          ))}
+                <a
+                  href={`#${item.id}`}
+                  className={`block rounded-lg px-2.5 py-1.5 transition-all line-clamp-2 ${
+                    isActive
+                      ? "bg-cyan-500/15 border border-cyan-500/30 font-semibold text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.15)]"
+                      : "text-slate-300 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  {item.text}
+                </a>
+              </li>
+            );
+          })}
         </ul>
-      </GlassCard>
+      </div>
     </nav>
   );
 }

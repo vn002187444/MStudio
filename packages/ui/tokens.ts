@@ -29,11 +29,38 @@ export const tokens = {
     breaking: "#D92D20",
     success: "#16803A",
     warning: "#B54708",
+    /* Hybrid Glassmorphic Zones */
+    voidDeep: "#07080B",
+    voidSurface: "#0D1117",
+    voidSubtle: "#161B22",
+    solarLight: "#F8FAFC",
+    solarSurface: "#F1F5F9",
+    /* Category Optical Auras */
+    aura: {
+      techPrimary: "#2563EB",
+      techSecondary: "#06B6D4",
+      businessPrimary: "#059669",
+      businessSecondary: "#D97706",
+      worldPrimary: "#DC2626",
+      worldSecondary: "#475569",
+      sciencePrimary: "#8B5CF6",
+      scienceSecondary: "#EC4899",
+      autoPrimary: "#EA580C",
+      autoSecondary: "#334155",
+      lifePrimary: "#10B981",
+      lifeSecondary: "#F59E0B",
+    },
   },
   radius: {
     sm: "6px",
     md: "10px",
     lg: "16px",
+    bentoOuter: "24px",
+    bentoInner: "8px",
+    bentoLgOuter: "28px",
+    bentoLgInner: "8px",
+    bentoSmOuter: "16px",
+    bentoSmInner: "4px",
   },
   motion: {
     durationInstant: "80ms",
@@ -43,6 +70,7 @@ export const tokens = {
     springApple: "cubic-bezier(0.32, 0.72, 0, 1)",
     easeOut: "cubic-bezier(0.16, 1, 0.3, 1)",
     easeStandard: "cubic-bezier(0.2, 0, 0, 1)",
+    springBouncy: "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
   },
   text: {
     /* Mobile-first values; desktop override at breakpoint */
@@ -55,7 +83,7 @@ export const tokens = {
     ui: "16px",
     meta: "14px",
     label: "12px",
-    /* Legacy aliases — migrate then remove */
+    /* Legacy aliases */
     xs: "12px",
     sm: "13px",
     base: "16px",
@@ -76,6 +104,11 @@ export const tokens = {
     container: "1280px",
     gutter: "24px",
     gutterMobile: "16px",
+    bentoPadding: "16px",
+  },
+  mobile: {
+    dockHeight: "64px",
+    topBarHeight: "56px",
   },
   headerOffset: "56px",
   maxContentWidth: "1280px",

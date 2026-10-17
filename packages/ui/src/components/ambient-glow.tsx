@@ -10,8 +10,9 @@ export const AmbientGlow = ({
 }: {
   className?: string;
   color?: string;
-  size?: string;
+  size?: string | number;
 }) => {
+  const sizeValue = typeof size === "number" ? `${size}px` : size;
   return (
     <div
       className={cn("pointer-events-none absolute inset-0 z-0 overflow-hidden", className)}
@@ -20,8 +21,8 @@ export const AmbientGlow = ({
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[80px]"
         style={{
-          width: size,
-          height: size,
+          width: sizeValue,
+          height: sizeValue,
           background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
         }}
       />

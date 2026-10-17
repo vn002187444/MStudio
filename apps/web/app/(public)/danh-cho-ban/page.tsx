@@ -235,7 +235,7 @@ export default async function ForYouPage() {
                   const imageUrl =
                     article.heroImageUrl && article.heroImageUrl.trim() !== ""
                       ? article.heroImageUrl
-                      : CATEGORY_FALLBACK_IMAGES[categorySlug] ?? CATEGORY_FALLBACK_IMAGES["cong-nghe"];
+                      : CATEGORY_FALLBACK_IMAGES[categorySlug] ?? CATEGORY_FALLBACK_IMAGES["thoi-su"];
 
                   return (
                     <article

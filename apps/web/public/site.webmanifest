@@ -1,0 +1,17 @@
+{
+  "name": "MStudio Channel",
+  "short_name": "MStudio",
+  "description": "Tạp chí công nghệ, kinh tế và trí tuệ nhân tạo thế hệ mới",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07080B",
+  "theme_color": "#07080B",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

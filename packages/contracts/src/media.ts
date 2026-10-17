@@ -1,4 +1,4 @@
-export const DEFAULT_FALLBACK_CATEGORY = "cong-nghe";
+export const DEFAULT_FALLBACK_CATEGORY = "thoi-su";
 
 export const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
   "thoi-su":

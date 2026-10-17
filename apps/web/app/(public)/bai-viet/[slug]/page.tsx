@@ -1,25 +1,20 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { apiBaseUrl, fetchApi } from "../../../../lib/api";
+import { fetchApi } from "../../../../lib/api";
 import { newsArticleJsonLd, siteOrigin } from "../../../../lib/seo";
 import { ArticleHero } from "../../../../components/article/article-hero";
 import { CATEGORY_FALLBACK_IMAGES } from "../../../../components/article/news-card";
-import { cleanText } from "@mstudio/ui";
+import { cleanText, BentoGrid, BentoCard, AmbientGlow } from "@mstudio/ui";
 import {
   extractHeadings,
   slugifyHeading,
   TableOfContents,
 } from "../../../../components/article/table-of-contents";
 import { SourceBlock } from "../../../../components/article/source-block";
+import { ArticleShareBar } from "../../../../components/article/article-share-bar";
 import { BlocksRenderer, headingsFromBlocks } from "../../../../components/article/blocks-renderer";
-
 import { parseArticleBlocksBody } from "../../../../lib/contracts";
 
-/**
- * Bài viết là runtime-only: không prerender/ISR cache tại edge vì
- * 404 lúc build từng bị bake thành HTML 200 (vinext cache quirk).
- * CDN vẫn cache theo Cache-Control của worker nếu cần.
- */
 export const dynamic = "force-dynamic";
 
 interface PublishedArticle {
@@ -61,9 +56,29 @@ const CATEGORY_NAMES: Record<string, string> = {
   "doi-song": "Đời sống",
   "suc-khoe": "Sức khỏe",
   xe: "Xe",
+  "ai-channel": "AI Channel",
 };
 
-/** Render markdown link `[text](url)` thành `<a>` an toàn (chỉ http/https/root-relative). */
+function getCategoryColor(slug?: string) {
+  switch (slug) {
+    case "cong-nghe":
+    case "ai-channel":
+      return { aura: "rgba(6, 182, 212, 0.2)", text: "text-cyan-400", border: "border-cyan-500/30" };
+    case "kinh-doanh":
+    case "kinh-te":
+      return { aura: "rgba(16, 185, 129, 0.2)", text: "text-emerald-400", border: "border-emerald-500/30" };
+    case "thoi-su":
+    case "the-gioi":
+      return { aura: "rgba(245, 158, 11, 0.2)", text: "text-amber-400", border: "border-amber-500/30" };
+    case "khoa-hoc":
+      return { aura: "rgba(99, 102, 241, 0.2)", text: "text-indigo-400", border: "border-indigo-500/30" };
+    case "xe":
+      return { aura: "rgba(239, 68, 68, 0.2)", text: "text-red-400", border: "border-red-500/30" };
+    default:
+      return { aura: "rgba(59, 130, 246, 0.2)", text: "text-blue-400", border: "border-blue-500/30" };
+  }
+}
+
 function safeUrl(raw: string): string | undefined {
   if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
   try {
@@ -83,23 +98,16 @@ function renderMarkdownLinks(text: string): string {
     const url = safeUrl(linkUrl);
     if (!url) return match;
     const isExternal = url.startsWith("http://") || url.startsWith("https://");
-    return `<a href="${url}" rel="noopener noreferrer nofollow" target="${isExternal ? "_blank" : "_self"}">${linkText}</a>`;
+    return `<a href="${url}" rel="noopener noreferrer nofollow" target="${isExternal ? "_blank" : "_self"}" class="text-blue-400 hover:underline underline-offset-4">${linkText}</a>`;
   });
 }
 
-async function fetchArticle(
-  slug: string,
-): Promise<PublishedArticle | undefined> {
+async function fetchArticle(slug: string): Promise<PublishedArticle | undefined> {
   try {
-    const response = await fetchApi(
-      `/articles/${encodeURIComponent(slug)}`,
-      { cache: "no-store" },
-    );
+    const response = await fetchApi(`/articles/${encodeURIComponent(slug)}`, { cache: "no-store" });
     if (response.status === 404) return undefined;
     if (!response.ok) throw new Error(`article API ${response.status}`);
-    const payload = (await response.json()) as {
-      article: PublishedArticle;
-    };
+    const payload = (await response.json()) as { article: PublishedArticle };
     return payload.article;
   } catch {
     return undefined;
@@ -131,7 +139,6 @@ async function fetchRelatedArticles(articleId: string, currentCategory?: string)
     const valid = fetched.filter((item): item is PublishedArticle & { reason: string } => Boolean(item));
     if (valid.length > 0) return valid;
 
-    // Fallback: nếu chưa có recommendations, lấy 3 bài mới nhất khác bài hiện tại
     const fallbackRes = await fetchApi(`/articles?limit=4`, { cache: "no-store" });
     if (fallbackRes.ok) {
       const data = (await fallbackRes.json()) as { rows?: PublishedArticle[] };
@@ -188,7 +195,6 @@ export async function generateMetadata({
   };
 }
 
-/** Làm sạch và unescape các ký tự thô từ AI / database, đảm bảo markdown heading & list phân tách chuẩn */
 function normalizeArticleText(raw: string): string {
   if (!raw) return "";
   let text = raw
@@ -197,21 +203,16 @@ function normalizeArticleText(raw: string): string {
     .replace(/\\r/g, "\n")
     .trim();
 
-  // Đảm bảo heading ## hoặc ### luôn đứng trên dòng độc lập và cách đoạn trên/dưới
   text = text.replace(/(?<!\n)\n(#{2,4}\s+[^\n]+)/g, "\n\n$1");
   text = text.replace(/(#{2,4}\s+[^\n]+)\n(?!\n)/g, "$1\n\n");
-
-  // Đảm bảo khối danh sách bullet (- item) tách khỏi heading hoặc đoạn văn
   text = text.replace(/(?<!\n)\n([-*]\s+[^\n]+)/g, "\n\n$1");
-
   return text;
 }
 
-/** Chuyển đổi inline markdown: links [text](url), bold **text**, italic *text* */
 function formatInlineMarkdown(text: string): string {
   let out = renderMarkdownLinks(text);
-  out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  out = out.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em>$1</em>");
+  out = out.replace(/\*\*([^*]+)\*\*/g, "<strong class='font-bold text-slate-100'>$1</strong>");
+  out = out.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em class='italic text-slate-300'>$1</em>");
   return out;
 }
 
@@ -225,7 +226,6 @@ function BodyWithToc({ body }: { body: string }) {
     const trimmed = section.trim();
     if (!trimmed) return null;
 
-    // Check if section is a Heading (## or ###)
     const headingMatch = /^(#{2,3})\s+(.+)$/.exec(trimmed);
     if (headingMatch) {
       const heading = headings[headingCursor];
@@ -237,13 +237,7 @@ function BodyWithToc({ body }: { body: string }) {
         <h3
           id={headingId}
           key={`h3-${secIdx}`}
-          style={{
-            fontSize: "var(--text-xl, 20px)",
-            fontWeight: 700,
-            marginTop: 32,
-            marginBottom: 12,
-            color: "var(--ink, #0f172a)",
-          }}
+          className="text-lg md:text-xl font-bold mt-8 mb-3 text-white tracking-tight"
         >
           {headingMatch[2].trim()}
         </h3>
@@ -251,43 +245,24 @@ function BodyWithToc({ body }: { body: string }) {
         <h2
           id={headingId}
           key={`h2-${secIdx}`}
-          style={{
-            fontSize: "var(--text-2xl, 24px)",
-            fontWeight: 800,
-            marginTop: 40,
-            marginBottom: 16,
-            color: "var(--ink, #0f172a)",
-            borderBottom: "1px solid var(--border, #e2e8f0)",
-            paddingBottom: 8,
-          }}
+          className="text-xl md:text-2xl font-black mt-10 mb-4 pb-2 border-b border-white/10 text-white tracking-tight"
         >
           {headingMatch[2].trim()}
         </h2>
       );
     }
 
-    // Check if section contains list items (lines starting with - or *)
     const lines = trimmed.split("\n");
     const isBulletList = lines.every((line) => /^[-*]\s+/.test(line.trim()));
     if (isBulletList && lines.length > 0) {
       return (
-        <ul
-          key={`ul-${secIdx}`}
-          style={{
-            margin: "16px 0",
-            paddingLeft: 24,
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            lineHeight: 1.75,
-            color: "var(--ink-secondary, #334155)",
-          }}
-        >
+        <ul key={`ul-${secIdx}`} className="my-4 pl-5 space-y-2 leading-relaxed text-slate-300">
           {lines.map((l, lIdx) => {
             const itemText = l.trim().replace(/^[-*]\s+/, "");
             return (
               <li
                 key={`li-${secIdx}-${lIdx}`}
+                className="list-disc"
                 dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(itemText) }}
               />
             );
@@ -296,38 +271,21 @@ function BodyWithToc({ body }: { body: string }) {
       );
     }
 
-    // Check if section is a blockquote (> ...)
     if (trimmed.startsWith(">")) {
       const quoteText = trimmed.replace(/^>\s*/gm, "");
       return (
         <blockquote
           key={`quote-${secIdx}`}
-          style={{
-            margin: "24px 0",
-            padding: "16px 20px",
-            background: "var(--bg-subtle, #f8fafc)",
-            borderLeft: "4px solid var(--accent, #2563eb)",
-            borderRadius: "0 8px 8px 0",
-            fontStyle: "italic",
-            lineHeight: 1.7,
-            color: "var(--ink-secondary, #334155)",
-          }}
+          className="my-6 rounded-r-2xl border-l-4 border-blue-500 bg-white/5 p-4 text-slate-300 italic leading-relaxed backdrop-blur-sm"
           dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(quoteText) }}
         />
       );
     }
 
-    // Standard paragraph with clean line-break handling
     return (
       <p
         key={`p-${secIdx}`}
-        style={{
-          margin: "18px 0",
-          lineHeight: 1.85,
-          fontSize: "17px",
-          color: "var(--ink-body, #1e293b)",
-          letterSpacing: "-0.01em",
-        }}
+        className="my-5 text-base md:text-[17px] leading-relaxed text-slate-200 tracking-normal"
         dangerouslySetInnerHTML={{
           __html: formatInlineMarkdown(trimmed.replace(/\n/g, "<br />")),
         }}
@@ -336,15 +294,12 @@ function BodyWithToc({ body }: { body: string }) {
   });
 
   return (
-    <>
-      <TableOfContents headings={headings} />
-      <section aria-labelledby="article-body-heading" className="article-body-content">
-        <h2 id="article-body-heading" className="sr-only" style={{ display: "none" }}>
-          Nội dung bài viết
-        </h2>
-        {contentElements}
-      </section>
-    </>
+    <section aria-labelledby="article-body-heading" className="article-body-content">
+      <h2 id="article-body-heading" className="sr-only">
+        Nội dung bài viết
+      </h2>
+      {contentElements}
+    </section>
   );
 }
 
@@ -352,17 +307,13 @@ function ArticleBody({ body }: { body: string }) {
   const cleanBody = normalizeArticleText(body);
   const blocks = parseArticleBlocksBody(cleanBody);
   if (!blocks) return <BodyWithToc body={cleanBody} />;
-  const headings = headingsFromBlocks(blocks);
   return (
-    <>
-      <TableOfContents headings={headings} />
-      <section aria-labelledby="article-body-heading" className="article-body-content">
-        <h2 id="article-body-heading" className="sr-only" style={{ display: "none" }}>
-          Nội dung bài viết
-        </h2>
-        <BlocksRenderer blocks={blocks} />
-      </section>
-    </>
+    <section aria-labelledby="article-body-heading" className="article-body-content">
+      <h2 id="article-body-heading" className="sr-only">
+        Nội dung bài viết
+      </h2>
+      <BlocksRenderer blocks={blocks} />
+    </section>
   );
 }
 
@@ -374,13 +325,13 @@ function VideoEmbed({ url }: { url: string }) {
   }
 
   return (
-    <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, overflow: "hidden", borderRadius: 8, margin: "20px 0" }}>
+    <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-2xl my-6 border border-white/10 shadow-xl">
       <iframe
         src={embedUrl}
         title="Video player"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
-        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }}
+        className="absolute top-0 left-0 w-full h-full border-0"
       />
     </div>
   );
@@ -399,234 +350,159 @@ export default async function ArticlePage({
 
   const related = await fetchRelatedArticles(article.id, article.categorySlug);
   const categoryName = (article.categorySlug && CATEGORY_NAMES[article.categorySlug]) || "Tin tức";
+  const theme = getCategoryColor(article.categorySlug);
+
+  const cleanBody = normalizeArticleText(article.body);
+  const blocks = parseArticleBlocksBody(cleanBody);
+  const headings = blocks ? headingsFromBlocks(blocks) : extractHeadings(cleanBody);
 
   return (
-    <main className="article-main" id="main-content" style={{ maxWidth: 840, margin: "0 auto", padding: "24px 16px 64px" }}>
-      {/* Category & Badge Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "0 0 12px" }}>
-        {article.categorySlug ? (
-          <a
-            href={`/${article.categorySlug}`}
-            style={{
-              fontSize: "var(--text-xs, 12px)",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              color: "var(--accent, #2563eb)",
-              textDecoration: "none",
-            }}
-          >
-            {categoryName}
-          </a>
-        ) : (
-          <span style={{ fontSize: "var(--text-xs, 12px)", fontWeight: 700, color: "var(--gray)" }}>
-            Tin tức
-          </span>
-        )}
+    <main
+      className="article-main relative min-h-screen bg-[var(--surface-sunlit,#0b0f19)] text-slate-100 pt-6 pb-28 overflow-hidden"
+      id="main-content"
+    >
+      {/* Category Ambient Glow */}
+      <AmbientGlow color={theme.aura} size={500} className="-top-32 -left-24 pointer-events-none opacity-70" />
+      <AmbientGlow color={theme.aura} size={380} className="top-1/2 -right-20 pointer-events-none opacity-40" />
 
-        {article.isBreaking ? (
-          <span
-            style={{
-              background: "var(--breaking-red, #dc2626)",
-              color: "#fff",
-              padding: "2px 8px",
-              borderRadius: 4,
-              fontSize: "11px",
-              fontWeight: 700,
-              textTransform: "uppercase",
-            }}
-          >
-            Tin nóng
-          </span>
-        ) : null}
-
-        {article.isTrending ? (
-          <span
-            style={{
-              background: "var(--amber-600, #d97706)",
-              color: "#fff",
-              padding: "2px 8px",
-              borderRadius: 4,
-              fontSize: "11px",
-              fontWeight: 700,
-              textTransform: "uppercase",
-            }}
-          >
-            Thịnh hành
-          </span>
-        ) : null}
-      </div>
-
-      <h1 style={{ fontSize: "var(--text-4xl, 36px)", lineHeight: 1.25, fontWeight: 800, margin: "0 0 16px" }}>
-        {cleanText(article.title)}
-      </h1>
-
-      <p style={{ color: "var(--gray)", fontSize: "var(--text-sm, 14px)", margin: "0 0 24px" }}>
-        Xuất bản: {article.updatedAt.slice(0, 10)}
-        {article.sources && article.sources.length > 0
-          ? ` · ${article.sources.length} nguồn đối chiếu`
-          : ""}
-      </p>
-
-      {/* Hero Media: Video / Real Image / Category Editorial Image */}
-      {article.videoUrl ? (
-        <VideoEmbed url={article.videoUrl} />
-      ) : (
-        <ArticleHero
-          imageUrl={article.heroImageUrl || (CATEGORY_FALLBACK_IMAGES[article.categorySlug || "cong-nghe"] ?? CATEGORY_FALLBACK_IMAGES["cong-nghe"])}
-          alt={article.title}
-          seed={article.slug || article.id}
-        />
-      )}
-
-      {article.summary ? (
-        <section
-          aria-labelledby="article-summary-heading"
-          className="article-summary"
-          style={{
-            background: "var(--bg-subtle, #f8fafc)",
-            borderLeft: "4px solid var(--accent, #2563eb)",
-            padding: "16px 20px",
-            borderRadius: "0 8px 8px 0",
-            margin: "24px 0",
-          }}
-        >
-          <h2 id="article-summary-heading" style={{ fontSize: "var(--text-base)", margin: "0 0 8px", fontWeight: 700 }}>
-            Tóm tắt nhanh
-          </h2>
-          <p style={{ margin: 0, lineHeight: 1.6 }}>{article.summary}</p>
-        </section>
-      ) : null}
-
-      <ArticleBody body={article.body} />
-
-      <SourceBlock
-        sources={(article.sources ?? []).map((source) => ({
-          name: source.name,
-          originUrl: source.originUrl,
-          rightsStatus: source.rightsStatus,
-        }))}
-      />
-
-      {/* Section: Bài viết liên quan (Recommendations) */}
-      {related.length > 0 ? (
-        <section
-          aria-labelledby="related-heading"
-          style={{
-            marginTop: 40,
-            paddingTop: 24,
-            borderTop: "1px solid var(--border)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 16 }}>
-            <h2 id="related-heading" style={{ fontSize: "20px", fontWeight: 700, margin: 0, color: "var(--ink)" }}>
-              Bài viết liên quan
-            </h2>
-            <span style={{ fontSize: "12px", color: "var(--gray)" }}>
-              Gợi ý theo ngữ cảnh đọc
-            </span>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: 16,
-            }}
-          >
-            {related.map((item) => {
-              const itemCat = (item.categorySlug && CATEGORY_NAMES[item.categorySlug]) || item.categorySlug || "Tin tức";
-              return (
-                <a
-                  key={item.id}
-                  href={`/bai-viet/${item.slug || item.id}`}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    padding: "16px",
-                    borderRadius: "12px",
-                    border: "1px solid var(--border)",
-                    background: "var(--soft, #f8fafc)",
-                    textDecoration: "none",
-                    color: "inherit",
-                    transition: "border-color 0.15s ease, background 0.15s ease",
-                  }}
-                >
-                  <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <span
-                        style={{
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                          color: "var(--accent, #2563eb)",
-                        }}
-                      >
-                        {itemCat}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "11px",
-                          color: "var(--gray)",
-                          background: "var(--white)",
-                          padding: "2px 8px",
-                          borderRadius: "99px",
-                          border: "1px solid var(--border)",
-                        }}
-                      >
-                        {item.reason}
-                      </span>
-                    </div>
-                    <h3
-                      style={{
-                        fontSize: "15px",
-                        fontWeight: 600,
-                        lineHeight: 1.4,
-                        margin: "0 0 8px",
-                        color: "var(--ink)",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {item.title}
-                    </h3>
-                    {item.summary && (
-                      <p
-                        style={{
-                          fontSize: "13px",
-                          color: "var(--gray)",
-                          lineHeight: 1.5,
-                          margin: 0,
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {item.summary}
-                      </p>
-                    )}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: "12px",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      color: "var(--accent, #2563eb)",
-                    }}
+      <div className="container-content max-w-[var(--container)] mx-auto px-4 relative z-10">
+        <BentoGrid>
+          {/* Main Reading Column (8 Columns) */}
+          <BentoCard colSpan={8} className="p-0 border-none bg-transparent">
+            <article className="rounded-3xl border border-white/10 bg-slate-900/50 p-6 md:p-8 backdrop-blur-2xl shadow-2xl">
+              {/* Category, Badges, Date */}
+              <div className="flex flex-wrap items-center gap-2.5 mb-4">
+                {article.categorySlug ? (
+                  <a
+                    href={`/${article.categorySlug}`}
+                    className={`text-xs font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${theme.border} bg-white/5 ${theme.text} hover:bg-white/10 transition-colors`}
                   >
-                    Đọc tiếp →
-                  </div>
+                    {categoryName}
+                  </a>
+                ) : (
+                  <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+                    Tin tức
+                  </span>
+                )}
+
+                {article.isBreaking && (
+                  <span className="bg-rose-500/20 border border-rose-500/40 text-rose-300 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider animate-pulse">
+                    Tin nóng
+                  </span>
+                )}
+
+                {article.isTrending && (
+                  <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider">
+                    Thịnh hành
+                  </span>
+                )}
+
+                <span className="text-xs text-slate-400 ml-auto font-mono">
+                  {article.updatedAt.slice(0, 10)}
+                  {article.sources && article.sources.length > 0 && ` · ${article.sources.length} nguồn`}
+                </span>
+              </div>
+
+              {/* Title */}
+              <h1 className="text-2xl md:text-4xl lg:text-[40px] font-black leading-tight text-white mb-6 tracking-tight">
+                {cleanText(article.title)}
+              </h1>
+
+              {/* Hero Media */}
+              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl mb-6">
+                {article.videoUrl ? (
+                  <VideoEmbed url={article.videoUrl} />
+                ) : (
+                  <ArticleHero
+                    imageUrl={article.heroImageUrl || (CATEGORY_FALLBACK_IMAGES[article.categorySlug || "thoi-su"] ?? CATEGORY_FALLBACK_IMAGES["thoi-su"])}
+                    alt={article.title}
+                    seed={article.slug || article.id}
+                  />
+                )}
+              </div>
+
+              {/* Fast Executive Summary Box */}
+              {article.summary && (
+                <section
+                  aria-labelledby="article-summary-heading"
+                  className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 my-6 backdrop-blur-md"
+                >
+                  <h2 id="article-summary-heading" className="text-xs font-mono uppercase tracking-wider font-bold text-blue-300 mb-2 flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-blue-400" />
+                    Tóm tắt cốt lõi
+                  </h2>
+                  <p className="text-sm md:text-base text-slate-200 leading-relaxed m-0">
+                    {article.summary}
+                  </p>
+                </section>
+              )}
+
+              {/* Body */}
+              <ArticleBody body={article.body} />
+
+              {/* Sources */}
+              <div className="mt-8 pt-6 border-t border-white/10">
+                <SourceBlock
+                  sources={(article.sources ?? []).map((source) => ({
+                    name: source.name,
+                    originUrl: source.originUrl,
+                    rightsStatus: source.rightsStatus,
+                  }))}
+                />
+              </div>
+
+              {/* Back to Home Link */}
+              <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between">
+                <a
+                  href="/"
+                  className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 transition-colors"
+                >
+                  ← Quay lại trang chủ MStudio Channel
                 </a>
-              );
-            })}
-          </div>
-        </section>
-      ) : null}
+              </div>
+            </article>
+          </BentoCard>
+
+          {/* Sticky Sidebar Column (4 Columns) */}
+          <BentoCard colSpan={4} className="p-0 border-none bg-transparent">
+            <div className="flex flex-col gap-6 sticky top-24">
+              {/* Table of Contents HUD */}
+              <TableOfContents headings={headings} />
+
+              {/* Social / Reading Utility Box */}
+              <ArticleShareBar
+                title={article.title}
+                url={`${siteOrigin()}/bai-viet/${article.slug || slug}`}
+              />
+
+              {/* Recommendations */}
+              {related.length > 0 && (
+                <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur-xl shadow-xl">
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 mb-3 border-b border-white/10 pb-2">
+                    Bài viết liên quan
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {related.map((item) => (
+                      <a
+                        key={item.id}
+                        href={`/bai-viet/${item.slug || item.id}`}
+                        className="group rounded-xl border border-white/5 bg-white/5 p-3 hover:bg-white/10 hover:border-cyan-500/30 transition-all"
+                      >
+                        <span className="text-[10px] font-mono uppercase text-cyan-400 block mb-1">
+                          {item.reason}
+                        </span>
+                        <h4 className="text-xs font-semibold text-slate-200 group-hover:text-cyan-200 line-clamp-2 leading-snug">
+                          {item.title}
+                        </h4>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </BentoCard>
+        </BentoGrid>
+      </div>
 
       <script
         type="application/ld+json"
@@ -646,12 +522,6 @@ export default async function ArticlePage({
           ).replace(/</g, "\\u003c"),
         }}
       />
-
-      <p style={{ marginTop: 32 }}>
-        <a href="/" style={{ textDecoration: "none", color: "var(--accent, #2563eb)", fontWeight: 600 }}>
-          ← Quay lại trang chủ MStudio Channel
-        </a>
-      </p>
     </main>
   );
 }
