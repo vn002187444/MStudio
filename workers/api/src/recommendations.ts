@@ -74,32 +74,46 @@ export async function buildRecommendations(
     ).toISOString();
   const poolFetchSize = limit * 3;
 
-  const [profile, freshIds, trending, related] = await Promise.all([
-    input.userId
-      ? getReaderProfile(db, input.userId)
-      : Promise.resolve(undefined),
-    listFreshArticleIds(db, poolFetchSize),
-    listTrendingArticles(db, since, poolFetchSize),
-    input.articleId
-      ? listRelatedArticles(db, input.articleId, poolFetchSize)
-      : Promise.resolve([]),
-  ]);
+  const profilePromise = input.userId
+    ? getReaderProfile(db, input.userId)
+    : Promise.resolve(undefined);
 
-  const [followedIds, hiddenArticleIds] = await Promise.all([
-    profile?.followedTopicIds.length
+  const freshIdsPromise = listFreshArticleIds(db, poolFetchSize);
+  const trendingPromise = listTrendingArticles(db, since, poolFetchSize);
+  const relatedPromise = input.articleId
+    ? listRelatedArticles(db, input.articleId, poolFetchSize)
+    : Promise.resolve([]);
+
+  const followedIdsPromise = profilePromise.then((p) =>
+    p?.followedTopicIds.length
+      ? listPublishedArticleIdsByEntities(db, p.followedTopicIds, poolFetchSize)
+      : Promise.resolve([] as string[])
+  );
+
+  const hiddenArticleIdsPromise = profilePromise.then((p) =>
+    p?.hiddenTopicIds.length
       ? listPublishedArticleIdsByEntities(
           db,
-          profile.followedTopicIds,
-          poolFetchSize,
-        )
-      : Promise.resolve([] as string[]),
-    profile?.hiddenTopicIds.length
-      ? listPublishedArticleIdsByEntities(
-          db,
-          profile.hiddenTopicIds,
-          MAX_RECOMMENDATION_LIMIT,
-        ).then(ids => new Set(ids))
-      : Promise.resolve(new Set<string>()),
+          p.hiddenTopicIds,
+          MAX_RECOMMENDATION_LIMIT
+        ).then((ids) => new Set(ids))
+      : Promise.resolve(new Set<string>())
+  );
+
+  const [
+    profile,
+    freshIds,
+    trending,
+    related,
+    followedIds,
+    hiddenArticleIds,
+  ] = await Promise.all([
+    profilePromise,
+    freshIdsPromise,
+    trendingPromise,
+    relatedPromise,
+    followedIdsPromise,
+    hiddenArticleIdsPromise,
   ]);
 
   const poolCandidates: PoolCandidate[] = [];
