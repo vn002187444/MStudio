@@ -11,8 +11,6 @@ import {
  * Chuẩn khám phá nội dung sạch cho các hệ thống LLMs/AI (Perplexity, ChatGPT, Claude, Gemini).
  * Dynamic route handler lấy danh mục active & bài viết mới nhất từ MStudio API.
  */
-export const revalidate = 3600; // Cache 1 giờ (ISR)
-
 export async function GET() {
   const origin = siteOrigin();
   const categories: LlmsCategoryEntry[] = [];

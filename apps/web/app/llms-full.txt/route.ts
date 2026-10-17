@@ -10,8 +10,6 @@ import {
  * /llms-full.txt (PLAN machine endpoints, MST-078 / FU-28)
  * Phiên bản mở rộng cung cấp context và toàn văn tóm tắt chi tiết của các bài viết cho LLMs.
  */
-export const revalidate = 3600; // Cache 1 giờ (ISR)
-
 export async function GET() {
   const origin = siteOrigin();
   const categories: LlmsCategoryEntry[] = [];
