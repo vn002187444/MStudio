@@ -159,35 +159,54 @@
   --motion-spring-bouncy: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* ── Large Desktop & Ultra-wide screen expansion (>= 1536px) ── */
+/* ── Large Desktop & Ultra-wide screen expansion (>= 1536px, 1920px) ── */
 @media (min-width: 1536px) {
   :root {
     --container: 1536px;
+    --max-content-width: 1536px;
     --gutter: 32px;
+    --bento-padding: 24px;
+    --bento-radius-outer: 28px;
+    --bento-radius-inner: calc(var(--bento-radius-outer) - var(--bento-padding));
+    --bento-radius-lg-outer: 32px;
+    --bento-radius-lg-inner: calc(var(--bento-radius-lg-outer) - 24px);
   }
 }
 
 @media (min-width: 1920px) {
   :root {
     --container: 1680px;
+    --max-content-width: 1680px;
     --gutter: 40px;
+    --bento-padding: 28px;
+    --bento-radius-outer: 32px;
+    --bento-radius-inner: calc(var(--bento-radius-outer) - var(--bento-padding));
+    --bento-radius-lg-outer: 36px;
+    --bento-radius-lg-inner: calc(var(--bento-radius-lg-outer) - 28px);
   }
 }
 
-/* ── Light Mode Solar Glassmorphism Overrides ── */
+/* ── Light Mode Solar Glassmorphism Overrides (Non-Glare, High-Contrast) ── */
 :root[data-theme="light"], html.light {
+  color-scheme: light;
   --bg: #F8FAFC;
   --surface: #FFFFFF;
-  --border: rgba(15, 23, 42, 0.12);
+  --border: rgba(15, 23, 42, 0.1);
   --ink: #0F172A;
   --ink-700: #334155;
-  --ink-800: #CBD5E1;
+  --ink-800: #E2E8F0;
+  --ink-900: #F1F5F9;
   --soft: #F1F5F9;
   --off-white: #FFFFFF;
-  --glass-backdrop-filter: blur(24px) saturate(160%);
-  --glass-bg-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(241, 245, 249, 0.78) 100%);
-  --glass-border: 1px solid rgba(15, 23, 42, 0.1);
-  --glass-box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --brand: #2563EB;
+  --brand-hover: #1D4ED8;
+  
+  --glass-backdrop-filter: blur(24px) saturate(180%);
+  --glass-bg-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.88) 100%);
+  --glass-border: 1px solid rgba(15, 23, 42, 0.08);
+  --glass-box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 }
 
 html.light body {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export type ThemeMode = "dark" | "light" | "auto";
 
@@ -8,25 +8,14 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
   const [mode, setMode] = useState<ThemeMode>("auto");
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    const saved = localStorage.getItem("mstudio-theme-mode") as ThemeMode | null;
-    const initialMode: ThemeMode = saved === "dark" || saved === "light" || saved === "auto" ? saved : "auto";
-    setMode(initialMode);
-    applyTheme(initialMode);
-  }, []);
-
-  const applyTheme = (targetMode: ThemeMode) => {
+  const applyTheme = useCallback((targetMode: ThemeMode) => {
     let resolvedTheme: "dark" | "light" = "dark";
 
     if (targetMode === "auto") {
-      // Logic tự động: Kiểm tra prefers-color-scheme, hoặc theo thời gian thực (6:00 - 18:00 là sáng, sau 18:00 là tối)
       const hour = new Date().getHours();
-      const isNight = hour >= 18 || hour < 6;
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-      // Ưu tiên theo chu kỳ mặt trời / thời gian thực, fallback hệ điều hành
-      resolvedTheme = isNight ? "dark" : prefersDark ? "dark" : "light";
+      // Chu kỳ mặt trời: 6:00 - 18:00 là Sáng (Solar), 18:00 - 6:00 là Tối (Obsidian)
+      const isDayTime = hour >= 6 && hour < 18;
+      resolvedTheme = isDayTime ? "light" : "dark";
     } else {
       resolvedTheme = targetMode;
     }
@@ -40,7 +29,25 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
       root.classList.add("dark");
       root.classList.remove("light");
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem("mstudio-theme-mode") as ThemeMode | null;
+    const initialMode: ThemeMode = saved === "dark" || saved === "light" || saved === "auto" ? saved : "auto";
+    setMode(initialMode);
+    applyTheme(initialMode);
+
+    // Chu kỳ kiểm tra 60s để tự động cập nhật khi qua ngưỡng 6h / 18h
+    const timer = setInterval(() => {
+      const currentSaved = localStorage.getItem("mstudio-theme-mode") as ThemeMode | null;
+      if (!currentSaved || currentSaved === "auto") {
+        applyTheme("auto");
+      }
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, [applyTheme]);
 
   const handleChange = (newMode: ThemeMode) => {
     setMode(newMode);
@@ -50,8 +57,11 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
 
   if (!mounted) {
     return (
-      <div className={`flex items-center gap-1 bg-white/5 border border-white/10 rounded-full p-0.5 text-[11px] ${className}`}>
-        <span className="px-2 py-0.5 rounded-full text-slate-400">⚡ Auto</span>
+      <div
+        aria-hidden="true"
+        className={`inline-flex items-center justify-center h-[32px] w-[190px] sm:w-[210px] rounded-full bg-slate-900/40 border border-white/10 backdrop-blur-md ${className}`}
+      >
+        <span className="text-[11px] text-slate-500 font-medium animate-pulse">⚡ Đang tải...</span>
       </div>
     );
   }
@@ -59,48 +69,51 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
   return (
     <div
       role="group"
-      aria-label="Tùy chọn giao diện"
-      className={`inline-flex items-center gap-0.5 rounded-full bg-slate-900/90 border border-white/15 p-0.5 text-[11px] font-medium backdrop-blur-md shadow-inner ${className}`}
+      aria-label="Tùy chọn giao diện hiển thị"
+      className={`relative inline-flex items-center gap-0.5 rounded-full bg-slate-900/80 border border-white/15 p-1 text-[11px] font-medium backdrop-blur-xl shadow-lg transition-all duration-200 transform-gpu ${className}`}
     >
       <button
         type="button"
-        title="Giao diện Tối (Dark Glassmorphism)"
+        title="Giao diện Tối Obsidian (Dark Glassmorphism)"
+        aria-pressed={mode === "dark"}
         onClick={() => handleChange("dark")}
-        className={`flex items-center gap-1 px-2 py-0.5 rounded-full transition-all ${
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-200 active:scale-95 ${
           mode === "dark"
-            ? "bg-blue-600 text-white font-bold shadow-sm shadow-blue-500/50"
+            ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-[0_0_14px_rgba(37,99,235,0.6)]"
             : "text-slate-400 hover:text-white"
         }`}
       >
-        <span>🌙</span>
+        <span aria-hidden="true">🌙</span>
         <span className="hidden sm:inline">Tối</span>
       </button>
 
       <button
         type="button"
-        title="Giao diện Sáng (Solar Frosted)"
+        title="Giao diện Sáng Solar (Solar Frosted, chống chói)"
+        aria-pressed={mode === "light"}
         onClick={() => handleChange("light")}
-        className={`flex items-center gap-1 px-2 py-0.5 rounded-full transition-all ${
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-200 active:scale-95 ${
           mode === "light"
-            ? "bg-amber-400 text-slate-950 font-bold shadow-sm shadow-amber-400/50"
+            ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold shadow-[0_0_14px_rgba(245,158,11,0.6)]"
             : "text-slate-400 hover:text-white"
         }`}
       >
-        <span>☀️</span>
+        <span aria-hidden="true">☀️</span>
         <span className="hidden sm:inline">Sáng</span>
       </button>
 
       <button
         type="button"
-        title="Tự động đổi theo giờ & hệ thống (Ngày Sáng / Đêm Tối)"
+        title="Tự động theo giờ thực tế (6h-18h Sáng / 18h-6h Tối)"
+        aria-pressed={mode === "auto"}
         onClick={() => handleChange("auto")}
-        className={`flex items-center gap-1 px-2 py-0.5 rounded-full transition-all ${
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-200 active:scale-95 ${
           mode === "auto"
-            ? "bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-400/40 shadow-sm shadow-cyan-500/20"
+            ? "bg-cyan-500/25 text-cyan-300 font-bold border border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.4)]"
             : "text-slate-400 hover:text-white"
         }`}
       >
-        <span>⚡</span>
+        <span aria-hidden="true">⚡</span>
         <span className="hidden sm:inline">Tự động</span>
       </button>
     </div>

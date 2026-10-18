@@ -1220,3 +1220,156 @@ h3 {
   border: var(--glass-border);
   box-shadow: var(--glass-box-shadow);
 }
+
+/* ── Typography Ergonomics (65-75 ký tự/dòng theo chuẩn Bringhurst & PLAN.md) ── */
+.article-body-content,
+.article-blocks {
+  max-width: 72ch;
+}
+
+.article-body-content p,
+.article-blocks p {
+  max-width: 72ch;
+  line-height: 1.8;
+  letter-spacing: -0.011em;
+}
+
+/* ── Light Mode Solar Glassmorphism Global Overrides ── */
+html.light,
+html.light body,
+html.light .public-shell {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+html.light .home-main,
+html.light .article-main {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+html.light .site-header,
+html.light .utilities-bar {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+  color: #0F172A !important;
+}
+
+html.light .desktop-bar {
+  color: #0F172A !important;
+}
+
+html.light .desktop-nav-link {
+  color: #334155 !important;
+}
+
+html.light .desktop-nav-link:hover {
+  background: rgba(15, 23, 42, 0.05) !important;
+  color: #0F172A !important;
+}
+
+html.light .header-cms-btn {
+  background: rgba(15, 23, 42, 0.06) !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  color: #0F172A !important;
+}
+
+html.light .trending-strip {
+  background: #F1F5F9 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #334155 !important;
+}
+
+html.light .trending-label {
+  color: #0284C7 !important;
+}
+
+html.light .trending-list a {
+  color: #475569 !important;
+}
+
+html.light .glass-shell,
+html.light .bg-slate-900\/90,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-950\/90,
+html.light .bg-slate-950\/80,
+html.light .hero-main,
+html.light .hero-rail,
+html.light .sidebar-module {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+  color: #0F172A !important;
+}
+
+html.light .bg-slate-800\/90,
+html.light .bg-slate-800\/80,
+html.light .bg-slate-800,
+html.light .bg-white\/5,
+html.light .bg-white\/10 {
+  background-color: #F1F5F9 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #1E293B !important;
+}
+
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4,
+html.light .text-white {
+  color: #0F172A !important;
+}
+
+html.light .text-slate-100,
+html.light .text-slate-200,
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #64748B !important;
+}
+
+html.light .border-white\/10,
+html.light .border-white\/15,
+html.light .border-white\/20,
+html.light .border-white\/5 {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .article-main article {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .article-summary {
+  background: #EFF6FF !important;
+  border-color: rgba(37, 99, 235, 0.25) !important;
+  border-left: 4px solid #2563EB !important;
+  color: #1E3A8A !important;
+}
+
+html.light .article-summary p {
+  color: #1E3A8A !important;
+}
+
+html.light .editorial-footer {
+  background: #F1F5F9 !important;
+  border-top-color: rgba(15, 23, 42, 0.08) !important;
+  color: #0F172A !important;
+}
+
+html.light .footer-brand,
+html.light .footer-heading {
+  color: #0F172A !important;
+}
+
+html.light .footer-sitemap a,
+html.light .footer-links a,
+html.light .footer-tagline,
+html.light .footer-bottom {
+  color: #475569 !important;
+}
