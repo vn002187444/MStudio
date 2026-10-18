@@ -1,91 +1,45 @@
-# Hướng Dẫn Chi Tiết Triển Khai MStudio Trên Máy Chủ NAS (Coolify Self-Hosted)
+# Hướng Dẫn Triển Khai MStudio Trên Máy Chủ NAS (Coolify + Cloudflare D1 Backend)
 
-> Tài liệu hướng dẫn từng bước (Step-by-Step Runbook) để nạp dữ liệu và vận hành hệ thống MStudio trên máy chủ NAS cá nhân / văn phòng qua **Coolify**.
-
----
-
-## 1. Các File Cần Thiết Đã Sẵn Sàng Trong Thư Mục Dự Án
-
-| Tên File | Vị trí | Mục đích |
-| :--- | :--- | :--- |
-| **`mstudio_dev_dump.sql`** | Gốc thư mục (`d:\MStudio\mstudio_dev_dump.sql`) | Bản sao lưu toàn bộ 515 bài viết, 75+ nguồn tin RSS, taxonomy và cấu hình hệ thống từ Cloudflare D1 (77.8 MB). |
-| **`Dockerfile`** | Gốc thư mục (`d:\MStudio\Dockerfile`) | Bản đóng gói Multi-stage build Node.js 22 Alpine tối ưu dung lượng RAM và CPU cho NAS. |
-| **`docker-compose.coolify.yml`** | Gốc thư mục (`d:\MStudio\docker-compose.coolify.yml`) | File cấu hình stack Coolify (Web Container + Cloudflare Tunnel + Resource Limits). |
+> **Mô hình Hybrid Tối Ưu:** Web Portal chạy trên máy chủ NAS cá nhân (Coolify) — Cơ sở dữ liệu và Ingest tiếp tục chạy trên **Cloudflare D1 Edge** để đạt tốc độ truy xuất nhanh nhất, tự động đồng bộ thời gian thực 24/7 mà không cần nạp/sao lưu thủ công.
 
 ---
 
-## 2. Quy Trình 4 Bước Triển Khai Trên NAS
+## 1. Ưu Điểm Tuyệt Đối Của Mô Hình "NAS Web + Cloudflare D1"
 
-### Bước 1: Sao chép file bản dump `mstudio_dev_dump.sql` lên NAS
-
-Từ terminal máy tính Windows, bạn có thể chuyển file bản dump vào thư mục dữ liệu trên NAS bằng lệnh `scp` hoặc qua giao diện File Station / SMB của NAS:
-
-```bash
-# Ví dụ sao chép qua SSH (thay user và ip_nas bằng thông tin thật của bạn):
-scp d:\MStudio\mstudio_dev_dump.sql user@<IP_NAS>:/home/user/mstudio/
-```
-
-Hoặc nếu NAS có giao diện Web (Synology DSM / TrueNAS / QNAP), bạn chỉ cần kéo thả file `mstudio_dev_dump.sql` vào thư mục chia sẻ `/docker/mstudio/data`.
+1. **Không cần chép hay import database thủ công:** Toàn bộ 530+ bài viết, nguồn tin RSS quốc tế và các bài cập nhật mỗi 5 phút đều nằm trực tiếp trên Cloudflare D1. Web trên NAS chỉ cần gọi API Edge (`https://mstudio-api.vn002187444.workers.dev`).
+2. **NAS chạy siêu nhẹ:** Web Server chỉ tiêu thụ dưới **0.2 core CPU** và **200MB RAM**, hoàn toàn không tiêu tốn I/O ổ đĩa SSD của NAS.
+3. **Độc lập 100% khỏi GitHub Actions:** Quá trình build và deploy diễn ra cục bộ trên Docker của NAS thông qua Coolify.
 
 ---
 
-### Bước 2: Nạp dữ liệu vào cơ sở dữ liệu SQLite trên NAS
+## 2. Quy Trình 2 Bước 1-Click Triển Khai Trên Coolify (Chỉ 2 Phút)
 
-Trên NAS (hoặc qua terminal SSH của NAS):
-
-```bash
-# 1. Tạo thư mục chứa dữ liệu SQLite nếu chưa có
-mkdir -p /data/mstudio
-cd /home/user/mstudio
-
-# 2. Khởi tạo database mstudio.db từ file dump
-sqlite3 /data/mstudio/mstudio.db < mstudio_dev_dump.sql
-
-# 3. Kích hoạt chế độ WAL (Write-Ahead Logging) siêu tốc trên SSD của NAS:
-sqlite3 /data/mstudio/mstudio.db "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA cache_size=-64000;"
-```
-
-> **Ghi chú hiệu năng:** Sau khi bật WAL mode, SQLite trên ổ cứng NVMe/SSD của NAS có thể phục vụ hơn **20.000 lượt đọc/giây**, đáp ứng hàng trăm ngàn lượt đọc mỗi ngày mà CPU không bị nóng.
-
----
-
-### Bước 3: Triển khai dự án trên Coolify Dashboard
+### Bước 1: Tạo Resource trong Coolify Dashboard
 
 1. Mở giao diện Coolify: `http://<IP_NAS>:8000`.
 2. Vào mục **Projects** $\rightarrow$ chọn **+ New Project** $\rightarrow$ đặt tên `MStudio`.
 3. Chọn **+ New Resource** $\rightarrow$ Chọn **Docker Compose**.
-4. Dán toàn bộ nội dung từ file [`docker-compose.coolify.yml`](file:///d:/MStudio/docker-compose.coolify.yml) vào khung soạn thảo.
-5. Cấu hình biến môi trường (**Environment Variables**) trong Coolify:
+4. Dán toàn bộ nội dung từ file [`docker-compose.coolify.yml`](file:///d:/MStudio/docker-compose.coolify.yml) (hoặc liên kết Git repo `https://github.com/vn002187444/MStudio.git`).
+5. Cấu hình biến môi trường sẵn có:
+   - `MSTUDIO_API_URL=https://mstudio-api.vn002187444.workers.dev`
    - `PORT=3000`
-   - `DATABASE_URL=file:/data/mstudio.db`
-   - `CLOUDFLARE_R2_BUCKET=mstudio-raw`
-   - `CLOUDFLARE_TUNNEL_TOKEN=<Mã_Token_Cloudflare_Tunnel_của_bạn>` (Nếu dùng Tunnel)
-6. Tại mục **Storage / Persistent Volumes**, map thư mục SQLite:
-   - Host path: `/data/mstudio` $\rightarrow$ Container path: `/data`
-7. Bấm **Deploy**. Coolify sẽ tự động kéo mã nguồn từ GitHub hoặc build Dockerfile nội bộ.
+   - `CLOUDFLARE_TUNNEL_TOKEN=<Token_của_bạn>` (nếu muốn dùng Cloudflare Tunnel để giấu IP thật của NAS).
 
 ---
 
-### Bước 4: Định Tuyến Tên Miền (Domain & SSL)
+### Bước 2: Bấm "Deploy"
 
-Có 2 phương án đưa traffic từ internet về NAS:
-
-#### Phương Án 1: Cloudflare Tunnel (Khuyên dùng nhất - Không cần mở port Router)
-1. Trên Cloudflare Zero Trust Dashboard $\rightarrow$ **Networks** $\rightarrow$ **Tunnels** $\rightarrow$ Tạo Tunnel mới.
-2. Sao chép `TUNNEL_TOKEN` và điền vào biến môi trường `CLOUDFLARE_TUNNEL_TOKEN` trong Coolify.
-3. Cấu hình Public Hostname trong Cloudflare Tunnel:
-   - Domain: `mstudio.vn` (hoặc subdomain bạn chọn)
-   - Service: `HTTP` trỏ tới `web:3000`
-4. **Ưu điểm:** Giấu 100% IP nhà mạng, miễn nhiễm scan port hay DDoS, không cần mở port modem.
-
-#### Phương Án 2: Mở Port Modem Trực Tiếp
-- Mở port 80 và 443 trên Router trỏ về IP nội bộ của NAS.
-- Traefik của Coolify sẽ tự động tạo chứng chỉ SSL Let's Encrypt miễn phí.
+- Coolify sẽ tự động tải các dependencies, build giao diện SSR và khởi chạy tại cổng `3000`.
+- Truy cập ngay: `http://<IP_NAS>:3000` để trải nghiệm giao diện tin tức MStudio Channel thế hệ mới!
 
 ---
 
-## 3. Lợi Ích Của Kiến Trúc Hybrid Được Kích Hoạt
+## 3. Kiến Trúc Hoạt Động (Data Flow)
 
-- **Media & Ảnh:** Vẫn phục vụ từ Cloudflare R2 (0 VNĐ cước băng thông tải ra, không làm nghẽn đường truyền Internet nhà bạn).
-- **Trí tuệ nhân tạo (AI):** Các tác vụ suy luận LLM nặng vẫn chạy qua Cloudflare Workers AI / Gemini Gateway ở biên Edge (không làm nóng CPU/GPU của NAS).
-- **Lưu trữ & Truy vấn:** Chạy trực tiếp trên ổ cứng SSD của NAS, phá vỡ giới hạn 50.000 lượt ghi/ngày của D1 Free Tier.
+```mermaid
+flowchart LR
+    A["Độc giả truy cập NAS (Coolify)"] --> B["Node.js 22 Web Server (1.5 Core / 1.5GB RAM Limit)"]
+    B -->|"Truy vấn bài viết & taxonomy"| C["Cloudflare D1 Database (mstudio-api Edge)"]
+    B -->|"Hiển thị hình ảnh (0đ Egress)"| D["Cloudflare R2 Bucket"]
+    E["Cron Ingest 5 phút/lần"] -->|"Cào RSS tự động"| C
+```

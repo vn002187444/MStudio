@@ -18,11 +18,10 @@ services:
       - HOSTNAME=0.0.0.0
       # V8 Heap Memory Guard (Ngăn chặn OOM Killer 137 khi chạm trần 1536M)
       - NODE_OPTIONS=--max-old-space-size=1024
-      # Local Database (SQLite WAL on fast NVMe SSD)
-      - DATABASE_URL=file:/data/mstudio.db
-      # Public URL & Fallback Media
+      # Database Backend: Tiếp tục dùng Cloudflare D1 qua Edge API Gateway (mstudio-api)
+      # Giúp dữ liệu luôn đồng bộ thời gian thực, không cần export/import thủ công
+      - MSTUDIO_API_URL=${MSTUDIO_API_URL:-https://mstudio-api.vn002187444.workers.dev}
       - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
-      - MSTUDIO_API_URL=${MSTUDIO_API_URL:-https://api.mstudio.minds.io.vn}
       - CLOUDFLARE_R2_PUBLIC_URL=${CLOUDFLARE_R2_PUBLIC_URL:-https://media.mstudio.minds.io.vn}
       # Cloudflare R2 Credentials (Giữ media trên Cloudflare với 0đ cước egress)
       - CLOUDFLARE_R2_BUCKET=${CLOUDFLARE_R2_BUCKET:-mstudio-raw}
@@ -32,8 +31,6 @@ services:
       # Edge AI Gateway (Offload AI suy luận sang Edge)
       - CF_AI_GATEWAY_URL=${CF_AI_GATEWAY_URL}
       - CF_AI_API_TOKEN=${CF_AI_API_TOKEN}
-    volumes:
-      - mstudio_data:/data
     deploy:
       resources:
         limits:
@@ -75,7 +72,3 @@ services:
         limits:
           cpus: "0.2"
           memory: 64M
-
-volumes:
-  mstudio_data:
-    driver: local
