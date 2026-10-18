@@ -1,8 +1,5 @@
-import { GlassCard } from "@mstudio/ui";
+import React from "react";
 
-/**
- * Source block (MST-110 Hybrid Glassmorphic) — danh sách nguồn của bài viết.
- */
 export interface ArticleSource {
   name: string;
   originUrl?: string;
@@ -14,22 +11,22 @@ export interface ArticleSource {
 export function SourceBlock({ sources }: { sources: ArticleSource[] }) {
   if (sources.length === 0) {
     return (
-      <section aria-labelledby="article-sources-heading" className="mt-12 pt-8 border-t border-black/10">
-        <h2 id="article-sources-heading" className="text-xl font-bold mb-4">Nguồn đối chiếu</h2>
-        <GlassCard variant="hybrid" className="p-4 bg-white/60">
-          <p role="status" className="text-[var(--gray)] text-sm flex items-center gap-2">
+      <section aria-labelledby="article-sources-heading" className="mt-12 pt-8 border-t border-white/10">
+        <h2 id="article-sources-heading" className="text-xl font-bold mb-4 text-white">Nguồn đối chiếu</h2>
+        <div className="p-4 rounded-2xl bg-slate-800/90 border border-slate-700/80 shadow-md">
+          <p role="status" className="text-slate-300 text-sm flex items-center gap-2 m-0">
             <span aria-hidden="true">🛡️</span> Bài viết đang trong quá trình cập nhật nguồn đối chiếu.
           </p>
-        </GlassCard>
+        </div>
       </section>
     );
   }
   
   return (
-    <section aria-labelledby="article-sources-heading" className="mt-12 pt-8 border-t border-black/10">
-      <div className="flex items-center gap-2 mb-6">
-        <h2 id="article-sources-heading" className="text-xl font-bold m-0">Nguồn tham khảo</h2>
-        <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full">
+    <section aria-labelledby="article-sources-heading" className="mt-12 pt-8 border-t border-white/10">
+      <div className="flex items-center gap-2.5 mb-6">
+        <h2 id="article-sources-heading" className="text-xl font-bold m-0 text-white">Nguồn tham khảo</h2>
+        <span className="bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full">
           {sources.length} nguồn xác thực
         </span>
       </div>
@@ -41,15 +38,23 @@ export function SourceBlock({ sources }: { sources: ArticleSource[] }) {
             .join(" · ");
             
           return (
-            <GlassCard key={index} variant="hybrid" className="p-4 bg-white/60 flex flex-col md:flex-row md:items-center justify-between gap-2 border-black/5 hover:border-black/20 transition-colors">
+            <div
+              key={index}
+              className="p-4 rounded-2xl bg-slate-800/90 border border-slate-700/80 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-2 hover:border-cyan-500/40 transition-colors"
+            >
               <div className="flex items-center gap-3">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold shrink-0">
                   {index + 1}
                 </span>
-                <div className="font-semibold text-[var(--ink)]">
+                <div className="font-semibold text-white">
                   {source.originUrl ? (
-                    <a href={source.originUrl} rel="noreferrer" target="_blank" className="hover:text-blue-600 focus-visible:underline outline-none">
-                      {source.name} <span className="text-xs text-gray-400">↗</span>
+                    <a
+                      href={source.originUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                      className="text-white hover:text-cyan-300 focus-visible:underline outline-none transition-colors"
+                    >
+                      {source.name} <span className="text-xs text-cyan-400">↗</span>
                     </a>
                   ) : (
                     source.name
@@ -58,11 +63,11 @@ export function SourceBlock({ sources }: { sources: ArticleSource[] }) {
               </div>
               
               {metaInfo && (
-                <div className="text-sm text-[var(--gray)] md:text-right pl-9 md:pl-0">
+                <div className="text-xs text-slate-300 md:text-right pl-9 md:pl-0 font-mono">
                   {metaInfo}
                 </div>
               )}
-            </GlassCard>
+            </div>
           );
         })}
       </div>

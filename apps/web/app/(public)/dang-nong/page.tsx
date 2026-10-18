@@ -18,7 +18,7 @@ export default async function TrendingPage() {
 
   return (
     <main
-      className="home-main"
+      className="home-main min-h-screen bg-[#07080B] text-slate-100"
       id="main-content"
       style={{
         maxWidth: "var(--max-content-width, 1280px)",
@@ -27,60 +27,31 @@ export default async function TrendingPage() {
       }}
     >
       {/* Page Header */}
-      <header
-        style={{
-          borderBottom: "2px solid var(--ink, #111827)",
-          paddingBottom: 16,
-          marginBottom: 32,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-          <a href="/" style={{ color: "var(--gray)", fontSize: "13px", textDecoration: "none" }}>Trang chủ</a>
-          <span style={{ color: "var(--gray)", fontSize: "12px" }}>/</span>
-          <span style={{ color: "var(--accent, #2563eb)", fontSize: "13px", fontWeight: 600 }}>Đang nóng</span>
+      <header className="border-b border-white/10 pb-6 mb-8">
+        <div className="flex items-center gap-2 mb-2">
+          <a href="/" className="text-slate-400 hover:text-white text-xs transition-colors">Trang chủ</a>
+          <span className="text-slate-600 text-xs">/</span>
+          <span className="text-cyan-400 text-xs font-semibold">Đang nóng</span>
         </div>
-        <h1 style={{ fontSize: "var(--text-4xl, 36px)", fontWeight: 800, margin: "0 0 8px", lineHeight: 1.2, display: "flex", alignItems: "center", gap: 12 }}>
+        <h1 className="text-3xl md:text-5xl font-black text-white m-0 mb-3 flex items-center gap-3">
           Tin tức đang nóng 🔥
         </h1>
-        <p style={{ color: "var(--ink-700, #4b5563)", fontSize: "var(--text-base, 16px)", margin: 0, maxWidth: 720, background: "var(--soft, #f8fafc)", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)", display: "inline-block" }}>
+        <p className="text-slate-300 text-sm md:text-base m-0 max-w-2xl bg-slate-900/90 py-2.5 px-4 rounded-xl border border-white/10 inline-block font-normal">
           Xếp hạng dựa trên tín hiệu tương tác và lượt đọc thực tế của độc giả — minh bạch và không dùng số liệu mô phỏng.
         </p>
       </header>
 
       {articles.length > 0 ? (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, 1fr)",
-            gap: 32,
-          }}
-        >
+        <div className="grid grid-cols-12 gap-8">
           {/* Main Content Area */}
-          <div style={{ gridColumn: "span 12", maxWidth: 800, margin: "0 auto", width: "100%" }}>
+          <div className="col-span-12 max-w-3xl mx-auto w-full">
             
             {/* #1 Top Article */}
             {topArticle ? (
-              <section aria-labelledby="top-1-heading" style={{ position: "relative", marginBottom: 32 }}>
+              <section aria-labelledby="top-1-heading" className="relative mb-10">
                 <h2 id="top-1-heading" className="visually-hidden">Bài viết Top 1</h2>
                 <div
-                  style={{
-                    position: "absolute",
-                    top: -16,
-                    left: -16,
-                    width: 48,
-                    height: 48,
-                    borderRadius: "50%",
-                    background: "var(--accent, #2563eb)",
-                    color: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "24px",
-                    fontWeight: 800,
-                    zIndex: 10,
-                    boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
-                    border: "4px solid var(--off-white, #fdfdfd)"
-                  }}
+                  className="absolute -top-3 -left-3 w-12 h-12 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white flex items-center justify-center text-2xl font-black z-20 shadow-xl border-2 border-white/30"
                   aria-hidden="true"
                 >
                   1
@@ -92,42 +63,23 @@ export default async function TrendingPage() {
             {/* #2 - #8 Articles */}
             {restArticles.length > 0 ? (
               <section aria-labelledby="trending-rest-heading">
-                <h2 id="trending-rest-heading" style={{ fontSize: "18px", fontWeight: 700, marginBottom: 16, borderBottom: "1px solid var(--border)", paddingBottom: 12 }}>
+                <h2 id="trending-rest-heading" className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-3">
                   Top được đọc nhiều tiếp theo
                 </h2>
-                <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+                <ol className="list-none m-0 p-0 flex flex-col gap-4">
                   {restArticles.map((article, index) => {
-                    const rank = index + 2; // offset by 1 for #1, then 1-based index
+                    const rank = index + 2;
                     return (
                       <li 
                         key={article.id} 
-                        style={{ 
-                          position: "relative", 
-                          background: "var(--white)", 
-                          borderRadius: "var(--radius-lg, 16px)", 
-                          border: "1px solid var(--border)", 
-                          padding: "16px",
-                          paddingLeft: "64px" // Make room for rank
-                        }}
+                        className="relative bg-slate-900/90 rounded-2xl border border-white/10 p-4 pl-16 shadow-lg hover:border-cyan-500/40 transition-colors"
                       >
                         <div
-                          style={{
-                            position: "absolute",
-                            top: "50%",
-                            left: 16,
-                            transform: "translateY(-50%)",
-                            width: 32,
-                            height: 32,
-                            borderRadius: "50%",
-                            background: rank <= 3 ? "var(--ink)" : "var(--soft, #f8fafc)",
-                            color: rank <= 3 ? "white" : "var(--gray)",
-                            border: rank <= 3 ? "none" : "1px solid var(--border)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "16px",
-                            fontWeight: 700,
-                          }}
+                          className={`absolute top-1/2 -translate-y-1/2 left-4 w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow ${
+                            rank <= 3
+                              ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-extrabold border border-cyan-400/50 shadow-cyan-500/30"
+                              : "bg-slate-800 text-slate-300 border border-slate-700"
+                          }`}
                           aria-hidden="true"
                         >
                           {rank}
@@ -143,23 +95,14 @@ export default async function TrendingPage() {
           </div>
         </div>
       ) : (
-        <section aria-labelledby="empty-state-heading" style={{ textAlign: "center", padding: "60px 20px", background: "var(--white)", borderRadius: 8, border: "1px solid var(--border)" }}>
+        <section aria-labelledby="empty-state-heading" className="text-center py-16 px-6 bg-slate-900/90 rounded-2xl border border-white/10 shadow-xl">
           <h2 id="empty-state-heading" className="visually-hidden">Chưa có bài viết</h2>
-          <p style={{ color: "var(--gray)", margin: "0 0 16px" }}>
+          <p className="text-slate-400 m-0 mb-4 text-base">
             Chưa đủ tín hiệu đọc để xếp hạng.
           </p>
           <a
             href="/moi-nhat"
-            style={{
-              display: "inline-block",
-              background: "var(--ink)",
-              color: "white",
-              padding: "8px 16px",
-              borderRadius: 6,
-              textDecoration: "none",
-              fontSize: "14px",
-              fontWeight: 600,
-            }}
+            className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all"
           >
             Xem tin mới nhất
           </a>

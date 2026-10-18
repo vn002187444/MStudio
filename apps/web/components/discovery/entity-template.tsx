@@ -49,9 +49,9 @@ export async function EntityTemplate({ slug, entityType }: { slug: string; entit
   const entity = await fetchEntityInfo(slug);
   if (!entity) {
     return (
-      <main className="home-main min-h-screen pt-20 pb-24 text-center">
-        <h1 className="text-3xl font-bold">Không tìm thấy thông tin</h1>
-        <p className="text-gray-500 mt-4">Chủ đề hoặc thực thể này không tồn tại trong hệ thống.</p>
+      <main className="home-main min-h-screen bg-[#07080B] text-slate-100 pt-20 pb-24 text-center">
+        <h1 className="text-3xl font-bold text-white">Không tìm thấy thông tin</h1>
+        <p className="text-slate-400 mt-4">Chủ đề hoặc thực thể này không tồn tại trong hệ thống.</p>
       </main>
     );
   }
@@ -59,31 +59,31 @@ export async function EntityTemplate({ slug, entityType }: { slug: string; entit
   const articles = await fetchEntityArticles(slug, 20);
 
   return (
-    <main className="home-main min-h-screen bg-[var(--solar-light)] pt-8 pb-24" id="main-content">
+    <main className="home-main min-h-screen bg-[#07080B] text-slate-100 pt-8 pb-24" id="main-content">
       <div className="container-content max-w-[var(--container)] mx-auto px-4">
         {/* Entity Header */}
         <header className="mb-12">
           <BentoGrid>
-            <BentoCard colSpan={12} className="bg-[var(--void-surface)] text-white p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-8 border-none">
+            <BentoCard colSpan={12} className="bg-slate-900/90 text-white p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-8 border border-white/10 shadow-2xl rounded-3xl">
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 blur-[100px] rounded-full pointer-events-none" />
               
               {/* Avatar / Placeholder */}
-              <div className="w-24 h-24 md:w-32 md:h-32 shrink-0 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-4xl shadow-xl relative z-10">
+              <div className="w-24 h-24 md:w-32 md:h-32 shrink-0 rounded-full bg-slate-800 border border-white/20 flex items-center justify-center text-4xl shadow-xl relative z-10">
                 {entity.type === "PERSON" ? "👤" : entity.type === "ORGANIZATION" ? "🏢" : "🏷️"}
               </div>
 
               <div className="flex-1 text-center md:text-left relative z-10 flex flex-col items-center md:items-start h-full justify-center">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="px-3 py-1 bg-white/10 border border-white/10 rounded-full text-xs font-bold uppercase tracking-wider text-blue-300">
+                  <span className="px-3 py-1 bg-blue-950/80 border border-blue-500/40 rounded-full text-xs font-bold uppercase tracking-wider text-cyan-300">
                     {entity.type}
                   </span>
-                  <span className="text-sm font-medium text-white/60">{entity.articleCount} bài viết</span>
+                  <span className="text-sm font-medium text-slate-300">{entity.articleCount} bài viết</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 drop-shadow-md">
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4 text-white drop-shadow-md">
                   {entity.name}
                 </h1>
                 {entity.description && (
-                  <p className="text-lg text-white/80 max-w-2xl leading-relaxed mb-6">
+                  <p className="text-base md:text-lg text-slate-300 max-w-2xl leading-relaxed mb-6 font-normal">
                     {entity.description}
                   </p>
                 )}
@@ -98,10 +98,10 @@ export async function EntityTemplate({ slug, entityType }: { slug: string; entit
         <BentoGrid>
           {/* Main Column */}
           <BentoCard colSpan={8} className="p-0 border-none bg-transparent">
-            <div className="bg-white rounded-[var(--bento-radius-outer)] border border-black/5 p-[var(--bento-padding)] shadow-sm">
-              <div className="flex items-center justify-between mb-6 border-b border-black/5 pb-4">
-                <h2 className="text-xl font-bold m-0">Bài viết liên quan</h2>
-                <div className="text-sm text-gray-500 font-medium">Sắp xếp: Mới nhất</div>
+            <div className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl">
+              <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+                <h2 className="text-xl font-bold text-white m-0">Bài viết liên quan</h2>
+                <div className="text-sm text-slate-400 font-medium">Sắp xếp: Mới nhất</div>
               </div>
 
               {articles.length > 0 ? (
@@ -111,7 +111,7 @@ export async function EntityTemplate({ slug, entityType }: { slug: string; entit
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 py-12 text-center bg-gray-50 rounded-lg border border-gray-100">
+                <p className="text-slate-400 py-12 text-center bg-slate-950/60 rounded-xl border border-white/10">
                   Chưa có bài viết nào liên kết với chủ đề này.
                 </p>
               )}
@@ -121,24 +121,24 @@ export async function EntityTemplate({ slug, entityType }: { slug: string; entit
           {/* Sidebar */}
           <BentoCard colSpan={4} className="p-0 border-none bg-transparent">
             <div className="flex flex-col gap-6">
-              <section className="bg-white rounded-[var(--bento-radius-outer)] border border-black/5 p-[var(--bento-padding)] shadow-sm">
-                <h3 className="text-base font-bold mb-4">Thông tin thực thể (Knowledge Graph)</h3>
-                <div className="space-y-3 text-sm text-gray-700">
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-500 font-medium">Tên gọi</span>
-                    <span className="font-semibold text-right">{entity.name}</span>
+              <section className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 shadow-xl">
+                <h3 className="text-base font-bold text-white mb-4">Thông tin thực thể (Knowledge Graph)</h3>
+                <div className="space-y-3 text-sm text-slate-200">
+                  <div className="flex justify-between py-2 border-b border-white/10">
+                    <span className="text-slate-400 font-medium">Tên gọi</span>
+                    <span className="font-semibold text-right text-white">{entity.name}</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-500 font-medium">Phân loại</span>
-                    <span className="font-semibold text-right">{entity.type}</span>
+                  <div className="flex justify-between py-2 border-b border-white/10">
+                    <span className="text-slate-400 font-medium">Phân loại</span>
+                    <span className="font-semibold text-right text-cyan-300">{entity.type}</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-500 font-medium">Lượt đề cập</span>
-                    <span className="font-semibold text-right">{entity.articleCount} bài viết</span>
+                  <div className="flex justify-between py-2 border-b border-white/10">
+                    <span className="text-slate-400 font-medium">Lượt đề cập</span>
+                    <span className="font-semibold text-right text-white">{entity.articleCount} bài viết</span>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-gray-500 font-medium">Trạng thái</span>
-                    <span className="font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded flex items-center gap-1">
+                    <span className="text-slate-400 font-medium">Trạng thái</span>
+                    <span className="font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded flex items-center gap-1">
                       <span aria-hidden="true">✓</span> Đã xác thực
                     </span>
                   </div>

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="vi">
+    <html lang="vi" className="dark">
       <head>
         {/* Brand Identity: Dynamic SVG Favicon & PWA Manifest */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -59,7 +59,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           }}
         />
       </head>
-      <body>{children}</body>
+      <body className="bg-[#07080B] text-slate-100 antialiased min-h-screen selection:bg-cyan-500 selection:text-black">
+        {children}
+      </body>
     </html>
   );
 }

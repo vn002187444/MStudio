@@ -3,11 +3,6 @@
 import { usePathname } from "next/navigation";
 import { SpringButton } from "@mstudio/ui";
 
-/**
- * Mobile App-Like Tab Bar (MST-110 Hybrid Glassmorphic).
- * - Floating glass dock with spring feedback.
- */
-
 interface TabItem {
   readonly id: "home" | "explore" | "search" | "saved";
   readonly label: string;
@@ -31,7 +26,7 @@ function TabIcon({ id }: { readonly id: TabItem["id"] }) {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth="1.8"
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
@@ -49,7 +44,7 @@ function TabIcon({ id }: { readonly id: TabItem["id"] }) {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth="1.8"
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
@@ -67,7 +62,7 @@ function TabIcon({ id }: { readonly id: TabItem["id"] }) {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth="1.8"
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
@@ -85,7 +80,7 @@ function TabIcon({ id }: { readonly id: TabItem["id"] }) {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth="1.8"
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
@@ -105,7 +100,7 @@ export function MobileTabBar() {
       aria-label="Điều hướng nhanh di động"
       className="fixed bottom-[max(env(safe-area-inset-bottom),16px)] left-1/2 -translate-x-1/2 z-[var(--z-overlay)] md:hidden w-[calc(100%-32px)] max-w-[400px]"
     >
-      <ul className="glass-shell rounded-full flex items-center justify-around m-0 p-1.5 list-none shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] border border-white/20">
+      <ul className="rounded-full flex items-center justify-around m-0 p-1.5 list-none shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/20 bg-slate-950/90 backdrop-blur-2xl">
         {TABS.map((tab) => {
           const isActive =
             tab.href === "/"
@@ -116,15 +111,15 @@ export function MobileTabBar() {
             <li key={tab.href} className="flex-1 flex justify-center">
               <a href={tab.href} aria-current={isActive ? "page" : undefined} className="block w-full text-inherit no-underline">
                 <SpringButton
-                  className={`w-full flex flex-col items-center justify-center min-h-[48px] py-1 text-center no-underline transition-colors duration-150 rounded-full ${
+                  className={`w-full flex flex-col items-center justify-center min-h-[48px] py-1 text-center no-underline transition-all duration-150 rounded-full ${
                     isActive
-                      ? "text-[var(--ink)] font-semibold bg-white/40 shadow-sm"
-                      : "text-[var(--text-secondary)] hover:text-[var(--ink)] font-medium bg-transparent hover:bg-white/20"
+                      ? "text-cyan-300 font-bold bg-cyan-950/80 border border-cyan-500/40 shadow-sm"
+                      : "text-slate-300 hover:text-white font-medium bg-transparent hover:bg-white/10"
                   }`}
                 >
-                  <span className="flex flex-col items-center justify-center gap-0.5">
+                  <span className="flex flex-col items-center justify-center gap-1">
                     <TabIcon id={tab.id} />
-                    <span className="text-[10px] leading-tight tracking-tight">
+                    <span className="text-[11px] leading-tight tracking-tight font-semibold">
                       {tab.label}
                     </span>
                   </span>

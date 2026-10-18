@@ -2,10 +2,6 @@
 
 import { useState } from "react";
 
-/**
- * Follow/Hide topic controls (MST-062) — POST same-origin /api/events,
- * proxy tới workers/api. Không tự bịa topicId: dùng slug taxonomy PLAN.
- */
 type ActionState = "idle" | "sending" | "done" | "error";
 
 async function sendEvent(eventType: "follow_topic" | "hide_topic", topicId: string): Promise<boolean> {
@@ -39,26 +35,34 @@ function TopicAction({
   }
 
   return (
-    <span>
+    <span className="inline-flex items-center gap-1">
       <button
         aria-pressed={state === "done"}
-        className={isFollow ? "btn-follow" : "btn-hide"}
+        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+          state === "done"
+            ? "bg-slate-800 text-slate-400 border border-slate-700 cursor-default"
+            : state === "sending"
+            ? "opacity-60 cursor-wait bg-slate-800 text-slate-300 border border-slate-700"
+            : isFollow
+            ? "bg-blue-600 hover:bg-blue-500 text-white border border-blue-400 shadow-sm"
+            : "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600"
+        }`}
         disabled={state === "sending" || state === "done"}
         onClick={handleClick}
         type="button"
       >
         {state === "done"
           ? isFollow
-            ? "Đang theo dõi"
-            : "Đã ẩn"
+            ? "✓ Đang theo dõi"
+            : "✕ Đã ẩn"
           : state === "sending"
-            ? "Đang gửi…"
+            ? "Đang lưu…"
             : isFollow
-              ? `Theo dõi ${topicLabel}`
-              : `Ẩn ${topicLabel}`}
+              ? `Theo dõi`
+              : `Ẩn`}
       </button>{" "}
-      <span aria-live="polite" role="status" style={{ color: "var(--gray)", fontSize: "var(--text-sm)" }}>
-        {state === "error" ? "Gửi thất bại, thử lại sau." : ""}
+      <span aria-live="polite" role="status" className="text-rose-400 text-xs">
+        {state === "error" ? "Lỗi, thử lại." : ""}
       </span>
     </span>
   );

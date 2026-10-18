@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import { fetchLatestArticles } from "../../../lib/content/articles";
 import { CompactNewsCard, LeadStoryCard } from "../../../components/article/news-card";
+import { BentoGrid, BentoCard, AmbientGlow } from "@mstudio/ui";
 
-/**
- * Mới nhất (PLAN public route /moi-nhat/) — feed toàn bài published,
- * mới nhất trước, từ GET /articles.
- */
 export const metadata: Metadata = {
   title: "Mới nhất | MStudio Channel",
-  description: "Tin mới nhất từ MStudio Channel — cập nhật từ pipeline biên tập.",
+  description: "Tin mới nhất từ MStudio Channel — cập nhật liên tục từ pipeline biên tập.",
 };
 
 export default async function LatestPage() {
@@ -17,220 +14,109 @@ export default async function LatestPage() {
 
   return (
     <main
-      className="home-main"
+      className="home-main relative min-h-screen bg-[#07080B] text-slate-100 pt-6 pb-28 overflow-hidden"
       id="main-content"
-      style={{
-        maxWidth: "var(--max-content-width, 1280px)",
-        margin: "0 auto",
-        padding: "24px 16px 64px",
-      }}
     >
-      {/* Category Header */}
-      <header
-        style={{
-          borderBottom: "2px solid var(--ink, #111827)",
-          paddingBottom: 16,
-          marginBottom: 32,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-          <a href="/" style={{ color: "var(--gray)", fontSize: "13px", textDecoration: "none" }}>Trang chủ</a>
-          <span style={{ color: "var(--gray)", fontSize: "12px" }}>/</span>
-          <span style={{ color: "var(--gray)", fontSize: "13px" }}>Dòng sự kiện</span>
-          <span style={{ color: "var(--gray)", fontSize: "12px" }}>/</span>
-          <span style={{ color: "var(--accent, #2563eb)", fontSize: "13px", fontWeight: 600 }}>Mới nhất</span>
-        </div>
-        <h1 style={{ fontSize: "var(--text-4xl, 36px)", fontWeight: 800, margin: "0 0 8px", lineHeight: 1.2, display: "flex", alignItems: "center", gap: 12 }}>
-          Dòng tin mới nhất
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: "12px",
-              fontWeight: 600,
-              color: "var(--ai-blue, #2563EB)",
-              background: "var(--blue-50, #EFF6FF)",
-              padding: "4px 10px",
-              borderRadius: 9999,
-              border: "1px solid var(--blue-200, #BFDBFE)",
-            }}
-          >
-            <span style={{ display: "block", width: 6, height: 6, borderRadius: "50%", background: "currentColor", animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }} />
-            Cập nhật liên tục 24/7
-          </span>
-        </h1>
-        <p style={{ color: "var(--ink-700, #4b5563)", fontSize: "var(--text-base, 16px)", margin: 0, maxWidth: 720 }}>
-          {articles.length > 0
-            ? `Hiển thị ${articles.length} bài viết mới nhất được xuất bản bởi ban biên tập.`
-            : "Chưa có bài viết mới."}
-        </p>
-      </header>
+      <AmbientGlow color="rgba(37,99,235,0.2)" size={500} className="-top-40 -left-20 pointer-events-none" />
 
-      {articles.length > 0 ? (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, 1fr)",
-            gap: 32,
-          }}
-        >
-          {/* Main Column (8 Columns) */}
-          <div style={{ gridColumn: "span 12" }} className="lg-col-8">
-            {heroArticle ? (
-              <div style={{ marginBottom: 32 }}>
-                <LeadStoryCard article={heroArticle} />
-              </div>
-            ) : null}
-
-            {restArticles.length > 0 ? (
-              <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16 }}>
-                <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: 16 }}>
-                  Dòng thời gian
-                </h2>
-                {restArticles.map((article) => (
-                  <CompactNewsCard key={article.id} article={article} />
-                ))}
-              </div>
-            ) : null}
+      <div className="container-content max-w-[var(--container)] mx-auto px-4 relative z-10">
+        {/* Header */}
+        <header className="mb-10 rounded-3xl border border-white/10 bg-slate-900/80 p-6 md:p-8 backdrop-blur-2xl shadow-2xl">
+          <div className="flex items-center gap-2 text-xs text-slate-400 mb-3">
+            <a href="/" className="hover:text-white transition-colors">Trang chủ</a>
+            <span>/</span>
+            <span className="text-slate-400">Dòng sự kiện</span>
+            <span>/</span>
+            <span className="text-cyan-400 font-bold">Mới nhất</span>
           </div>
 
-          {/* Sidebar Column (4 Columns) */}
-          <aside
-            aria-label="Sidebar chuyên mục"
-            style={{ gridColumn: "span 12", display: "flex", flexDirection: "column", gap: 24 }}
-            className="lg-col-4"
-          >
-            <section
-              style={{
-                background: "var(--white)",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                padding: 16,
-              }}
-            >
-              <h3 style={{ fontSize: "14px", fontWeight: 700, margin: "0 0 12px" }}>
-                Chuyên mục tiêu điểm
-              </h3>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {[
-                  { label: "Công nghệ", href: "/cong-nghe" },
-                  { label: "Kinh doanh", href: "/kinh-doanh" },
-                  { label: "Thời sự", href: "/thoi-su" },
-                  { label: "AI Channel", href: "/ai-channel" },
-                ].map((cat) => (
-                  <a
-                    key={cat.href}
-                    href={cat.href}
-                    style={{
-                      background: "var(--soft, #f8fafc)",
-                      border: "1px solid var(--border)",
-                      padding: "6px 12px",
-                      borderRadius: 16,
-                      fontSize: "12px",
-                      fontWeight: 500,
-                      color: "var(--ink-700, #374151)",
-                      textDecoration: "none",
-                    }}
-                  >
-                    {cat.label}
-                  </a>
-                ))}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white m-0 flex items-center gap-3">
+              Dòng tin mới nhất
+            </h1>
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold bg-cyan-950/80 border border-cyan-500/40 text-cyan-300">
+              <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+              Cập nhật liên tục 24/7
+            </span>
+          </div>
+
+          <p className="mt-3 text-sm md:text-base text-slate-300 max-w-2xl leading-relaxed m-0 font-normal">
+            {articles.length > 0
+              ? `Hiển thị ${articles.length} bài viết mới nhất được xuất bản và kiểm chứng nguồn bởi ban biên tập.`
+              : "Chưa có bài viết mới."}
+          </p>
+        </header>
+
+        {articles.length > 0 ? (
+          <BentoGrid>
+            {/* Main Column (8 Columns) */}
+            <BentoCard colSpan={8} className="p-0 border-none bg-transparent">
+              {heroArticle && (
+                <div className="mb-8">
+                  <LeadStoryCard article={heroArticle} />
+                </div>
+              )}
+
+              {restArticles.length > 0 && (
+                <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 md:p-6 backdrop-blur-xl shadow-xl">
+                  <h2 className="text-lg md:text-xl font-bold mb-5 flex items-center gap-2 border-b border-white/10 pb-3 text-white">
+                    <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" />
+                    Dòng thời gian
+                  </h2>
+                  <div className="flex flex-col gap-4">
+                    {restArticles.map((article) => (
+                      <CompactNewsCard key={article.id} article={article} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </BentoCard>
+
+            {/* Sidebar Column (4 Columns) */}
+            <BentoCard colSpan={4} className="p-0 border-none bg-transparent">
+              <div className="flex flex-col gap-6 sticky top-24">
+                <section className="rounded-3xl border border-white/10 bg-slate-900/90 p-6 backdrop-blur-xl shadow-xl">
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-4 pb-2 border-b border-white/10">
+                    Chuyên mục tiêu điểm
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { label: "Công nghệ", href: "/cong-nghe" },
+                      { label: "AI Channel", href: "/ai-channel" },
+                      { label: "Kinh doanh", href: "/kinh-doanh" },
+                      { label: "Thời sự", href: "/thoi-su" },
+                      { label: "Khoa học", href: "/khoa-hoc" },
+                      { label: "Thế giới", href: "/the-gioi" },
+                      { label: "Xe", href: "/xe" },
+                    ].map((cat) => (
+                      <a
+                        key={cat.href}
+                        href={cat.href}
+                        className="px-3.5 py-1.5 bg-slate-800/90 border border-slate-700/80 hover:border-cyan-400 hover:bg-cyan-950/80 hover:text-cyan-200 transition-all rounded-full text-xs font-medium text-slate-200 shadow-sm"
+                      >
+                        {cat.label}
+                      </a>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="rounded-3xl border border-white/10 bg-slate-900/90 p-6 backdrop-blur-xl shadow-xl">
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 mb-2">
+                    🛡️ Tự động kiểm chứng
+                  </h3>
+                  <p className="text-xs text-slate-300 leading-relaxed m-0 font-normal">
+                    Mọi nguồn cấp dữ liệu đều qua Fact-Check Pipeline tự động đối chiếu chéo để đảm bảo tính xác thực cao nhất trước khi xuất bản.
+                  </p>
+                </section>
               </div>
-            </section>
-
-            <section
-              style={{
-                background: "var(--white)",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                padding: 16,
-                display: "flex",
-                flexDirection: "column",
-                gap: 8
-              }}
-            >
-              <h3 style={{ fontSize: "14px", fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
-                🔥 Đang nóng
-              </h3>
-              <p style={{ fontSize: "13px", color: "var(--ink-700, #4b5563)", margin: 0 }}>
-                Các bài viết đang thu hút nhiều sự quan tâm nhất hiện nay.
-              </p>
-              <a href="/dang-nong" style={{ fontSize: "13px", fontWeight: 600, color: "var(--ai-blue)", textDecoration: "none", marginTop: 4 }}>
-                Xem danh sách xếp hạng →
-              </a>
-            </section>
-
-            <section
-              style={{
-                background: "var(--soft, #f8fafc)",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                padding: 16,
-              }}
-            >
-              <h3 style={{ fontSize: "14px", fontWeight: 700, margin: "0 0 8px" }}>
-                Đăng ký nhận tin
-              </h3>
-              <p style={{ fontSize: "13px", color: "var(--ink-700, #4b5563)", lineHeight: 1.5, margin: "0 0 12px" }}>
-                Nhận bản tin tóm tắt những sự kiện nổi bật nhất mỗi ngày trực tiếp qua email.
-              </p>
-              <form style={{ display: "flex", gap: 8 }}>
-                <input 
-                  type="email" 
-                  placeholder="Email của bạn..." 
-                  aria-label="Địa chỉ email"
-                  required
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    padding: "8px 12px",
-                    borderRadius: 6,
-                    border: "1px solid var(--border)",
-                    fontSize: "13px",
-                    outline: "none",
-                  }}
-                />
-                <button
-                  type="submit"
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: 6,
-                    border: "none",
-                    background: "var(--ink)",
-                    color: "var(--white)",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  Đăng ký
-                </button>
-              </form>
-            </section>
-          </aside>
-        </div>
-      ) : (
-        <section aria-labelledby="empty-state-heading" style={{ textAlign: "center", padding: "60px 20px", background: "var(--white)", borderRadius: 8, border: "1px solid var(--border)" }}>
-          <h2 id="empty-state-heading" className="visually-hidden">Chưa có bài viết</h2>
-          <p style={{ color: "var(--gray)", margin: 0 }}>Chưa có bài xuất bản — vui lòng quay lại sau.</p>
-        </section>
-      )}
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: .5; }
-        }
-        @media (min-width: 992px) {
-          .lg-col-8 {
-            grid-column: span 8 !important;
-          }
-          .lg-col-4 {
-            grid-column: span 4 !important;
-          }
-        }
-      `}</style>
+            </BentoCard>
+          </BentoGrid>
+        ) : (
+          <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-12 text-center shadow-xl">
+            <p className="text-slate-400 text-sm">Đang nạp dữ liệu dòng sự kiện mới nhất...</p>
+          </div>
+        )}
+      </div>
     </main>
   );
 }

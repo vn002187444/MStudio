@@ -33,28 +33,10 @@ export function UtilitiesBar() {
   }, []);
 
   return (
-    <div
-      style={{
-        background: "var(--soft, #f8fafc)",
-        borderBottom: "1px solid var(--border)",
-        fontSize: "12px",
-        color: "var(--ink-700, #374151)",
-        padding: "6px 16px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "var(--max-content-width, 1280px)",
-          margin: "0 auto",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
-        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <span style={{ fontWeight: 600 }}>
+    <div className="bg-[#0B0F17]/95 border-b border-white/10 text-xs text-slate-300 py-1.5 px-4 backdrop-blur-md">
+      <div className="max-w-[var(--max-content-width,1280px)] mx-auto flex justify-between items-center flex-wrap gap-3">
+        <div className="flex gap-4 items-center">
+          <span className="font-semibold text-slate-200">
             {new Date().toLocaleDateString("vi-VN", {
               weekday: "long",
               day: "numeric",
@@ -63,17 +45,18 @@ export function UtilitiesBar() {
             })}
           </span>
           {weather ? (
-            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              🌤️ {weather.city}: <strong>{weather.temp}°C</strong>
+            <span className="flex items-center gap-1.5 text-slate-300">
+              🌤️ {weather.city}: <strong className="text-white font-bold">{weather.temp}°C</strong>
             </span>
           ) : null}
         </div>
 
-        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <span>USD: <strong>25.450₫</strong></span>
-          <span>BTC: <strong>$68.400</strong></span>
-          <span style={{ color: "var(--accent, #2563eb)", fontWeight: 500 }}>
-            ⚡ Cập nhật theo thời gian thực
+        <div className="flex gap-4 items-center font-medium">
+          <span className="text-slate-300">USD: <strong className="text-white font-bold">25.450₫</strong></span>
+          <span className="text-slate-300">BTC: <strong className="text-emerald-400 font-bold">$68.400</strong></span>
+          <span className="text-cyan-400 font-semibold flex items-center gap-1.5">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            Cập nhật trực tiếp
           </span>
         </div>
       </div>

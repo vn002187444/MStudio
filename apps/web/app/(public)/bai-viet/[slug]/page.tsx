@@ -477,8 +477,8 @@ export default async function ArticlePage({
 
               {/* Recommendations */}
               {related.length > 0 && (
-                <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur-xl shadow-xl">
-                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 mb-3 border-b border-white/10 pb-2">
+                <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 backdrop-blur-xl shadow-xl">
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-3 border-b border-white/10 pb-2">
                     Bài viết liên quan
                   </h3>
                   <div className="flex flex-col gap-3">
@@ -486,12 +486,12 @@ export default async function ArticlePage({
                       <a
                         key={item.id}
                         href={`/bai-viet/${item.slug || item.id}`}
-                        className="group rounded-xl border border-white/5 bg-white/5 p-3 hover:bg-white/10 hover:border-cyan-500/30 transition-all"
+                        className="group rounded-xl border border-slate-700/80 bg-slate-800/90 p-3 hover:bg-slate-750 hover:border-cyan-500/40 transition-all shadow-sm"
                       >
-                        <span className="text-[10px] font-mono uppercase text-cyan-400 block mb-1">
+                        <span className="text-[10px] font-mono uppercase text-cyan-400 block mb-1 font-bold">
                           {item.reason}
                         </span>
-                        <h4 className="text-xs font-semibold text-slate-200 group-hover:text-cyan-200 line-clamp-2 leading-snug">
+                        <h4 className="text-xs font-bold text-white group-hover:text-cyan-200 line-clamp-2 leading-snug">
                           {item.title}
                         </h4>
                       </a>
