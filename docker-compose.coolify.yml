@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   # -------------------------------------------------------------
-  # MStudio Web Portal & CMS Service
+  # MStudio Web Portal & Newsroom SSR
   # -------------------------------------------------------------
   web:
     build:
@@ -15,16 +15,21 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      # Hybrid Setup: Giữ R2 trên Cloudflare cho media (0đ egress)
+      - HOSTNAME=0.0.0.0
+      # Local Database (SQLite WAL on fast NVMe SSD)
+      - DATABASE_URL=file:/data/mstudio.db
+      # Public URL & Fallback Media
+      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      - MSTUDIO_API_URL=${MSTUDIO_API_URL:-https://api.mstudio.minds.io.vn}
+      - CLOUDFLARE_R2_PUBLIC_URL=${CLOUDFLARE_R2_PUBLIC_URL:-https://media.mstudio.minds.io.vn}
+      # Cloudflare R2 Credentials (Giữ media trên Cloudflare với 0đ cước egress)
       - CLOUDFLARE_R2_BUCKET=${CLOUDFLARE_R2_BUCKET:-mstudio-raw}
       - CLOUDFLARE_R2_ACCOUNT_ID=${CLOUDFLARE_R2_ACCOUNT_ID}
       - CLOUDFLARE_R2_ACCESS_KEY_ID=${CLOUDFLARE_R2_ACCESS_KEY_ID}
       - CLOUDFLARE_R2_SECRET_ACCESS_KEY=${CLOUDFLARE_R2_SECRET_ACCESS_KEY}
-      # Cloudflare Workers AI Endpoint (Offload LLM tasks)
+      # Edge AI Gateway (Offload AI suy luận sang Edge)
       - CF_AI_GATEWAY_URL=${CF_AI_GATEWAY_URL}
       - CF_AI_API_TOKEN=${CF_AI_API_TOKEN}
-      # Local Database (SQLite WAL on fast NVMe)
-      - DATABASE_URL=file:/data/mstudio.db
     volumes:
       - mstudio_data:/data
     deploy:
@@ -38,18 +43,27 @@ services:
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/hello"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
-      start_period: 15s
+      start_period: 30s
 
   # -------------------------------------------------------------
-  # Cloudflare Tunnel Client (Khuyên dùng để giấu IP thật của NAS)
+  # Cloudflare Tunnel Client (Tự động bảo vệ, không crash nếu chưa có Token)
   # -------------------------------------------------------------
   tunnel:
     image: cloudflare/cloudflared:latest
     container_name: mstudio-tunnel
     restart: unless-stopped
-    command: tunnel --no-autoupdate run
+    entrypoint: >
+      sh -c '
+        if [ -z "$$TUNNEL_TOKEN" ]; then
+          echo "[Cloudflared] TUNNEL_TOKEN is not set. Standby mode active (Using Coolify Reverse Proxy).";
+          sleep infinity;
+        else
+          echo "[Cloudflared] Starting Cloudflare Tunnel...";
+          exec cloudflared tunnel --no-autoupdate run;
+        fi
+      '
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
