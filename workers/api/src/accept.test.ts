@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { D1Database, R2Bucket, R2Object } from "@cloudflare/workers-types";
 import type { RawItemRecord } from "@mstudio/contracts";
-import { CATEGORY_FALLBACK_IMAGES } from "@mstudio/contracts";
+import {
+  CATEGORY_FALLBACK_IMAGES,
+  DEFAULT_FALLBACK_CATEGORY,
+} from "@mstudio/contracts";
 import {
   createFeed,
   createRawItem,
@@ -663,7 +666,7 @@ test("acceptRawItem preserves imageUrl as heroImageUrl on article", async () => 
 
 test("acceptRawItem falls back to the category image when imageUrl is missing", async () => {
   const { db, close } = await openMigratedTestDb();
-  const expected = CATEGORY_FALLBACK_IMAGES["cong-nghe"];
+  const expected = CATEGORY_FALLBACK_IMAGES[DEFAULT_FALLBACK_CATEGORY];
   try {
     await createSource(db, {
       id: "source-noimage",
@@ -747,7 +750,7 @@ test("inferCategorySlug classifies English articles by topic", () => {
   );
   assert.equal(
     inferCategorySlug("Một bài viết về ẩm thực và du lịch", ""),
-    "cong-nghe",
+    "thoi-su",
   );
 });
 

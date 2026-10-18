@@ -604,7 +604,13 @@ test("GET /categories returns the seeded taxonomy", async () => {
         status: string;
       }>;
     };
-    assert.equal(body.categories.length, 14);
+    assert.equal(body.categories.length, 18);
+    for (const slug of ["thoi-su", "kinh-te", "khoa-hoc", "the-thao"]) {
+      assert.ok(
+        body.categories.some((c) => c.slug === slug),
+        `missing category ${slug}`,
+      );
+    }
     assert.equal(body.categories[0].slug, "moi-nhat");
     assert.equal(body.categories[0].labelVi, "Mới nhất");
     assert.equal(body.categories[5].slug, "ai-channel");

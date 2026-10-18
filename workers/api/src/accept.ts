@@ -286,7 +286,7 @@ export function inferCategorySlug(title: string, content: string): string {
   if (/phim\b|âm nhạc|ca sĩ|showbiz|giải trí|\bmovie\b|\bfilm\b|\bmusic\b|celebrity/.test(text)) {
     return "giai-tri";
   }
-  return "cong-nghe";
+  return "thoi-su";
 }
 
 export function extractKeywords(title: string, category: string): string {
