@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ContactForm } from "./contact-form";
+import { AmbientGlow } from "@mstudio/ui";
 
 export const metadata: Metadata = {
   title: "Liên hệ Ban biên tập | MStudio Channel",
@@ -14,155 +15,116 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <main
-      className="home-main"
+      className="home-main min-h-screen bg-[#07080B] text-slate-100 relative overflow-hidden"
       id="main-content"
-      style={{
-        maxWidth: "1080px",
-        margin: "0 auto",
-        padding: "32px 16px 80px",
-      }}
     >
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" style={{ marginBottom: 16 }}>
-        <ol style={{ display: "flex", gap: 8, listStyle: "none", padding: 0, margin: 0, fontSize: "14px" }}>
-          <li>
-            <a href="/" style={{ color: "var(--gray)", textDecoration: "none" }}>
-              Trang chủ
-            </a>
-          </li>
-          <li style={{ color: "var(--gray)" }}>/</li>
-          <li style={{ color: "var(--accent, #2563eb)", fontWeight: 600 }}>Liên hệ</li>
-        </ol>
-      </nav>
+      <AmbientGlow color="rgba(37, 99, 235, 0.15)" size={500} className="-top-32 -left-20 pointer-events-none" />
+      <AmbientGlow color="rgba(6, 182, 212, 0.1)" size={400} className="top-1/2 -right-20 pointer-events-none" />
 
-      {/* Header */}
-      <header style={{ marginBottom: 36, borderBottom: "1px solid var(--border)", paddingBottom: 20 }}>
-        <h1
-          style={{
-            fontSize: "clamp(26px, 4vw, 38px)",
-            fontWeight: 800,
-            lineHeight: 1.2,
-            margin: "0 0 12px",
-            color: "var(--ink, #101114)",
-          }}
-        >
-          Liên hệ & Đóng góp ý kiến
-        </h1>
-        <p style={{ fontSize: "16px", color: "var(--ink-700, #4b5563)", margin: 0, maxWidth: 740, lineHeight: 1.6 }}>
-          Ban biên tập MStudio Channel luôn sẵn sàng lắng nghe mọi ý kiến đóng góp, phản hồi về tính chuẩn xác của
-          thông tin, hoặc đề xuất hợp tác từ độc giả và đối tác báo chí.
-        </p>
-      </header>
+      <div className="container-content max-w-5xl mx-auto px-4 py-12 relative z-10">
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="mb-6">
+          <ol className="flex items-center gap-2 text-xs font-medium">
+            <li>
+              <a href="/" className="text-slate-400 hover:text-white transition-colors">
+                Trang chủ
+              </a>
+            </li>
+            <li className="text-slate-600">/</li>
+            <li className="text-cyan-400 font-semibold">Liên hệ</li>
+          </ol>
+        </nav>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(12, 1fr)",
-          gap: 36,
-        }}
-      >
-        {/* Contact Info (5 cols) */}
-        <div className="col-span-12 md:col-span-5 flex flex-col gap-6">
-          <div
-            style={{
-              background: "var(--soft, #f8fafc)",
-              border: "1px solid var(--border)",
-              borderRadius: "12px",
-              padding: "24px",
-            }}
-          >
-            <h2 style={{ fontSize: "18px", fontWeight: 700, margin: "0 0 16px", color: "var(--ink, #101114)" }}>
-              Thông tin tòa soạn
-            </h2>
+        {/* Header */}
+        <header className="mb-10 border-b border-white/10 pb-8">
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-4">
+            Liên hệ & Đóng góp ý kiến
+          </h1>
+          <p className="text-base md:text-lg text-slate-300 leading-relaxed font-normal m-0 max-w-3xl">
+            Ban biên tập MStudio Channel luôn sẵn sàng lắng nghe mọi ý kiến đóng góp, phản hồi về tính chuẩn xác của
+            thông tin, hoặc đề xuất hợp tác từ độc giả và đối tác báo chí.
+          </p>
+        </header>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 18, fontSize: "14px" }}>
-              <div>
-                <div style={{ fontWeight: 600, color: "var(--ink, #101114)", marginBottom: 4 }}>
-                  🏢 Tòa soạn MStudio Channel
-                </div>
-                <div style={{ color: "var(--ink-700, #4b5563)", lineHeight: 1.5 }}>
-                  Khu Công nghệ Cao, TP. Thủ Đức, TP. Hồ Chí Minh
-                </div>
-              </div>
+        <div className="grid grid-cols-12 gap-8">
+          {/* Contact Info (5 cols) */}
+          <div className="col-span-12 md:col-span-5 flex flex-col gap-6">
+            <div className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
+              <h2 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-3">
+                Thông tin tòa soạn
+              </h2>
 
-              <div>
-                <div style={{ fontWeight: 600, color: "var(--ink, #101114)", marginBottom: 4 }}>
-                  📧 Thư điện tử (Email)
+              <div className="space-y-6 text-sm">
+                <div>
+                  <div className="font-semibold text-white mb-1 flex items-center gap-2">
+                    <span>🏢</span> Tòa soạn MStudio Channel
+                  </div>
+                  <div className="text-slate-300 leading-relaxed">
+                    Khu Công nghệ Cao, TP. Thủ Đức, TP. Hồ Chí Minh
+                  </div>
                 </div>
-                <div style={{ color: "var(--brand, #155eef)" }}>
-                  <a href="mailto:contact@mstudio.minds.io.vn" style={{ textDecoration: "none", color: "inherit" }}>
-                    contact@mstudio.minds.io.vn
-                  </a>
-                </div>
-                <div style={{ fontSize: "12px", color: "var(--gray)", marginTop: 2 }}>
-                  (Tiếp nhận thông cáo báo chí, yêu cầu bản quyền & hợp tác)
-                </div>
-              </div>
 
-              <div>
-                <div style={{ fontWeight: 600, color: "var(--ink, #101114)", marginBottom: 4 }}>
-                  📞 Đường dây nóng độc giả
+                <div>
+                  <div className="font-semibold text-white mb-1 flex items-center gap-2">
+                    <span>📧</span> Thư điện tử (Email)
+                  </div>
+                  <div>
+                    <a href="mailto:contact@mstudio.minds.io.vn" className="text-cyan-400 hover:underline font-medium">
+                      contact@mstudio.minds.io.vn
+                    </a>
+                  </div>
+                  <div className="text-xs text-slate-400 mt-1">
+                    (Tiếp nhận thông cáo báo chí, yêu cầu bản quyền & hợp tác)
+                  </div>
                 </div>
-                <div style={{ color: "var(--ink, #101114)", fontWeight: 700 }}>
-                  (+84) 28 3822 6886
-                </div>
-                <div style={{ fontSize: "12px", color: "var(--gray)", marginTop: 2 }}>
-                  (Hỗ trợ 24/7 đối với thông tin phản ánh khẩn cấp)
-                </div>
-              </div>
 
-              <div>
-                <div style={{ fontWeight: 600, color: "var(--ink, #101114)", marginBottom: 4 }}>
-                  ⚖️ Đính chính & Khiếu nại thông tin
+                <div>
+                  <div className="font-semibold text-white mb-1 flex items-center gap-2">
+                    <span>📞</span> Đường dây nóng độc giả
+                  </div>
+                  <div className="text-white font-bold text-base">
+                    (+84) 28 3822 6886
+                  </div>
+                  <div className="text-xs text-slate-400 mt-1">
+                    (Hỗ trợ 24/7 đối với thông tin phản ánh khẩn cấp)
+                  </div>
                 </div>
-                <div style={{ color: "var(--brand, #155eef)" }}>
-                  <a href="mailto:corrections@mstudio.minds.io.vn" style={{ textDecoration: "none", color: "inherit" }}>
-                    corrections@mstudio.minds.io.vn
-                  </a>
-                </div>
-                <div style={{ fontSize: "12px", color: "var(--gray)", marginTop: 2 }}>
-                  Cam kết xử lý và phản hồi trong vòng tối đa 24 giờ làm việc.
+
+                <div>
+                  <div className="font-semibold text-white mb-1 flex items-center gap-2">
+                    <span>⚖️</span> Đính chính & Khiếu nại thông tin
+                  </div>
+                  <div>
+                    <a href="mailto:corrections@mstudio.minds.io.vn" className="text-cyan-400 hover:underline font-medium">
+                      corrections@mstudio.minds.io.vn
+                    </a>
+                  </div>
+                  <div className="text-xs text-slate-400 mt-1">
+                    Cam kết xử lý và phản hồi trong vòng tối đa 24 giờ làm việc.
+                  </div>
                 </div>
               </div>
             </div>
+
+            <div className="bg-gradient-to-br from-blue-950/60 to-slate-900/90 border border-blue-500/30 rounded-2xl p-6 shadow-xl text-sm leading-relaxed text-slate-200">
+              <strong className="text-cyan-300 block mb-2 font-bold text-base">💡 Bạn có nguồn tin hoặc video thời sự muốn chia sẻ?</strong>
+              <p className="m-0 text-slate-300">
+                MStudio cam kết bảo mật danh tính nguồn tin theo đúng đạo đức báo chí nghề nghiệp.
+              </p>
+            </div>
           </div>
 
-          <div
-            style={{
-              background: "#eff6ff",
-              border: "1px solid #bfdbfe",
-              borderRadius: "12px",
-              padding: "20px",
-              fontSize: "13px",
-              lineHeight: 1.6,
-              color: "#1e40af",
-            }}
-          >
-            <strong>💡 Bạn có nguồn tin hoặc video thời sự muốn chia sẻ?</strong>
-            <p style={{ margin: "6px 0 0" }}>
-              MStudio cam kết bảo mật danh tính nguồn tin theo đúng đạo đức báo chí nghề nghiệp.
-            </p>
-          </div>
-        </div>
-
-        {/* Contact Form (7 cols) */}
-        <div className="col-span-12 md:col-span-7">
-          <div
-            style={{
-              background: "#ffffff",
-              border: "1px solid var(--border)",
-              borderRadius: "12px",
-              padding: "28px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-            }}
-          >
-            <h2 style={{ fontSize: "20px", fontWeight: 700, margin: "0 0 8px", color: "var(--ink, #101114)" }}>
-              Gửi tin nhắn trực tiếp
-            </h2>
-            <p style={{ fontSize: "14px", color: "var(--gray)", margin: "0 0 24px" }}>
-              Điền thông tin vào mẫu bên dưới, chúng tôi sẽ liên hệ lại với bạn sớm nhất.
-            </p>
-            <ContactForm />
+          {/* Contact Form (7 cols) */}
+          <div className="col-span-12 md:col-span-7">
+            <div className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
+              <h2 className="text-xl font-bold text-white mb-2">
+                Gửi tin nhắn trực tiếp
+              </h2>
+              <p className="text-sm text-slate-400 mb-6">
+                Điền thông tin vào mẫu bên dưới, chúng tôi sẽ liên hệ lại với bạn sớm nhất.
+              </p>
+              <ContactForm />
+            </div>
           </div>
         </div>
       </div>

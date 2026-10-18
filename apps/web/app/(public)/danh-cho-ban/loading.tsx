@@ -3,7 +3,7 @@
  */
 export default function ForYouLoading() {
   return (
-    <main aria-busy="true" aria-label="Đang tải feed dành cho bạn" className="home-main min-h-screen bg-[#07080B] text-slate-100 max-w-[var(--max-content-width,1280px)] mx-auto px-4 py-8">
+    <main aria-busy="true" aria-label="Đang tải feed dành cho bạn" className="home-main min-h-screen bg-[#07080B] text-slate-100 max-w-7xl mx-auto px-4 py-8">
       <div
         className="bg-slate-800 rounded-lg h-10 w-60 animate-pulse"
       />

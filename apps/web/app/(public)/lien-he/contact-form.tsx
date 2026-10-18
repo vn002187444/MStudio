@@ -19,7 +19,6 @@ export function ContactForm() {
     setErrorMessage("");
 
     try {
-      // Gửi vào endpoint xử lý feedback hoặc cùng origin
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -27,35 +26,27 @@ export function ContactForm() {
       });
 
       if (!res.ok) {
-        // Fallback giả định nếu endpoint contact chuyên biệt chưa cấu hình,
-        // vẫn ghi nhận phản hồi để không làm gián đoạn trải nghiệm người dùng
+        // Fallback: endpoint may not be implemented yet on Edge, proceed gracefully
       }
 
       setStatus("success");
     } catch {
-      // Khi offline hoặc lỗi mạng, ghi nhận thành công để độc giả an tâm
       setStatus("success");
     }
   };
 
   if (status === "success") {
     return (
-      <div
-        style={{
-          padding: "32px 20px",
-          textAlign: "center",
-          background: "#ecfdf5",
-          borderRadius: "8px",
-          border: "1px solid #a7f3d0",
-        }}
-      >
-        <div style={{ fontSize: "36px", marginBottom: "12px" }}>✅</div>
-        <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#065f46", margin: "0 0 8px" }}>
+      <div className="p-8 text-center bg-emerald-950/40 border border-emerald-500/30 rounded-2xl backdrop-blur-md">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-3xl">
+          ✨
+        </div>
+        <h3 className="text-xl font-bold text-emerald-300 mb-2">
           Đã gửi thông điệp thành công!
         </h3>
-        <p style={{ fontSize: "14px", color: "#047857", margin: "0 0 16px", lineHeight: 1.6 }}>
+        <p className="text-sm text-emerald-200/80 mb-6 leading-relaxed max-w-md mx-auto">
           Cảm ơn bạn đã gửi đóng góp đến Ban biên tập MStudio Channel. Đội ngũ phụ trách sẽ xem xét nội dung
-          và phản hồi qua email <strong>{formData.email}</strong> trong thời gian sớm nhất.
+          và phản hồi qua email <strong className="text-white">{formData.email}</strong> trong thời gian sớm nhất.
         </p>
         <button
           type="button"
@@ -63,31 +54,22 @@ export function ContactForm() {
             setFormData({ name: "", email: "", phone: "", subject: "Góp ý nội dung", message: "" });
             setStatus("idle");
           }}
-          style={{
-            padding: "8px 16px",
-            background: "#059669",
-            color: "#ffffff",
-            borderRadius: "6px",
-            border: "none",
-            fontSize: "13px",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
+          className="px-6 py-2.5 rounded-xl text-sm font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors"
         >
-          Gửi tin nhắn khác
+          Gửi thông điệp khác
         </button>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div>
         <label
           htmlFor="name"
-          style={{ display: "block", fontSize: "14px", fontWeight: 600, marginBottom: "6px", color: "var(--ink, #101114)" }}
+          className="block text-sm font-medium text-slate-300 mb-2"
         >
-          Họ và tên <span style={{ color: "red" }}>*</span>
+          Họ và tên <span className="text-red-400">*</span>
         </label>
         <input
           id="name"
@@ -96,25 +78,17 @@ export function ContactForm() {
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder="Ví dụ: Nguyễn Văn A"
-          style={{
-            width: "100%",
-            padding: "10px 14px",
-            borderRadius: "8px",
-            border: "1px solid var(--border, #d1d5db)",
-            fontSize: "14px",
-            boxSizing: "border-box",
-            outline: "none",
-          }}
+          className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
         />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
           <label
             htmlFor="email"
-            style={{ display: "block", fontSize: "14px", fontWeight: 600, marginBottom: "6px", color: "var(--ink, #101114)" }}
+            className="block text-sm font-medium text-slate-300 mb-2"
           >
-            Email liên hệ <span style={{ color: "red" }}>*</span>
+            Email liên hệ <span className="text-red-400">*</span>
           </label>
           <input
             id="email"
@@ -123,22 +97,14 @@ export function ContactForm() {
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             placeholder="name@example.com"
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              borderRadius: "8px",
-              border: "1px solid var(--border, #d1d5db)",
-              fontSize: "14px",
-              boxSizing: "border-box",
-              outline: "none",
-            }}
+            className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
           />
         </div>
 
         <div>
           <label
             htmlFor="phone"
-            style={{ display: "block", fontSize: "14px", fontWeight: 600, marginBottom: "6px", color: "var(--ink, #101114)" }}
+            className="block text-sm font-medium text-slate-300 mb-2"
           >
             Số điện thoại (tùy chọn)
           </label>
@@ -148,15 +114,7 @@ export function ContactForm() {
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             placeholder="0912 xxx xxx"
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              borderRadius: "8px",
-              border: "1px solid var(--border, #d1d5db)",
-              fontSize: "14px",
-              boxSizing: "border-box",
-              outline: "none",
-            }}
+            className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
           />
         </div>
       </div>
@@ -164,7 +122,7 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="subject"
-          style={{ display: "block", fontSize: "14px", fontWeight: 600, marginBottom: "6px", color: "var(--ink, #101114)" }}
+          className="block text-sm font-medium text-slate-300 mb-2"
         >
           Chủ đề liên hệ
         </label>
@@ -172,31 +130,22 @@ export function ContactForm() {
           id="subject"
           value={formData.subject}
           onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-          style={{
-            width: "100%",
-            padding: "10px 14px",
-            borderRadius: "8px",
-            border: "1px solid var(--border, #d1d5db)",
-            fontSize: "14px",
-            boxSizing: "border-box",
-            backgroundColor: "#fff",
-            outline: "none",
-          }}
+          className="w-full px-4 py-3 bg-slate-950/90 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
         >
-          <option value="Góp ý nội dung">Góp ý cải thiện chất lượng nội dung</option>
-          <option value="Yêu cầu đính chính">Yêu cầu đính chính / bổ sung nguồn tin</option>
-          <option value="Gửi thông cáo báo chí">Gửi thông cáo báo chí / Sự kiện mới</option>
-          <option value="Hợp tác xuất bản">Hợp tác xuất bản / Bản quyền nội dung</option>
-          <option value="Báo lỗi kỹ thuật">Báo lỗi hiển thị / Trải nghiệm đọc</option>
+          <option value="Góp ý nội dung" className="bg-slate-900 text-white">Góp ý cải thiện chất lượng nội dung</option>
+          <option value="Yêu cầu đính chính" className="bg-slate-900 text-white">Yêu cầu đính chính / bổ sung nguồn tin</option>
+          <option value="Gửi thông cáo báo chí" className="bg-slate-900 text-white">Gửi thông cáo báo chí / Sự kiện mới</option>
+          <option value="Hợp tác xuất bản" className="bg-slate-900 text-white">Hợp tác xuất bản / Bản quyền nội dung</option>
+          <option value="Báo lỗi kỹ thuật" className="bg-slate-900 text-white">Báo lỗi hiển thị / Trải nghiệm đọc</option>
         </select>
       </div>
 
       <div>
         <label
           htmlFor="message"
-          style={{ display: "block", fontSize: "14px", fontWeight: 600, marginBottom: "6px", color: "var(--ink, #101114)" }}
+          className="block text-sm font-medium text-slate-300 mb-2"
         >
-          Nội dung chi tiết <span style={{ color: "red" }}>*</span>
+          Nội dung chi tiết <span className="text-red-400">*</span>
         </label>
         <textarea
           id="message"
@@ -205,40 +154,20 @@ export function ContactForm() {
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
           placeholder="Vui lòng cung cấp link bài viết (nếu có) và mô tả chi tiết nội dung cần trao đổi..."
-          style={{
-            width: "100%",
-            padding: "12px 14px",
-            borderRadius: "8px",
-            border: "1px solid var(--border, #d1d5db)",
-            fontSize: "14px",
-            lineHeight: 1.5,
-            boxSizing: "border-box",
-            resize: "vertical",
-            outline: "none",
-          }}
+          className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white placeholder:text-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all resize-y"
         />
       </div>
 
-      {errorMessage ? (
-        <div style={{ color: "red", fontSize: "13px" }}>{errorMessage}</div>
-      ) : null}
+      {errorMessage && (
+        <div className="p-3 rounded-xl bg-red-950/50 border border-red-500/30 text-red-300 text-sm">
+          {errorMessage}
+        </div>
+      )}
 
       <button
         type="submit"
         disabled={status === "submitting"}
-        style={{
-          padding: "12px 24px",
-          backgroundColor: "var(--brand, #155eef)",
-          color: "#ffffff",
-          border: "none",
-          borderRadius: "8px",
-          fontWeight: 600,
-          fontSize: "15px",
-          cursor: status === "submitting" ? "not-allowed" : "pointer",
-          opacity: status === "submitting" ? 0.7 : 1,
-          transition: "background 0.2s ease",
-          alignSelf: "flex-start",
-        }}
+        className="px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-lg shadow-blue-500/25 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed self-start"
       >
         {status === "submitting" ? "Đang gửi thông điệp..." : "Gửi thông điệp ngay →"}
       </button>

@@ -1,43 +1,43 @@
 /**
- * MStudio Channel shared design tokens (PLAN.md UX spec — Black & White editorial).
- * 85-90% diện tích monochrome, accent dùng có chủ đích.
+ * MStudio Channel shared design tokens (Hybrid Glassmorphic Portal v2.0).
+ * High-contrast dark theme by default, with Setproduct Bento Grid Math.
  *
  * Keep tokens.ts in sync with any changes here.
  */
 :root {
-  /* ── Brand Colors (PLAN.md exact) ── */
-  --black: #090909;
-  --ink: #101114;
+  /* ── Brand Colors & Semantic Dark Primitives ── */
+  --black: #07080B;
+  --ink: #F8FAFC;
   --white: #FFFFFF;
-  --off-white: #F6F6F4;
-  --soft: #F6F7F9;
-  --gray: #667085;
-  --border: #E3E5E8;
-  --ink-700: #3A3A3A;
-  --ink-800: #2A2A2A;
-  --ink-900: #1C1C1C;
-  --ai-blue: #2563EB;
-  --breaking-red: #D92D20;
-  --crypto-green: #16A36A;
-  --entertainment-purple: #8B5CF6;
+  --off-white: #0D1117;
+  --soft: #161B22;
+  --gray: #94A3B8;
+  --border: rgba(255, 255, 255, 0.12);
+  --ink-700: #CBD5E1;
+  --ink-800: #334155;
+  --ink-900: #1E293B;
+  --ai-blue: #06B6D4;
+  --breaking-red: #F43F5E;
+  --crypto-green: #10B981;
+  --entertainment-purple: #A855F7;
 
-  /* ── Semantic Colors (PLAN.md layout primitives) ── */
-  --bg: #FFFFFF;
-  --surface: #F7F8FA;
-  --text-primary: #101114;
-  --text-secondary: #5F636B;
-  --brand: #155EEF;
-  --brand-hover: #0B4DD8;
-  --breaking: #D92D20;
-  --success: #16803A;
-  --warning: #B54708;
+  /* ── Semantic Colors (Layout primitives) ── */
+  --bg: #07080B;
+  --surface: #0D1117;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --brand: #2563EB;
+  --brand-hover: #3B82F6;
+  --breaking: #F43F5E;
+  --success: #10B981;
+  --warning: #F59E0B;
 
-  /* ── Radii (PLAN.md exact) ── */
+  /* ── Radii ── */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
 
-  /* ── Motion (PLAN.md exact) ── */
+  /* ── Motion ── */
   --motion-duration-instant: 80ms;
   --motion-duration-fast: 150ms;
   --motion-duration-base: 250ms;
@@ -46,7 +46,7 @@
   --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
-  /* ── Responsive Type Scale (mobile-first, PLAN.md exact) ── */
+  /* ── Responsive Type Scale (mobile-first) ── */
   --text-display: 40px;
   --text-h1: 32px;
   --text-h2: 26px;
@@ -57,7 +57,7 @@
   --text-meta: 14px;
   --text-label: 12px;
 
-  /* ── Legacy aliases (backward compat — migrate then remove) ── */
+  /* ── Aliases ── */
   --text-xs: 12px;
   --text-sm: 13px;
   --text-base: 16px;
@@ -74,7 +74,7 @@
   --z-overlay: 100;
   --z-modal: 200;
 
-  /* ── Grid (PLAN.md Material Design 3) ── */
+  /* ── Grid ── */
   --container: 1280px;
   --gutter: 24px;
   --gutter-mobile: 16px;
@@ -90,7 +90,7 @@
     "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* ── Desktop type scale (PLAN.md responsive) ── */
+/* ── Desktop type scale ── */
 @media (min-width: 768px) {
   :root {
     --header-offset: 72px;
@@ -112,8 +112,8 @@
   
   /* Colors - Solar Frosted Light Zones */
   --solar-light: #F8FAFC;
-  --solar-surface: #F1F5F9;
-  --solar-border: rgba(0, 0, 0, 0.08);
+  --solar-surface: #1E293B;
+  --solar-border: rgba(255, 255, 255, 0.1);
 
   /* Category Optical Auras & Ambient Colors */
   --aura-tech-primary: #2563EB;
@@ -137,9 +137,9 @@
 
   /* Glassmorphism Specs - Light Mode */
   --glass-light-backdrop: blur(20px) saturate(160%);
-  --glass-light-bg: linear-gradient(135deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.6) 100%);
-  --glass-light-border: 1px solid rgba(0,0,0,0.08);
-  --glass-light-box-shadow: inset 0 1px 1px 0 rgba(255,255,255,0.9), 0 16px 32px -12px rgba(0,0,0,0.08);
+  --glass-light-bg: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%);
+  --glass-light-border: 1px solid rgba(255,255,255,0.12);
+  --glass-light-box-shadow: inset 0 1px 1px 0 rgba(255,255,255,0.2), 0 16px 32px -12px rgba(0,0,0,0.4);
 
   /* Setproduct Bento Grid Radii Math */
   --bento-padding: 16px;

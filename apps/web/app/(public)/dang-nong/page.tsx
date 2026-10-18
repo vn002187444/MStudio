@@ -18,13 +18,8 @@ export default async function TrendingPage() {
 
   return (
     <main
-      className="home-main min-h-screen bg-[#07080B] text-slate-100"
+      className="home-main min-h-screen bg-[#07080B] text-slate-100 max-w-7xl mx-auto px-4 pt-6 pb-20"
       id="main-content"
-      style={{
-        maxWidth: "var(--max-content-width, 1280px)",
-        margin: "0 auto",
-        padding: "24px 16px 64px",
-      }}
     >
       {/* Page Header */}
       <header className="border-b border-white/10 pb-6 mb-8">

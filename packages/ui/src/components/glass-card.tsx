@@ -20,16 +20,16 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
           "backdrop-blur-[20px] backdrop-saturate-[180%]",
           "border border-white/10",
           {
-            "bg-[var(--solar-surface)]/80 text-[var(--ink)]": variant === "light",
-            "bg-[var(--void-surface)]/80 text-[var(--solar-light)] border-white/5": variant === "dark",
-            "bg-gradient-to-br from-white/5 to-white/0 text-[var(--ink)] shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),_0_20px_40px_-15px_rgba(0,0,0,0.3)]": variant === "hybrid",
+            "bg-slate-900/70 text-slate-100 border-white/10": variant === "light",
+            "bg-[#07080B]/90 text-slate-100 border-white/10 shadow-2xl": variant === "dark",
+            "bg-gradient-to-br from-white/10 to-white/5 text-slate-100 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),_0_20px_40px_-15px_rgba(0,0,0,0.5)]": variant === "hybrid",
           },
           className
         )}
         {...props}
       >
         {glow && (
-          <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-white/0 to-white/10 opacity-50 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 via-transparent to-blue-500/10 opacity-60 pointer-events-none" />
         )}
         <div className="relative z-10">{children}</div>
       </div>
@@ -39,17 +39,17 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
 GlassCard.displayName = "GlassCard";
 
 export const GlassPanel = React.forwardRef<HTMLDivElement, GlassCardProps>(
-  ({ className, variant = "light", children, ...props }, ref) => {
+  ({ className, variant = "dark", children, ...props }, ref) => {
     return (
       <div
         ref={ref}
         className={cn(
           "relative rounded-[var(--radius-lg)] overflow-hidden p-6",
           "backdrop-blur-[16px] backdrop-saturate-[150%]",
-          "border border-white/20 shadow-sm",
+          "border border-white/10 shadow-xl",
           {
-            "bg-white/60 text-[var(--ink)]": variant === "light",
-            "bg-black/60 text-white border-white/10": variant === "dark",
+            "bg-slate-900/80 text-slate-100 border-white/10": variant === "light" || variant === "dark",
+            "bg-gradient-to-br from-white/10 to-white/5 text-slate-100 border-white/10": variant === "hybrid",
           },
           className
         )}
@@ -69,7 +69,7 @@ export const GlassBadge = React.forwardRef<HTMLSpanElement, React.HTMLAttributes
         ref={ref}
         className={cn(
           "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold",
-          "backdrop-blur-md bg-white/20 border border-white/30 text-[var(--ink)] shadow-sm",
+          "backdrop-blur-md bg-white/10 border border-white/20 text-white shadow-sm",
           className
         )}
         {...props}
