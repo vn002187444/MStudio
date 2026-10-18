@@ -726,6 +726,14 @@ test("inferCategorySlug does not match short keywords as substrings", () => {
     inferCategorySlug("Hà Nội siết giao dịch nhà đất 2 giá", ""),
     "kinh-doanh",
   );
+  assert.equal(
+    inferCategorySlug("Hồ sơ vụ án kỳ án lừa đảo nghìn tỷ: Bắt tạm giam kẻ cầm đầu", ""),
+    "goc-toi",
+  );
+  assert.equal(
+    inferCategorySlug("Đại án tham nhũng và đường dây buôn lậu xuyên quốc gia", ""),
+    "goc-toi",
+  );
 });
 
 test("inferCategorySlug classifies English articles by topic", () => {

@@ -62,51 +62,112 @@ export class GeminiAdapter implements ModelProvider {
 
   async generate(request: ModelRequest): Promise<ModelResponse> {
     const timeoutMs = request.timeoutMs ?? this.timeoutMs;
-    const response = await this.fetchImpl(
-      `${this.baseUrl}/v1beta/models/${request.model}:generateContent`,
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-goog-api-key": this.apiKey,
-        },
-        body: JSON.stringify({
-          systemInstruction: request.systemPrompt
-            ? { parts: [{ text: request.systemPrompt }] }
-            : undefined,
-          contents: [
-            { role: "user", parts: [{ text: request.prompt }] },
-          ],
-          generationConfig: {
-            maxOutputTokens: request.maxOutputTokens,
-            temperature: request.temperature,
+    const start = Date.now();
+    let response: Response;
+    try {
+      response = await this.fetchImpl(
+        `${this.baseUrl}/v1beta/models/${request.model}:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-goog-api-key": this.apiKey,
           },
+          body: JSON.stringify({
+            systemInstruction: request.systemPrompt
+              ? { parts: [{ text: request.systemPrompt }] }
+              : undefined,
+            contents: [
+              { role: "user", parts: [{ text: request.prompt }] },
+            ],
+            generationConfig: {
+              maxOutputTokens: request.maxOutputTokens,
+              temperature: request.temperature,
+            },
+          }),
+          signal: AbortSignal.timeout(timeoutMs),
+        },
+      );
+    } catch (err: unknown) {
+      const durationMs = Date.now() - start;
+      console.error(
+        JSON.stringify({
+          event: "ai_model_execution",
+          provider: "gemini",
+          model: request.model,
+          status: "network_error",
+          durationMs,
+          error: err instanceof Error ? err.message : String(err),
         }),
-        signal: AbortSignal.timeout(timeoutMs),
-      },
-    );
+      );
+      throw err;
+    }
+
+    const durationMs = Date.now() - start;
     if (!response.ok) {
+      let errDetails = "";
+      try {
+        errDetails = await response.text();
+      } catch {
+        // fallback if unreadable
+      }
+      console.error(
+        JSON.stringify({
+          event: "ai_model_execution",
+          provider: "gemini",
+          model: request.model,
+          status: "http_error",
+          httpStatus: response.status,
+          durationMs,
+          errorBody: errDetails.slice(0, 500),
+        }),
+      );
       throw new ModelGatewayError(
         `gemini returned HTTP ${response.status}`,
         "PROVIDER_ERROR",
       );
     }
+
     const payload = (await response.json()) as GeminiResponse;
     const candidate = payload.candidates?.[0];
     const text = (candidate?.content?.parts ?? [])
       .map((part) => part.text ?? "")
       .join("");
     if (text.length === 0) {
+      console.error(
+        JSON.stringify({
+          event: "ai_model_execution",
+          provider: "gemini",
+          model: request.model,
+          status: "empty_content",
+          durationMs,
+          finishReason: candidate?.finishReason ?? "UNKNOWN",
+        }),
+      );
       throw new ModelGatewayError(
         "gemini returned no content",
         "PROVIDER_ERROR",
       );
     }
+
+    const usage = normalizeUsage(payload.usageMetadata);
+    console.info(
+      JSON.stringify({
+        event: "ai_model_execution",
+        provider: "gemini",
+        model: request.model,
+        status: "success",
+        durationMs,
+        finishReason: candidate?.finishReason ?? "UNKNOWN",
+        usage,
+      }),
+    );
+
     return {
       text,
       model: request.model,
       finishReason: candidate?.finishReason ?? "UNKNOWN",
-      usage: normalizeUsage(payload.usageMetadata),
+      usage,
     };
   }
 }

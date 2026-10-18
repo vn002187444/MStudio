@@ -83,4 +83,9 @@ INSERT OR IGNORE INTO feeds (id, source_id, url, format, enabled, fetch_interval
   -- thoi-su (VnExpress Thời Sự, Tuổi Trẻ Thời Sự, Thanh Niên Thời Sự)
   ('feed-vne-thoisu', 'src-vnexpress', 'https://vnexpress.net/rss/thoi-su.rss', 'rss', 1, 900, '2026-10-13T06:00:00.000Z', '2026-10-13T06:00:00.000Z'),
   ('feed-tt-thoisu', 'src-tuoitre', 'https://tuoitre.vn/rss/thoi-su.rss', 'rss', 1, 900, '2026-10-13T06:00:00.000Z', '2026-10-13T06:00:00.000Z'),
-  ('feed-tn-thoisu', 'src-thanhnien', 'https://thanhnien.vn/rss/thoi-su.rss', 'rss', 1, 900, '2026-10-13T06:00:00.000Z', '2026-10-13T06:00:00.000Z');
+  ('feed-tn-thoisu', 'src-thanhnien', 'https://thanhnien.vn/rss/thoi-su.rss', 'rss', 1, 900, '2026-10-13T06:00:00.000Z', '2026-10-13T06:00:00.000Z'),
+
+  -- goc-toi (Kỳ án, Hồ sơ vụ án, Phá án, Điều tra, Dark History)
+  ('feed-vne-phapluat', 'src-vnexpress', 'https://vnexpress.net/rss/phap-luat.rss', 'rss', 1, 900, '2026-10-18T05:00:00.000Z', '2026-10-18T05:00:00.000Z'),
+  ('feed-tt-phapluat', 'src-tuoitre', 'https://tuoitre.vn/rss/phap-luat.rss', 'rss', 1, 900, '2026-10-18T05:00:00.000Z', '2026-10-18T05:00:00.000Z'),
+  ('feed-tn-phapluat', 'src-thanhnien', 'https://thanhnien.vn/rss/thoi-su/phap-luat.rss', 'rss', 1, 900, '2026-10-18T05:00:00.000Z', '2026-10-18T05:00:00.000Z');

@@ -158,3 +158,46 @@
   /* Motion springs */
   --motion-spring-bouncy: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
+
+/* ── Large Desktop & Ultra-wide screen expansion (>= 1536px) ── */
+@media (min-width: 1536px) {
+  :root {
+    --container: 1536px;
+    --gutter: 32px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --container: 1680px;
+    --gutter: 40px;
+  }
+}
+
+/* ── Light Mode Solar Glassmorphism Overrides ── */
+:root[data-theme="light"], html.light {
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --border: rgba(15, 23, 42, 0.12);
+  --ink: #0F172A;
+  --ink-700: #334155;
+  --ink-800: #CBD5E1;
+  --soft: #F1F5F9;
+  --off-white: #FFFFFF;
+  --glass-backdrop-filter: blur(24px) saturate(160%);
+  --glass-bg-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(241, 245, 249, 0.78) 100%);
+  --glass-border: 1px solid rgba(15, 23, 42, 0.1);
+  --glass-box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+}
+
+html.light body {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+html.light .home-main,
+html.light .article-main {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+

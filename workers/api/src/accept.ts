@@ -265,6 +265,13 @@ export function inferCategorySlug(title: string, content: string): string {
   if (/thế giới|quốc tế|mỹ|trung quốc|\bnga\b|ukraine|châu âu|bầu cử|ngoại giao|liên hợp quốc|nato|putin|trump|\bcongress\b|white house|\bworld\b|diplomat/.test(text)) {
     return "the-gioi";
   }
+  if (
+    /kỳ án|hồ sơ vụ án|phá án|điều tra|tội phạm|tham nhũng|đại án|khởi tố|bắt tạm giam|bắt giam|xét xử|tuyên án|án mạng|lừa đảo|buôn lậu|rửa tiền|đường dây|trùm|ma túy|tử hình|tù chung thân|hồ sơ mật|dark history|scandal|bê bối|gian lận|thủ đoạn|bắt quả tang/.test(
+      text,
+    )
+  ) {
+    return "goc-toi";
+  }
   if (/pháp luật|môi trường|giao thông|đời sống|văn hóa/.test(text)) {
     return "doi-song";
   }
