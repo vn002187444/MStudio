@@ -6,7 +6,17 @@ import {
   LeadStoryCard,
 } from "../../components/article/news-card";
 import { StoriesRail } from "../../components/navigation/stories-rail";
-import { Hero3D, BentoGrid, BentoCard, BentoMarketStrip, cleanText, AmbientGlow } from "@mstudio/ui";
+import {
+  Hero3D,
+  BentoGrid,
+  BentoCard,
+  BentoMarketStrip,
+  AIBenchmarkWidget,
+  CrisisTimeline,
+  cleanText,
+  AmbientGlow,
+} from "@mstudio/ui";
+import { HomeStreamClient } from "../../components/widgets/home-stream";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +25,25 @@ interface ArticlesResponse {
   nextCursor?: { createdAt: string; id: string };
 }
 
-async function fetchLatest(limit = 20): Promise<PublishedArticleRecord[]> {
+async function fetchLatest(limit = 24): Promise<{ rows: PublishedArticleRecord[]; nextCursor?: { createdAt: string; id: string } }> {
   try {
     const response = await fetchApi(`/articles?limit=${limit}`, {
+      cache: "no-store",
+    });
+    if (!response.ok) return { rows: [] };
+    const payload = (await response.json()) as ArticlesResponse;
+    return {
+      rows: Array.isArray(payload.rows) ? payload.rows : [],
+      nextCursor: payload.nextCursor,
+    };
+  } catch {
+    return { rows: [] };
+  }
+}
+
+async function fetchCategory(category: string, limit = 4): Promise<PublishedArticleRecord[]> {
+  try {
+    const response = await fetchApi(`/articles?category=${encodeURIComponent(category)}&limit=${limit}`, {
       cache: "no-store",
     });
     if (!response.ok) return [];
@@ -29,8 +55,14 @@ async function fetchLatest(limit = 20): Promise<PublishedArticleRecord[]> {
 }
 
 export default async function PublicHomePage() {
-  const articles = await fetchLatest(20);
+  const [latestData, techArticles, darkArticles, bizArticles] = await Promise.all([
+    fetchLatest(24),
+    fetchCategory("cong-nghe", 4),
+    fetchCategory("goc-toi", 4),
+    fetchCategory("kinh-doanh", 4),
+  ]);
 
+  const articles = latestData.rows;
   const heroArticle = articles[0];
   const heroRail = articles.slice(1, 4);
   const featuredStrip = articles.slice(4, 8);
@@ -41,22 +73,26 @@ export default async function PublicHomePage() {
     <main className="home-main min-h-screen bg-[#07080B] text-slate-100" id="main-content">
       <h1 className="visually-hidden">MStudio Channel — Tạp chí tin tức công nghệ và đa nguồn</h1>
 
-      {/* 3D Hero Section */}
-      <section className="relative w-full h-[58vh] min-h-[460px] border-b border-white/10 bg-[#07080B] overflow-hidden">
+      {/* ── 1. Compact Editorial 3D Hero ── */}
+      <section className="relative w-full h-[40vh] min-h-[340px] md:h-[46vh] md:min-h-[380px] border-b border-white/10 bg-[#07080B] overflow-hidden">
         <Hero3D className="absolute inset-0" />
         
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none p-4 text-center">
-          <h2 className="text-4xl md:text-6xl font-black tracking-tight text-white mb-4 drop-shadow-2xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold uppercase tracking-wider mb-3 shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            Ấn Phẩm Thế Hệ Mới 2026
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-3 drop-shadow-2xl">
             Tương Lai Của Tin Tức
           </h2>
-          <p className="text-base md:text-lg text-slate-200 max-w-2xl font-medium drop-shadow-lg leading-relaxed">
-            Khám phá thông tin qua lăng kính công nghệ AI. Dữ liệu thời gian thực, minh bạch nguồn gốc và góc nhìn sâu sắc.
+          <p className="text-sm md:text-base text-slate-200 max-w-2xl font-medium drop-shadow-lg leading-relaxed">
+            Nền tảng báo chí evidence-first. Khám phá sự thật qua lăng kính trí tuệ nhân tạo và đối chiếu đa nguồn thời gian thực.
           </p>
         </div>
 
         {/* Breaking News Floating Ticker */}
         {breakingArticle && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-full max-w-4xl px-4">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 w-full max-w-4xl px-4">
             <aside
               aria-label="Tin nóng khẩn cấp"
               className="glass-shell rounded-full px-4 py-2 flex items-center gap-4 border border-rose-500/30 shadow-2xl bg-slate-900/90 backdrop-blur-xl"
@@ -75,27 +111,28 @@ export default async function PublicHomePage() {
         )}
       </section>
 
-      {/* Stories Rail 24h for Mobile & Fast Glance */}
+      {/* ── 2. Stories Rail 24h for Mobile & Fast Glance ── */}
       <div className="border-b border-white/10 bg-slate-950/90 backdrop-blur-md">
         <div className="container-content">
           <StoriesRail articles={articles} />
         </div>
       </div>
 
-      {/* Content Section */}
+      {/* ── 3. Content Section ── */}
       <div className="relative pt-8 pb-28 overflow-hidden">
         {/* Ambient Glows */}
         <AmbientGlow color="rgba(37,99,235,0.15)" size={600} className="-top-40 -left-40 pointer-events-none" />
         <AmbientGlow color="rgba(6,182,212,0.12)" size={500} className="top-1/3 -right-40 pointer-events-none" />
+        <AmbientGlow color="rgba(168,85,247,0.12)" size={550} className="top-2/3 -left-40 pointer-events-none" />
 
         <div className="container-content max-w-[var(--container)] mx-auto px-4 relative z-10">
           
-          {/* Live Market Ticker */}
+          {/* Live Market Ticker (VN30, Global 30, Top 20 Crypto) */}
           <div className="mb-10">
             <BentoMarketStrip />
           </div>
 
-          {/* Master Bento Grid */}
+          {/* ── 4. Master Bento Grid (Lead Story + Tiêu Điểm) ── */}
           <BentoGrid className="mb-16">
             {/* Lead Story (Span 8 cols) */}
             <BentoCard colSpan={8} className="p-0 overflow-visible bg-transparent border-none">
@@ -109,24 +146,148 @@ export default async function PublicHomePage() {
             </BentoCard>
 
             {/* Side Rail (Span 4 cols) */}
-            <BentoCard colSpan={4} className="bg-slate-900/90 backdrop-blur-xl border border-white/10 flex flex-col p-5 rounded-3xl shadow-xl">
-              <div className="section-divider-sm px-1 pb-3 border-b border-white/10 flex items-center justify-between">
-                <h3 className="section-label text-base font-black text-white">Tiêu điểm</h3>
-                <span className="section-meta text-[11px] text-cyan-400 font-mono font-bold uppercase tracking-wider">Cập nhật 24/7</span>
+            <BentoCard colSpan={4} className="bg-slate-900/90 backdrop-blur-xl border border-white/10 flex flex-col p-5 rounded-3xl shadow-xl justify-between">
+              <div>
+                <div className="section-divider-sm px-1 pb-3 border-b border-white/10 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+                    <h3 className="section-label text-base font-black text-white">Tiêu điểm</h3>
+                  </div>
+                  <span className="section-meta text-[11px] text-cyan-400 font-mono font-bold uppercase tracking-wider">Cập nhật 24/7</span>
+                </div>
+                <div className="flex flex-col gap-4 mt-4">
+                  {heroRail.map((article) => (
+                    <CompactNewsCard key={article.id} article={article} />
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-col gap-4 mt-4 flex-1 justify-between">
-                {heroRail.map((article) => (
-                  <CompactNewsCard key={article.id} article={article} />
-                ))}
+
+              {/* Fast Category Access Pills */}
+              <div className="pt-4 mt-4 border-t border-white/10">
+                <div className="flex flex-wrap gap-1.5">
+                  <a href="/cong-nghe" className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-900 transition-colors">
+                    #CôngNghệ
+                  </a>
+                  <a href="/goc-toi" className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-purple-950/70 border border-purple-500/40 text-purple-300 hover:bg-purple-900 transition-colors">
+                    #GócTối
+                  </a>
+                  <a href="/kinh-doanh" className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-900 transition-colors">
+                    #KinhDoanh
+                  </a>
+                  <a href="/blockchain" className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-950/70 border border-amber-500/40 text-amber-300 hover:bg-amber-900 transition-colors">
+                    #Blockchain
+                  </a>
+                </div>
               </div>
             </BentoCard>
           </BentoGrid>
 
-          {/* Featured Bento Strip */}
+          {/* ── 5. Spotlight Hub: 3 Cột Chuyên Biệt (Tech/AI, Góc Tối/Điều Tra, Kinh Tế/Tài Chính) ── */}
+          <section className="mb-16">
+            <div className="flex items-center justify-between mb-6 px-1">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+                  <span className="text-cyan-400">⚡</span> Chuyên Đề Tiêu Điểm
+                </h2>
+                <p className="text-xs text-slate-400 font-medium mt-1">Phân tích chuyên sâu từ các luồng dữ liệu độc quyền</p>
+              </div>
+              <a href="/chuyen-muc/cong-nghe" className="text-xs font-bold text-cyan-400 hover:text-cyan-300 hover:underline">
+                Tất cả chuyên mục →
+              </a>
+            </div>
+
+            <BentoGrid>
+              {/* Column 1: Công Nghệ & AI Frontier */}
+              <BentoCard colSpan={4} className="bg-slate-900/90 backdrop-blur-xl border border-cyan-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                      <span>🤖</span> Công nghệ & AI
+                    </span>
+                    <a href="/cong-nghe" className="text-[11px] font-bold text-slate-400 hover:text-cyan-300">Xem thêm →</a>
+                  </div>
+
+                  <AIBenchmarkWidget className="mb-4 !p-4" />
+
+                  <div className="space-y-3">
+                    {techArticles.slice(0, 3).map((art) => (
+                      <div key={art.id} className="group border-b border-white/5 pb-2.5 last:border-b-0">
+                        <a href={`/bai-viet/${art.slug || art.id}`} className="text-xs font-bold text-slate-200 group-hover:text-cyan-300 line-clamp-2 transition-colors">
+                          {cleanText(art.title)}
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </BentoCard>
+
+              {/* Column 2: Góc Tối & Hồ Sơ Điều Tra */}
+              <BentoCard colSpan={4} className="bg-slate-900/90 backdrop-blur-xl border border-purple-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                      <span>🌌</span> Góc Tối & Kỳ Án
+                    </span>
+                    <a href="/goc-toi" className="text-[11px] font-bold text-slate-400 hover:text-purple-300">Xem thêm →</a>
+                  </div>
+
+                  <div className="rounded-2xl p-4 bg-purple-950/50 border border-purple-500/30 mb-4">
+                    <div className="text-[11px] text-purple-300 font-bold uppercase tracking-widest mb-1">Hồ Sơ Tuyệt Mật</div>
+                    <p className="text-xs text-slate-300 leading-relaxed font-normal">
+                      Phóng sự điều tra độc quyền, tội phạm mạng tinh vi, giải mã các hồ sơ đại án và ký sự tư liệu có xác thực.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {darkArticles.length > 0 ? (
+                      darkArticles.slice(0, 3).map((art) => (
+                        <div key={art.id} className="group border-b border-white/5 pb-2.5 last:border-b-0">
+                          <a href={`/bai-viet/${art.slug || art.id}`} className="text-xs font-bold text-slate-200 group-hover:text-purple-300 line-clamp-2 transition-colors">
+                            {cleanText(art.title)}
+                          </a>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-slate-400 py-3 text-center">Đang nạp các hồ sơ điều tra mới nhất…</p>
+                    )}
+                  </div>
+                </div>
+              </BentoCard>
+
+              {/* Column 3: Diễn Biến Nóng & Tài Chính */}
+              <BentoCard colSpan={4} className="bg-slate-900/90 backdrop-blur-xl border border-emerald-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                      <span>📈</span> Kinh Doanh & Thị Trường
+                    </span>
+                    <a href="/kinh-doanh" className="text-[11px] font-bold text-slate-400 hover:text-emerald-300">Xem thêm →</a>
+                  </div>
+
+                  <CrisisTimeline className="mb-4 !p-4" title="Diễn biến nóng 24h" />
+
+                  <div className="space-y-3">
+                    {bizArticles.slice(0, 3).map((art) => (
+                      <div key={art.id} className="group border-b border-white/5 pb-2.5 last:border-b-0">
+                        <a href={`/bai-viet/${art.slug || art.id}`} className="text-xs font-bold text-slate-200 group-hover:text-emerald-300 line-clamp-2 transition-colors">
+                          {cleanText(art.title)}
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </BentoCard>
+            </BentoGrid>
+          </section>
+
+          {/* ── 6. Featured Bento Strip ── */}
           {featuredStrip.length > 0 && (
             <section className="mb-16">
               <div className="flex items-center justify-between mb-6 px-1">
-                <h2 className="text-2xl font-black tracking-tight text-white">Tin nổi bật</h2>
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight text-white">Tin nổi bật</h2>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">Tuyển chọn các sự kiện quan trọng trong ngày</p>
+                </div>
                 <a href="/moi-nhat" className="text-xs font-bold text-cyan-400 hover:text-cyan-300 hover:underline">
                   Xem tất cả →
                 </a>
@@ -141,49 +302,68 @@ export default async function PublicHomePage() {
             </section>
           )}
 
-          {/* Deep Catalog Stream */}
+          {/* ── 7. Deep Catalog Stream with Load More ── */}
           <section className="mt-12">
-            <h2 className="text-2xl font-black tracking-tight mb-6 px-1 text-white">Dòng thời sự</h2>
+            <div className="flex items-center justify-between mb-6 px-1">
+              <div>
+                <h2 className="text-2xl font-black tracking-tight text-white">Dòng thời sự trực tiếp</h2>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">Luồng thông tin liên tục được cập nhật theo thời gian thực</p>
+              </div>
+              <span className="text-xs font-mono text-cyan-400 font-bold bg-cyan-950/70 border border-cyan-500/40 px-3 py-1 rounded-full">
+                {articles.length} bài đã nạp
+              </span>
+            </div>
             
             <BentoGrid>
               {/* Main Stream (8 cols) */}
               <BentoCard colSpan={8} className="bg-slate-900/90 backdrop-blur-lg border border-white/10 p-6 rounded-3xl shadow-xl">
-                <div className="flex flex-col gap-6">
-                  {mainStream.length > 0 ? (
-                    mainStream.map((article) => (
-                      <CompactNewsCard key={article.id} article={article} />
-                    ))
-                  ) : (
-                    <p className="text-slate-400 py-8 text-center text-sm">Đang nạp thêm các bài viết mới…</p>
-                  )}
-                </div>
+                <HomeStreamClient
+                  initialArticles={mainStream}
+                  initialCursor={latestData.nextCursor}
+                />
               </BentoCard>
 
               {/* Discovery Sidebar (4 cols) */}
-              <BentoCard colSpan={4} className="bg-slate-900/90 border border-white/10 text-white overflow-hidden p-6 rounded-3xl h-fit shadow-xl">
-                <div className="flex flex-col gap-6">
-                  {/* Lineage Info */}
-                  <div>
-                    <h3 className="text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2 text-cyan-400">
-                      <span aria-hidden="true">🛡️</span> Chuẩn mực biên tập
-                    </h3>
-                    <p className="text-slate-300 text-xs leading-relaxed font-normal">
-                      Mọi bài viết xuất bản đều được tổng hợp đa nguồn, tự động kiểm chứng và truy nguyên nguồn gốc minh bạch với Fact-Check pipeline.
-                    </p>
+              <BentoCard colSpan={4} className="bg-slate-900/90 border border-white/10 text-white overflow-hidden p-6 rounded-3xl h-fit shadow-xl space-y-6">
+                {/* Lineage Info */}
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2 text-cyan-400">
+                    <span aria-hidden="true">🛡️</span> Chuẩn mực biên tập
+                  </h3>
+                  <p className="text-slate-300 text-xs leading-relaxed font-normal">
+                    Mọi bài viết xuất bản đều được tổng hợp đa nguồn, tự động kiểm chứng và truy nguyên nguồn gốc minh bạch với Fact-Check pipeline.
+                  </p>
+                </div>
+
+                <hr className="border-white/10" />
+
+                {/* Trending Topics */}
+                <div>
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 mb-3">Chủ đề quan tâm</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {["#TríTuệNhânTạo", "#BánDẫn", "#Blockchain", "#GócTối", "#TàiChính", "#KhởiNghiệp", "#XeĐiện", "#NăngLượngXanh"].map((tag) => (
+                      <span key={tag} className="px-3 py-1.5 bg-slate-800/90 hover:bg-cyan-950/80 transition-colors border border-slate-700/80 hover:border-cyan-500/50 rounded-full text-xs font-medium cursor-pointer text-slate-200 hover:text-cyan-300 shadow-sm">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
+                </div>
 
-                  <hr className="border-white/10" />
+                <hr className="border-white/10" />
 
-                  {/* Trending Topics */}
-                  <div>
-                    <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 mb-3">Chủ đề quan tâm</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {["#TríTuệNhânTạo", "#BánDẫn", "#TàiChính", "#KhởiNghiệp", "#XeĐiện", "#NăngLượngXanh"].map((tag) => (
-                        <span key={tag} className="px-3 py-1.5 bg-slate-800/90 hover:bg-cyan-950/80 transition-colors border border-slate-700/80 hover:border-cyan-500/50 rounded-full text-xs font-medium cursor-pointer text-slate-200 hover:text-cyan-300 shadow-sm">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                {/* System Specs */}
+                <div className="rounded-2xl p-4 bg-slate-950/60 border border-white/10 text-[11px] font-mono text-slate-400 space-y-2">
+                  <div className="flex justify-between">
+                    <span>Phiên bản:</span>
+                    <span className="text-cyan-400 font-bold">v2.0 Hybrid Glassmorphic</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Độ trễ:</span>
+                    <span className="text-emerald-400 font-bold">&lt; 15ms (Edge)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Kiểm chứng:</span>
+                    <span className="text-white font-bold">100% LLM Automated</span>
                   </div>
                 </div>
               </BentoCard>
