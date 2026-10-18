@@ -7,7 +7,7 @@ import {
 } from "./categories.ts";
 import { openMigratedTestDb } from "../testing/helpers.ts";
 
-test("seeds the fourteen taxonomy categories ordered by sort", async () => {
+test("seeds the eighteen taxonomy categories ordered by sort", async () => {
   const { db, close } = await openMigratedTestDb();
   try {
     const categories = await listCategories(db);
@@ -28,6 +28,10 @@ test("seeds the fourteen taxonomy categories ordered by sort", async () => {
         "suc-khoe",
         "giao-duc",
         "xe",
+        "thoi-su",
+        "kinh-te",
+        "khoa-hoc",
+        "the-thao",
       ],
     );
     assert.equal(categories[0].labelVi, "Mới nhất");
@@ -74,7 +78,7 @@ test("listActiveCategories hides archived categories", async () => {
     const slugs = (await listActiveCategories(db)).map(
       (category) => category.slug,
     );
-    assert.equal(slugs.length, 13);
+    assert.equal(slugs.length, 17);
     assert.ok(!slugs.includes("goc-toi"));
   } finally {
     close();
