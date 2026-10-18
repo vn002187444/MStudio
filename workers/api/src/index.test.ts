@@ -604,8 +604,8 @@ test("GET /categories returns the seeded taxonomy", async () => {
         status: string;
       }>;
     };
-    assert.equal(body.categories.length, 18);
-    for (const slug of ["thoi-su", "kinh-te", "khoa-hoc", "the-thao"]) {
+    assert.equal(body.categories.length, 19);
+    for (const slug of ["thoi-su", "kinh-te", "khoa-hoc", "the-thao", "blockchain"]) {
       assert.ok(
         body.categories.some((c) => c.slug === slug),
         `missing category ${slug}`,
@@ -621,6 +621,8 @@ test("GET /categories returns the seeded taxonomy", async () => {
     assert.equal(body.categories[11].slug, "suc-khoe");
     assert.equal(body.categories[12].slug, "giao-duc");
     assert.equal(body.categories[13].slug, "xe");
+    assert.equal(body.categories[18].slug, "blockchain");
+    assert.equal(body.categories[18].labelVi, "Blockchain & Web3");
   } finally {
     close();
   }

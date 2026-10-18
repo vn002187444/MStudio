@@ -73,59 +73,212 @@ export function AIBenchmarkWidget({
 
 export interface MarketTicker {
   symbol: string;
+  name?: string;
   value: string;
   change: string;
   isPositive: boolean;
-  history?: number[];
 }
 
-const DEFAULT_MARKETS: MarketTicker[] = [
-  { symbol: "VN-INDEX", value: "1,342.80", change: "+1.24%", isPositive: true },
-  { symbol: "S&P 500", value: "5,864.20", change: "+0.45%", isPositive: true },
-  { symbol: "VÀNG SJC", value: "86.5 tr", change: "-0.23%", isPositive: false },
-  { symbol: "USD/VND", value: "25,410", change: "+0.08%", isPositive: true },
+/* ── 1. VN30 (30 Cổ phiếu Trụ Việt Nam) ── */
+export const VN30_TICKERS: MarketTicker[] = [
+  { symbol: "VCB", name: "Vietcombank", value: "94.500₫", change: "+1.18%", isPositive: true },
+  { symbol: "FPT", name: "FPT Corp", value: "142.800₫", change: "+2.51%", isPositive: true },
+  { symbol: "HPG", name: "Hòa Phát", value: "29.350₫", change: "+1.21%", isPositive: true },
+  { symbol: "VHM", name: "Vinhomes", value: "43.600₫", change: "-0.68%", isPositive: false },
+  { symbol: "VIC", name: "Vingroup", value: "44.200₫", change: "+0.45%", isPositive: true },
+  { symbol: "TCB", name: "Techcombank", value: "24.850₫", change: "+1.64%", isPositive: true },
+  { symbol: "MBB", name: "MBBank", value: "25.100₫", change: "+0.80%", isPositive: true },
+  { symbol: "MWG", name: "Thế Giới Di Động", value: "68.200₫", change: "+1.79%", isPositive: true },
+  { symbol: "SSI", name: "Chứng khoán SSI", value: "32.500₫", change: "+1.88%", isPositive: true },
+  { symbol: "MSN", name: "Masan Group", value: "76.400₫", change: "-0.52%", isPositive: false },
+  { symbol: "VNM", name: "Vinamilk", value: "67.800₫", change: "+0.30%", isPositive: true },
+  { symbol: "ACB", name: "Á Châu", value: "25.600₫", change: "+0.79%", isPositive: true },
+  { symbol: "CTG", name: "VietinBank", value: "36.900₫", change: "+1.37%", isPositive: true },
+  { symbol: "VPB", name: "VPBank", value: "19.850₫", change: "+0.76%", isPositive: true },
+  { symbol: "STB", name: "Sacombank", value: "33.700₫", change: "+2.12%", isPositive: true },
+  { symbol: "BID", name: "BIDV", value: "50.200₫", change: "+0.60%", isPositive: true },
+  { symbol: "GAS", name: "PV Gas", value: "72.100₫", change: "-0.41%", isPositive: false },
+  { symbol: "VRE", name: "Vincom Retail", value: "19.200₫", change: "-0.52%", isPositive: false },
+  { symbol: "TPB", name: "TPBank", value: "17.650₫", change: "+1.15%", isPositive: true },
+  { symbol: "HDB", name: "HDBank", value: "27.400₫", change: "+1.48%", isPositive: true },
+  { symbol: "SHB", name: "SHB Bank", value: "11.200₫", change: "+0.90%", isPositive: true },
+  { symbol: "VIB", name: "VIB Bank", value: "22.300₫", change: "+0.68%", isPositive: true },
+  { symbol: "LPB", name: "LPBank", value: "32.800₫", change: "+2.82%", isPositive: true },
+  { symbol: "BCM", name: "Becamex IDC", value: "68.500₫", change: "-0.29%", isPositive: false },
+  { symbol: "GVR", name: "Tập đoàn Cao su", value: "34.600₫", change: "+1.47%", isPositive: true },
+  { symbol: "PLX", name: "Petrolimex", value: "41.300₫", change: "+0.49%", isPositive: true },
+  { symbol: "POW", name: "PV Power", value: "12.850₫", change: "+0.39%", isPositive: true },
+  { symbol: "SAB", name: "Sabeco", value: "56.400₫", change: "-0.35%", isPositive: false },
+  { symbol: "VJC", name: "Vietjet Air", value: "104.500₫", change: "+0.48%", isPositive: true },
+  { symbol: "SSB", name: "SeABank", value: "18.300₫", change: "+0.55%", isPositive: true },
 ];
 
+/* ── 2. Global 30 (Chỉ số Thế giới, Vàng, Tiền tệ & Mega-caps) ── */
+export const GLOBAL30_TICKERS: MarketTicker[] = [
+  { symbol: "S&P 500", name: "US Large Cap", value: "5,864.20", change: "+0.45%", isPositive: true },
+  { symbol: "NASDAQ", name: "US Tech 100", value: "18,375.40", change: "+0.62%", isPositive: true },
+  { symbol: "DOW JONES", name: "US Industrial", value: "43,275.90", change: "+0.09%", isPositive: true },
+  { symbol: "NIKKEI 225", name: "Japan", value: "39,120.50", change: "+0.78%", isPositive: true },
+  { symbol: "HANG SENG", name: "Hong Kong", value: "20,804.10", change: "+3.61%", isPositive: true },
+  { symbol: "DAX 40", name: "Germany", value: "19,657.40", change: "+0.38%", isPositive: true },
+  { symbol: "FTSE 100", name: "UK", value: "8,358.20", change: "-0.32%", isPositive: false },
+  { symbol: "KOSPI", name: "South Korea", value: "2,596.80", change: "-0.59%", isPositive: false },
+  { symbol: "SHANGHAI", name: "China", value: "3,261.50", change: "+2.91%", isPositive: true },
+  { symbol: "VÀNG SJC", name: "SJC Gold 1L", value: "86.50 tr", change: "-0.23%", isPositive: false },
+  { symbol: "XAU/USD", name: "Gold Spot", value: "$2,721.40", change: "+1.08%", isPositive: true },
+  { symbol: "BRENT OIL", name: "Crude Oil", value: "$74.29", change: "-1.39%", isPositive: false },
+  { symbol: "USD/VND", name: "Tỷ giá liên ngân hàng", value: "25,410₫", change: "+0.08%", isPositive: true },
+  { symbol: "EUR/USD", name: "Euro Dollar", value: "1.0865", change: "-0.12%", isPositive: false },
+  { symbol: "NVDA", name: "NVIDIA Corp", value: "$138.00", change: "+0.78%", isPositive: true },
+  { symbol: "AAPL", name: "Apple Inc", value: "$235.00", change: "+1.23%", isPositive: true },
+  { symbol: "MSFT", name: "Microsoft", value: "$418.16", change: "+0.35%", isPositive: true },
+  { symbol: "GOOGL", name: "Alphabet", value: "$166.57", change: "+1.53%", isPositive: true },
+  { symbol: "AMZN", name: "Amazon", value: "$187.53", change: "+0.79%", isPositive: true },
+  { symbol: "META", name: "Meta Platforms", value: "$576.47", change: "+0.85%", isPositive: true },
+  { symbol: "TSM", name: "TSMC", value: "$205.84", change: "+9.79%", isPositive: true },
+  { symbol: "AVGO", name: "Broadcom", value: "$181.25", change: "+1.40%", isPositive: true },
+  { symbol: "TSLA", name: "Tesla Inc", value: "$220.70", change: "-0.09%", isPositive: false },
+  { symbol: "ASML", name: "ASML Holding", value: "$738.90", change: "-1.12%", isPositive: false },
+  { symbol: "BABA", name: "Alibaba", value: "$100.80", change: "+2.40%", isPositive: true },
+  { symbol: "LLY", name: "Eli Lilly", value: "$915.20", change: "+0.65%", isPositive: true },
+  { symbol: "WMT", name: "Walmart", value: "$80.45", change: "+0.12%", isPositive: true },
+  { symbol: "JPM", name: "JPMorgan Chase", value: "$222.10", change: "+0.48%", isPositive: true },
+  { symbol: "NVO", name: "Novo Nordisk", value: "$115.30", change: "-0.45%", isPositive: false },
+  { symbol: "USD/JPY", name: "Yen Dollar", value: "149.52", change: "+0.25%", isPositive: true },
+];
+
+/* ── 3. Top 20 Coin Vốn hóa (Crypto Market Cap) ── */
+export const TOP20_COINS: MarketTicker[] = [
+  { symbol: "BTC", name: "Bitcoin", value: "$81,750", change: "+2.35%", isPositive: true },
+  { symbol: "ETH", name: "Ethereum", value: "$2,642", change: "+1.82%", isPositive: true },
+  { symbol: "BNB", name: "Binance Coin", value: "$598.40", change: "+0.95%", isPositive: true },
+  { symbol: "SOL", name: "Solana", value: "$156.80", change: "+4.21%", isPositive: true },
+  { symbol: "XRP", name: "Ripple", value: "$0.548", change: "+1.10%", isPositive: true },
+  { symbol: "DOGE", name: "Dogecoin", value: "$0.142", change: "+6.85%", isPositive: true },
+  { symbol: "ADA", name: "Cardano", value: "$0.352", change: "+1.45%", isPositive: true },
+  { symbol: "SUI", name: "Sui", value: "$2.15", change: "+8.40%", isPositive: true },
+  { symbol: "AVAX", name: "Avalanche", value: "$28.60", change: "+3.12%", isPositive: true },
+  { symbol: "LINK", name: "Chainlink", value: "$11.85", change: "+2.05%", isPositive: true },
+  { symbol: "TON", name: "Toncoin", value: "$5.24", change: "-0.35%", isPositive: false },
+  { symbol: "SHIB", name: "Shiba Inu", value: "$0.0000188", change: "+2.75%", isPositive: true },
+  { symbol: "NEAR", name: "NEAR Protocol", value: "$5.12", change: "+4.80%", isPositive: true },
+  { symbol: "DOT", name: "Polkadot", value: "$4.32", change: "+1.15%", isPositive: true },
+  { symbol: "PEPE", name: "Pepe", value: "$0.0000104", change: "+5.90%", isPositive: true },
+  { symbol: "TRX", name: "TRON", value: "$0.158", change: "+0.45%", isPositive: true },
+  { symbol: "LTC", name: "Litecoin", value: "$71.20", change: "+1.25%", isPositive: true },
+  { symbol: "BCH", name: "Bitcoin Cash", value: "$365.40", change: "+1.90%", isPositive: true },
+  { symbol: "APT", name: "Aptos", value: "$10.15", change: "+5.10%", isPositive: true },
+  { symbol: "UNI", name: "Uniswap", value: "$8.12", change: "+3.45%", isPositive: true },
+];
+
+export type MarketTab = "vn30" | "global30" | "crypto20";
+
 export function BentoMarketStrip({
-  tickers = DEFAULT_MARKETS,
   className = "",
 }: {
-  tickers?: MarketTicker[];
   className?: string;
 }) {
+  const [activeTab, setActiveTab] = React.useState<MarketTab>("vn30");
+
+  const currentList =
+    activeTab === "vn30"
+      ? VN30_TICKERS
+      : activeTab === "global30"
+      ? GLOBAL30_TICKERS
+      : TOP20_COINS;
+
+  // Duplicate for seamless 60 FPS infinite loop
+  const marqueeList = [...currentList, ...currentList];
+
   return (
-    <div className={`overflow-x-auto no-scrollbar rounded-3xl border border-emerald-500/30 bg-slate-900/90 p-5 shadow-2xl backdrop-blur-xl ${className}`}>
-      <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">Thị trường 24/7</span>
+    <div className={`overflow-hidden rounded-3xl border border-emerald-500/30 bg-slate-900/90 p-4 md:p-5 shadow-2xl backdrop-blur-xl ${className}`}>
+      <AmbientGlow color="rgba(16, 185, 129, 0.15)" size={200} className="-top-12 -left-12" />
+
+      {/* Header with Live Status & Tabs */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-white/10">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+            Dữ liệu Tài chính 24/7
+          </h3>
+          <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
+            Trực tiếp 60 FPS
+          </span>
         </div>
-        <span className="text-[11px] font-mono text-slate-300 font-medium">Độ trễ &lt; 5s</span>
+
+        {/* Filter Tabs */}
+        <div className="inline-flex items-center gap-1 p-1 rounded-full bg-slate-800/90 border border-white/10 text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setActiveTab("vn30")}
+            className={`px-3 py-1 rounded-full transition-all duration-200 ${
+              activeTab === "vn30"
+                ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md font-bold"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            VN30 (30 Mã)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("global30")}
+            className={`px-3 py-1 rounded-full transition-all duration-200 ${
+              activeTab === "global30"
+                ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md font-bold"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Global 30 & Vàng
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("crypto20")}
+            className={`px-3 py-1 rounded-full transition-all duration-200 ${
+              activeTab === "crypto20"
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-bold"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Top 20 Crypto
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {tickers.map((t, idx) => (
-          <div
-            key={idx}
-            className="rounded-xl border border-slate-700/80 bg-slate-800/90 p-3 transition-transform hover:scale-[1.02] shadow-md"
-          >
-            <div className="flex items-center justify-between text-xs text-slate-300">
-              <span className="font-bold text-white">{t.symbol}</span>
-              <span
-                className={`font-mono font-bold text-[11px] px-1.5 py-0.5 rounded-md ${
-                  t.isPositive
-                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                    : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
-                }`}
-              >
-                {t.change}
-              </span>
+      {/* 60 FPS Continuous Marquee Strip */}
+      <div className="relative w-full overflow-hidden">
+        <div className="animate-ticker-60fps flex gap-3 py-1">
+          {marqueeList.map((t, idx) => (
+            <div
+              key={`${t.symbol}-${idx}`}
+              className="flex-shrink-0 min-w-[155px] rounded-2xl border border-slate-700/80 bg-slate-800/90 px-3.5 py-2.5 transition-all hover:scale-[1.03] hover:border-emerald-500/40 shadow-sm cursor-pointer group"
+            >
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <span className="font-black text-white group-hover:text-emerald-300 transition-colors tracking-tight">
+                  {t.symbol}
+                </span>
+                <span
+                  className={`font-mono font-bold text-[10px] px-1.5 py-0.5 rounded-md ${
+                    t.isPositive
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                      : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                  }`}
+                >
+                  {t.change}
+                </span>
+              </div>
+              <div className="mt-1 flex items-baseline justify-between gap-1">
+                <span className="font-mono text-sm font-black text-slate-100 tracking-tight">
+                  {t.value}
+                </span>
+                {t.name && (
+                  <span className="text-[10px] text-slate-400 truncate max-w-[65px] font-medium">
+                    {t.name}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="mt-1.5 font-mono text-base font-black text-white tracking-tight">
-              {t.value}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

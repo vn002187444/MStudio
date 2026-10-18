@@ -253,45 +253,63 @@ export function generateSlug(text: string): string {
 export function inferCategorySlug(title: string, content: string): string {
   const text = `${title} ${content}`.toLowerCase();
   if (
-    /\bai\b|trí tuệ nhân tạo|machine learning|học máy|bán dẫn|semiconductor|\bchip\b|công nghệ|số hóa|phần mềm|apple|google|microsoft|nvidia|\bmeta\b|\bopenai\b|viễn thông|\bstartup\b/.test(
+    /\b(blockchain|web3|crypto|cryptocurrency|tiền số|tiền mã hóa|tiền ảo|bitcoin|btc|ethereum|eth|solana|\bsol\b|binance|coinbase|tether|usdt|defi|nft|halving|on-chain|tokenomics|airdrop|layer 2|smart contract|dogecoin|altcoin|memecoin|sui)\b/i.test(
       text,
     )
   ) {
-    return "cong-nghe";
-  }
-  if (/kinh tế|chứng khoán|thị trường|ngân hàng|lãi suất|giá vàng|\busd\b|nhà đất|bất động sản|doanh nghiệp|lạm phát|\bfed\b|inflation|interest rate|\bgdp\b|oil price|stock market/.test(text)) {
-    return "kinh-doanh";
-  }
-  if (/thế giới|quốc tế|mỹ|trung quốc|\bnga\b|ukraine|châu âu|bầu cử|ngoại giao|liên hợp quốc|nato|putin|trump|\bcongress\b|white house|\bworld\b|diplomat/.test(text)) {
-    return "the-gioi";
+    return "blockchain";
   }
   if (
-    /kỳ án|hồ sơ vụ án|phá án|điều tra|tội phạm|tham nhũng|đại án|khởi tố|bắt tạm giam|bắt giam|xét xử|tuyên án|án mạng|lừa đảo|buôn lậu|rửa tiền|đường dây|trùm|ma túy|tử hình|tù chung thân|hồ sơ mật|dark history|scandal|bê bối|gian lận|thủ đoạn|bắt quả tang/.test(
+    /\b(ai|trí tuệ nhân tạo|large language model|llm|gpt|claude|gemini|deepseek|midjourney|agentic|ai agent|neural network|mô hình ngôn ngữ|openai|anthropic|hugging face)\b/i.test(
+      text,
+    )
+  ) {
+    return "ai-channel";
+  }
+  if (
+    /kỳ án|hồ sơ vụ án|phá án|điều tra|tội phạm|tham nhũng|đại án|khởi tố|bắt tạm giam|bắt giam|xét xử|tuyên án|án mạng|lừa đảo|buôn lậu|rửa tiền|đường dây|trùm|ma túy|tử hình|tù chung thân|hồ sơ mật|dark history|scandal|bê bối|gian lận|thủ đoạn|bắt quả tang|lộ clip|clip nóng|người nổi tiếng|sao lộ|góc tối|thế giới ngầm|bắt cóc|tống tiền|darknet|ransomware|cybercrime|hacker|breach/.test(
       text,
     )
   ) {
     return "goc-toi";
   }
-  if (/pháp luật|môi trường|giao thông|đời sống|văn hóa/.test(text)) {
-    return "doi-song";
+  if (
+    /kinh tế|chứng khoán|thị trường|cổ phiếu|vn30|ngân hàng|lãi suất|giá vàng|vàng sjc|đấu giá|chợ đen|ngoại tệ|\busd\b|nhà đất|bất động sản|doanh nghiệp|lạm phát|\bfed\b|inflation|interest rate|\bgdp\b|oil price|stock market|tài chính|xuất nhập khẩu/.test(
+      text,
+    )
+  ) {
+    return "kinh-doanh";
+  }
+  if (
+    /machine learning|học máy|bán dẫn|semiconductor|\bchip\b|công nghệ|số hóa|phần mềm|apple|google|microsoft|nvidia|\bmeta\b|viễn thông|\bstartup\b|internet|open source|lập trình/.test(
+      text,
+    )
+  ) {
+    return "cong-nghe";
+  }
+  if (/thế giới|quốc tế|mỹ|trung quốc|\bnga\b|ukraine|châu âu|bầu cử|ngoại giao|liên hợp quốc|nato|putin|trump|\bcongress\b|white house|\bworld\b|diplomat/.test(text)) {
+    return "the-gioi";
+  }
+  if (/ô tô|xe hơi|xe máy|xe điện|vinfast|byd|\btesla\b|\bev\b|electric vehicle|porsche|mercedes|bmw|toyota|honda|hyundai|động cơ|siêu xe|bán tải|xe tay ga/.test(text)) {
+    return "xe";
   }
   if (/sức khỏe|y tế|bệnh viện|thuốc|vaccine|disease|hospital/.test(text)) {
     return "suc-khoe";
   }
-  if (/giáo dục|đại học|học sinh|thi cử|university|\bexam\b/.test(text)) {
+  if (/giáo dục|đại học|học sinh|thi cử|university|\bexam\b|điểm chuẩn|tuyển sinh/.test(text)) {
     return "giao-duc";
   }
-  if (/\bxe\b|ô tô|xe điện|vinfast|byd|\btesla\b|\bev\b|electric vehicle/.test(text)) {
-    return "xe";
-  }
-  if (/khám phá|khoa học|vũ trụ|thiên văn|khảo cổ|sinh vật|địa chất|thiên nhiên|\bnasa\b|archaeology/.test(text)) {
+  if (/khám phá|khoa học|vũ trụ|thiên văn|khảo cổ|sinh vật|địa chất|thiên nhiên|\bnasa\b|archaeology|du lịch|thám hiểm|kỳ quan/.test(text)) {
     return "kham-pha";
   }
   if (/bóng đá|cầu thủ|đội tuyển|giải đấu|thể thao|world cup|\bfootball\b|\bsoccer\b|tournament|\bmatch\b/.test(text)) {
     return "the-thao";
   }
-  if (/phim\b|âm nhạc|ca sĩ|showbiz|giải trí|\bmovie\b|\bfilm\b|\bmusic\b|celebrity/.test(text)) {
+  if (/phim\b|âm nhạc|ca sĩ|showbiz|giải trí|\bmovie\b|\bfilm\b|\bmusic\b|celebrity|concert/.test(text)) {
     return "giai-tri";
+  }
+  if (/pháp luật|môi trường|giao thông|đời sống|văn hóa|gia đình|tâm sự|ẩm thực|món ăn/.test(text)) {
+    return "doi-song";
   }
   return "thoi-su";
 }

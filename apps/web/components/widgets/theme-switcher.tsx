@@ -59,9 +59,9 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
     return (
       <div
         aria-hidden="true"
-        className={`inline-flex items-center justify-center h-[32px] w-[190px] sm:w-[210px] rounded-full bg-slate-900/40 border border-white/10 backdrop-blur-md ${className}`}
+        className={`theme-switcher-pill inline-flex items-center justify-center h-[32px] w-[190px] sm:w-[210px] rounded-full bg-slate-900/40 border border-white/10 backdrop-blur-md ${className}`}
       >
-        <span className="text-[11px] text-slate-500 font-medium animate-pulse">⚡ Đang tải...</span>
+        <span className="text-[11px] text-slate-400 font-medium animate-pulse">⚡ Đang tải...</span>
       </div>
     );
   }
@@ -70,7 +70,7 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
     <div
       role="group"
       aria-label="Tùy chọn giao diện hiển thị"
-      className={`relative inline-flex items-center gap-0.5 rounded-full bg-slate-900/80 border border-white/15 p-1 text-[11px] font-medium backdrop-blur-xl shadow-lg transition-all duration-200 transform-gpu ${className}`}
+      className={`theme-switcher-pill relative inline-flex items-center gap-0.5 rounded-full bg-slate-900/80 border border-white/15 p-1 text-[11px] font-medium backdrop-blur-xl shadow-lg transition-all duration-200 transform-gpu ${className}`}
     >
       <button
         type="button"
@@ -80,7 +80,7 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
         className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-200 active:scale-95 ${
           mode === "dark"
             ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-[0_0_14px_rgba(37,99,235,0.6)]"
-            : "text-slate-400 hover:text-white"
+            : "text-slate-400 hover:text-slate-200"
         }`}
       >
         <span aria-hidden="true">🌙</span>
@@ -95,7 +95,7 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
         className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-200 active:scale-95 ${
           mode === "light"
             ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold shadow-[0_0_14px_rgba(245,158,11,0.6)]"
-            : "text-slate-400 hover:text-white"
+            : "text-slate-400 hover:text-slate-200"
         }`}
       >
         <span aria-hidden="true">☀️</span>
@@ -110,7 +110,7 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
         className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-200 active:scale-95 ${
           mode === "auto"
             ? "bg-cyan-500/25 text-cyan-300 font-bold border border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.4)]"
-            : "text-slate-400 hover:text-white"
+            : "text-slate-400 hover:text-slate-200"
         }`}
       >
         <span aria-hidden="true">⚡</span>

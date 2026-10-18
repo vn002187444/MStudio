@@ -28,6 +28,10 @@ export const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
   "doi-song":
     "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80",
   xe: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80",
+  "goc-toi":
+    "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80",
+  blockchain:
+    "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1200&q=80",
 };
 
 export function resolveCategoryFallbackImage(

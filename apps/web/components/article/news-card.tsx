@@ -9,6 +9,7 @@ export const CATEGORY_NAMES: Record<string, string> = {
   "kinh-doanh": "Kinh doanh",
   "kinh-te": "Kinh tế",
   "cong-nghe": "Công nghệ",
+  "ai-channel": "AI Channel",
   "khoa-hoc": "Khoa học",
   "giai-tri": "Giải trí",
   "the-thao": "Thể thao",
@@ -17,8 +18,11 @@ export const CATEGORY_NAMES: Record<string, string> = {
   "suc-khoe": "Sức khỏe",
   "doi-song": "Đời sống",
   "du-lich": "Du lịch",
+  "kham-pha": "Khám phá",
   xe: "Xe",
   "bat-dong-san": "Bất động sản",
+  "goc-toi": "Góc Tối",
+  blockchain: "Blockchain & Web3",
 };
 
 export function formatRelativeTime(dateString: string) {
@@ -49,6 +53,8 @@ export const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
   "suc-khoe": "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=1200&q=80",
   "doi-song": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80",
   xe: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80",
+  "goc-toi": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80",
+  blockchain: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1200&q=80",
 };
 
 export function getArticleImageUrl(article: PublishedArticleRecord): string {

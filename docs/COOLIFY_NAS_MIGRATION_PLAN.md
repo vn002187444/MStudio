@@ -170,3 +170,129 @@ Có 2 phương án đưa traffic vào NAS:
 | **Dung lượng lưu trữ DB** | Tối đa 10GB (D1 limit) | **Hàng trăm GB đến vài TB** (theo dung lượng ổ cứng NAS) |
 | **Giới hạn Workers Request** | 100,000 req/ngày | **Không giới hạn** |
 | **Quyền kiểm soát (Control)** | Phụ thuộc chính sách nhà cung cấp cloud | **100% sở hữu tư nhân**, dữ liệu đặt tại nhà |
+
+---
+
+## 5. Chiến Lược Hybrid Host Đỉnh Cao: Giữ R2, Giữ CF AI Workers & Kế Hoạch Test Tải NAS
+
+> **Mục tiêu cốt lõi:** Kết hợp sức mạnh xử lý vô tận của phần cứng NAS cục bộ với năng lực phân phối toàn cầu và GPU serverless của Cloudflare, loại bỏ 100% rủi ro nghẽn CPU hoặc sập mạng gia đình.
+
+```mermaid
+flowchart TD
+    Client["Độc giả toàn cầu & Mobile App"] --> CF["Cloudflare Edge CDN & WAF (Proxy)"]
+    CF -->|"Phục vụ ảnh & Media (0đ Egress)"| R2["Cloudflare R2 (Giữ nguyên)"]
+    CF -->|"Chạy Cron Ingest & Tóm tắt AI"| CFAi["Cloudflare AI Worker / Gateway (Giữ nguyên)"]
+    CF -->|"Cloudflare Tunnel (Zero Trust)"| NAS["NAS Local - Coolify Platform"]
+    
+    subgraph NAS_Hardware["Máy chủ NAS Gia Đình / Văn Phòng"]
+        NAS --> Web["Web Portal SSR (Container)"]
+        NAS --> API["API Gateway Hono / Node.js (Container)"]
+        NAS --> DB[("Database SQLite WAL / Postgres trên NVMe")]
+    end
+    
+    CFAi -->|"Đẩy bài đã verify & tóm tắt"| API
+```
+
+### 5.1. Tạm thời giữ lại Cloudflare R2 cho Media Assets
+- **Lý do kỹ thuật:** Cloudflare R2 có chính sách **$0 Egress Bandwidth** (hoàn toàn miễn phí cước tải dữ liệu ra).
+  - Nếu chuyển ảnh về NAS lưu trữ, khi bài viết viral với 100.000 lượt đọc, đường truyền Internet gia đình (đặc biệt là tốc độ Upload) sẽ bị bão hòa, dẫn đến mạng nhà bị nghẽn và độc giả load ảnh bị chậm.
+  - Việc tạm thời giữ R2 trên Cloudflare giúp ứng dụng trên NAS chỉ phục vụ mã HTML/JSON siêu nhẹ (~15KB/req).
+- **Cách tích hợp từ NAS:**
+  Container trên NAS kết nối tới R2 như một S3 bucket tiêu chuẩn thông qua `@aws-sdk/client-s3`:
+  ```env
+  S3_ENDPOINT=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+  S3_BUCKET=mstudio-media-prod
+  S3_ACCESS_KEY_ID=<R2_ACCESS_KEY>
+  S3_SECRET_ACCESS_KEY=<R2_SECRET_KEY>
+  S3_REGION=auto
+  ```
+  Sau khi hạ tầng NAS chạy ổn định từ 1–3 tháng, nếu muốn chuyển sang MinIO nội bộ, chỉ cần chạy 1 lệnh `rclone` đồng bộ.
+
+---
+
+### 5.2. Giữ nguyên Cloudflare AI Workers & Cron Jobs chạy trên Edge
+- **Có để lại được không?** $\rightarrow$ **CỰC KỲ KHUYẾN NGHỊ ĐỂ LẠI!**
+- **Lợi ích kiến trúc:**
+  1. **Bảo vệ CPU NAS:** Các tác vụ định kỳ 5 phút cào hàng chục nguồn tin RSS, parse XML dung lượng lớn, băm SHA-256 và so khớp trùng lặp sẽ ngốn rất nhiều chu kỳ CPU. Khi để Cloudflare Cron Worker chạy, edge server của Cloudflare sẽ gánh toàn bộ tải này.
+  2. **Tận dụng Serverless GPU:** Tính năng kiểm chứng sự thật và tạo bản nháp AI (`draftWithAi` qua Cloudflare Workers AI `@cloudflare/ai` hoặc Gemini qua AI Gateway) chạy trực tiếp trên cloud, NAS không cần trang bị card đồ họa rời đắt tiền (Nvidia RTX) mà vẫn có tốc độ sinh nội dung dưới 2 giây.
+  3. **Quy trình đẩy dữ liệu về NAS:**
+     Sau khi Cloudflare Worker hoàn tất verify và draft bài viết, nó chỉ việc gọi một HTTP POST request qua Cloudflare Tunnel vào endpoint bảo mật của API trên NAS:
+     `POST https://mstudio.vn/api/v1/internal/ingest` (kèm theo Secret Token bí mật `X-Internal-Secret`).
+
+---
+
+### 5.3. Kế Hoạch Benchmark & Stress Test Tránh Quá Tải NAS
+
+Để kiểm soát tuyệt đối hiệu năng và ngăn ngừa tình trạng sập hệ thống (OOM Killer hoặc CPU 100%), quy trình kiểm thử tải 3 bước được thiết lập:
+
+#### Bước 1: Thiết lập Giới hạn Tài nguyên (Container Resource Limits) trong Coolify
+Tránh để một container bị memory leak kéo sập cả hệ điều hành NAS:
+```yaml
+# docker-compose.prod.yml
+services:
+  web:
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  api:
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 512M
+
+  db:
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1024M
+```
+
+#### Bước 2: Tối ưu SQLite WAL Mode trên NVMe SSD
+Nếu tiếp tục dùng SQLite thay vì Postgres:
+```sql
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
+PRAGMA busy_timeout = 5000;
+PRAGMA cache_size = -64000; -- Dùng 64MB RAM làm page cache
+PRAGMA temp_store = MEMORY;
+```
+*(Đạt thông lượng hơn 20,000 reads/sec và 4,000 writes/sec trên ổ cứng NVMe thông thường).*
+
+#### Bước 3: Kịch bản Chạy Stress Test Thực tế (Load Testing Script)
+Sử dụng công cụ `k6` chạy từ máy bên ngoài:
+```javascript
+// k6-stress-test.js
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+
+export const options = {
+  stages: [
+    { duration: '1m', target: 50 },  // Khởi động: 50 users
+    { duration: '3m', target: 200 }, // Đỉnh tải: 200 users đồng thời (tương đương 50.000 view/giờ)
+    { duration: '1m', target: 0 },   // Hạ nhiệt
+  ],
+  thresholds: {
+    http_req_duration: ['p(95)<300'], // 95% request phải dưới 300ms
+    http_req_failed: ['rate<0.01'],    // Tỷ lệ lỗi dưới 1%
+  },
+};
+
+export default function () {
+  const res = http.get('https://mstudio.vn/');
+  check(res, { 'status is 200': (r) => r.status === 200 });
+  sleep(1);
+}
+```
+
+#### Bước 4: Chốt chặn Cache Cloudflare (Shielding Edge)
+Đặt header cache trên các trang đọc tin tức:
+`Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=600`
+$\rightarrow$ **Kết quả:** Cloudflare CDN hấp thụ **88% - 94%** tổng lượng request. NAS chỉ cần xử lý khoảng 6% - 12% dynamic requests, đảm bảo CPU NAS luôn dao động an toàn ở mức **15% - 30%**.

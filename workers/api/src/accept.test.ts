@@ -734,6 +734,26 @@ test("inferCategorySlug does not match short keywords as substrings", () => {
     inferCategorySlug("Đại án tham nhũng và đường dây buôn lậu xuyên quốc gia", ""),
     "goc-toi",
   );
+  assert.equal(
+    inferCategorySlug("Scandal người nổi tiếng lộ clip nhạy cảm trên mạng xã hội", ""),
+    "goc-toi",
+  );
+  assert.equal(
+    inferCategorySlug("Bitcoin lập đỉnh mới vượt 80000 USD sau sự kiện halving", ""),
+    "blockchain",
+  );
+  assert.equal(
+    inferCategorySlug("Ethereum và Solana chứng kiến dòng tiền đổ mạnh vào DeFi", ""),
+    "blockchain",
+  );
+  assert.equal(
+    inferCategorySlug("Ra mắt mẫu xe điện VinFast VF3 động cơ pin thế hệ mới", ""),
+    "xe",
+  );
+  assert.equal(
+    inferCategorySlug("Quán cơm tấm xe đẩy nổi tiếng tại Sài Gòn", ""),
+    "thoi-su",
+  );
 });
 
 test("inferCategorySlug classifies English articles by topic", () => {
@@ -746,7 +766,7 @@ test("inferCategorySlug classifies English articles by topic", () => {
   );
   assert.equal(
     inferCategorySlug("OpenAI unveils a new artificial intelligence model", ""),
-    "cong-nghe",
+    "ai-channel",
   );
   assert.equal(
     inferCategorySlug("Fed holds interest rate steady as inflation cools", ""),
@@ -757,8 +777,8 @@ test("inferCategorySlug classifies English articles by topic", () => {
     "the-thao",
   );
   assert.equal(
-    inferCategorySlug("Một bài viết về ẩm thực và du lịch", ""),
-    "thoi-su",
+    inferCategorySlug("Một bài viết về ẩm thực và văn hóa đời sống", ""),
+    "doi-song",
   );
 });
 
