@@ -16,6 +16,8 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - HOSTNAME=0.0.0.0
+      # V8 Heap Memory Guard (Ngăn chặn OOM Killer 137 khi chạm trần 1536M)
+      - NODE_OPTIONS=--max-old-space-size=1024
       # Local Database (SQLite WAL on fast NVMe SSD)
       - DATABASE_URL=file:/data/mstudio.db
       # Public URL & Fallback Media
@@ -71,8 +73,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: 128M
+          cpus: "0.2"
+          memory: 64M
 
 volumes:
   mstudio_data:
