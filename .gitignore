@@ -11,3 +11,6 @@ Demo/
 qa-audit-report.json
 *report.json
 .engram/
+*_dump.sql
+*.sql.dump
+*.dump

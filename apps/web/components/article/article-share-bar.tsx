@@ -20,24 +20,24 @@ export function ArticleShareBar({
   };
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 backdrop-blur-xl shadow-xl">
-      <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-3">
+    <div className="rounded-3xl border border-white/10 bg-slate-900/90 [html.light_&]:bg-white/95 [html.light_&]:border-slate-200/80 [html.light_&]:shadow-lg p-5 backdrop-blur-xl shadow-xl">
+      <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 [html.light_&]:text-slate-700 mb-3">
         Tiện ích đọc tin
       </h3>
       <div className="flex items-center gap-2.5">
         <button
           type="button"
           onClick={handleCopy}
-          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-white transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-white [html.light_&]:bg-slate-100 [html.light_&]:hover:bg-slate-200 [html.light_&]:border-slate-300 [html.light_&]:text-slate-800 transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
         >
-          <span className="text-cyan-400 font-bold">{copied ? "✓" : "🔗"}</span>
+          <span className="text-cyan-400 [html.light_&]:text-blue-600 font-bold">{copied ? "✓" : "🔗"}</span>
           <span>{copied ? "Đã sao chép link" : "Sao chép link"}</span>
         </button>
         <a
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`}
           target="_blank"
           rel="noreferrer"
-          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-white transition-all shadow-md active:scale-95 cursor-pointer text-center"
+          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-white [html.light_&]:bg-slate-100 [html.light_&]:hover:bg-slate-200 [html.light_&]:border-slate-300 [html.light_&]:text-slate-800 transition-all shadow-md active:scale-95 cursor-pointer text-center"
         >
           Post X
         </a>

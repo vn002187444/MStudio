@@ -13,7 +13,7 @@ import { TableOfContents } from "../../../../components/article/table-of-content
 import { SourceBlock } from "../../../../components/article/source-block";
 import { ArticleShareBar } from "../../../../components/article/article-share-bar";
 import { BlocksRenderer, headingsFromBlocks } from "../../../../components/article/blocks-renderer";
-import { parseArticleBlocksBody } from "../../../../lib/contracts";
+import { parseArticleBlocksBody, type ArticleBlock } from "../../../../lib/contracts";
 
 export const dynamic = "force-dynamic";
 
@@ -35,8 +35,8 @@ interface PublishedArticle {
   keywords?: string;
   isBreaking?: boolean;
   isTrending?: boolean;
-  updatedAt: string;
-  createdAt: string;
+  updatedAt?: string;
+  createdAt?: string;
   sources?: Array<{
     name: string;
     originUrl: string;
@@ -49,6 +49,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   "thoi-su": "Thời sự",
   "the-gioi": "Thế giới",
   "kinh-doanh": "Kinh doanh",
+  "kinh-te": "Kinh tế",
   "cong-nghe": "Công nghệ",
   "khoa-hoc": "Khoa học",
   "giai-tri": "Giải trí",
@@ -57,25 +58,33 @@ const CATEGORY_NAMES: Record<string, string> = {
   "suc-khoe": "Sức khỏe",
   xe: "Xe",
   "ai-channel": "AI Channel",
+  "goc-toi": "Góc Tối",
+  "blockchain": "Blockchain & Web3",
+  "kham-pha": "Khám phá",
+  "giao-duc": "Giáo dục",
 };
 
 function getCategoryColor(slug?: string) {
   switch (slug) {
+    case "goc-toi":
+      return { aura: "rgba(225, 29, 72, 0.25)", text: "text-rose-400 [html.light_&]:text-rose-700", border: "border-rose-500/30 [html.light_&]:border-rose-300" };
+    case "blockchain":
+      return { aura: "rgba(245, 158, 11, 0.25)", text: "text-amber-400 [html.light_&]:text-amber-700", border: "border-amber-500/30 [html.light_&]:border-amber-300" };
     case "cong-nghe":
     case "ai-channel":
-      return { aura: "rgba(6, 182, 212, 0.2)", text: "text-cyan-400", border: "border-cyan-500/30" };
+      return { aura: "rgba(6, 182, 212, 0.2)", text: "text-cyan-400 [html.light_&]:text-cyan-700", border: "border-cyan-500/30 [html.light_&]:border-cyan-300" };
     case "kinh-doanh":
     case "kinh-te":
-      return { aura: "rgba(16, 185, 129, 0.2)", text: "text-emerald-400", border: "border-emerald-500/30" };
+      return { aura: "rgba(16, 185, 129, 0.2)", text: "text-emerald-400 [html.light_&]:text-emerald-700", border: "border-emerald-500/30 [html.light_&]:border-emerald-300" };
     case "thoi-su":
     case "the-gioi":
-      return { aura: "rgba(245, 158, 11, 0.2)", text: "text-amber-400", border: "border-amber-500/30" };
+      return { aura: "rgba(245, 158, 11, 0.2)", text: "text-amber-400 [html.light_&]:text-amber-700", border: "border-amber-500/30 [html.light_&]:border-amber-300" };
     case "khoa-hoc":
-      return { aura: "rgba(99, 102, 241, 0.2)", text: "text-indigo-400", border: "border-indigo-500/30" };
+      return { aura: "rgba(99, 102, 241, 0.2)", text: "text-indigo-400 [html.light_&]:text-indigo-700", border: "border-indigo-500/30 [html.light_&]:border-indigo-300" };
     case "xe":
-      return { aura: "rgba(239, 68, 68, 0.2)", text: "text-red-400", border: "border-red-500/30" };
+      return { aura: "rgba(239, 68, 68, 0.2)", text: "text-red-400 [html.light_&]:text-red-700", border: "border-red-500/30 [html.light_&]:border-red-300" };
     default:
-      return { aura: "rgba(59, 130, 246, 0.2)", text: "text-blue-400", border: "border-blue-500/30" };
+      return { aura: "rgba(59, 130, 246, 0.2)", text: "text-blue-400 [html.light_&]:text-blue-700", border: "border-blue-500/30 [html.light_&]:border-blue-300" };
   }
 }
 
@@ -98,7 +107,7 @@ function renderMarkdownLinks(text: string): string {
     const url = safeUrl(linkUrl);
     if (!url) return match;
     const isExternal = url.startsWith("http://") || url.startsWith("https://");
-    return `<a href="${url}" rel="noopener noreferrer nofollow" target="${isExternal ? "_blank" : "_self"}" class="text-blue-400 hover:underline underline-offset-4">${linkText}</a>`;
+    return `<a href="${url}" rel="noopener noreferrer nofollow" target="${isExternal ? "_blank" : "_self"}" class="text-blue-400 [html.light_&]:text-blue-600 hover:underline underline-offset-4">${linkText}</a>`;
   });
 }
 
@@ -106,7 +115,7 @@ async function fetchArticle(slug: string): Promise<PublishedArticle | undefined>
   try {
     const response = await fetchApi(`/articles/${encodeURIComponent(slug)}`, { cache: "no-store" });
     if (response.status === 404) return undefined;
-    if (!response.ok) throw new Error(`article API ${response.status}`);
+    if (!response.ok) return undefined;
     const payload = (await response.json()) as { article: PublishedArticle };
     return payload.article;
   } catch {
@@ -119,34 +128,47 @@ async function fetchRelatedArticles(articleId: string, currentCategory?: string)
     const response = await fetchApi(
       `/recommendations?articleId=${encodeURIComponent(articleId)}&limit=4`,
       { cache: "no-store" },
-    );
+    ).catch(() => null);
+
     let candidates: Array<{ articleId: string; reason: string }> = [];
-    if (response.ok) {
-      const payload = (await response.json()) as {
-        candidates: Array<{ articleId: string; reason: string }>;
-      };
-      if (Array.isArray(payload.candidates)) {
-        candidates = payload.candidates;
+    if (response && response.ok) {
+      try {
+        const payload = (await response.json()) as {
+          candidates: Array<{ articleId: string; reason: string }>;
+        };
+        if (Array.isArray(payload.candidates)) {
+          candidates = payload.candidates;
+        }
+      } catch {
+        candidates = [];
       }
     }
 
     const fetched = await Promise.all(
       candidates.map(async (c) => {
-        const art = await fetchArticle(c.articleId);
-        return art ? { ...art, reason: c.reason } : null;
+        try {
+          const art = await fetchArticle(c.articleId);
+          return art ? { ...art, reason: c.reason } : null;
+        } catch {
+          return null;
+        }
       }),
     );
     const valid = fetched.filter((item): item is PublishedArticle & { reason: string } => Boolean(item));
     if (valid.length > 0) return valid;
 
-    const fallbackRes = await fetchApi(`/articles?limit=4`, { cache: "no-store" });
-    if (fallbackRes.ok) {
-      const data = (await fallbackRes.json()) as { rows?: PublishedArticle[] };
-      if (Array.isArray(data.rows)) {
-        return data.rows
-          .filter((a) => a.id !== articleId)
-          .slice(0, 3)
-          .map((a) => ({ ...a, reason: "Tin nổi bật khác" }));
+    const fallbackRes = await fetchApi(`/articles?limit=4`, { cache: "no-store" }).catch(() => null);
+    if (fallbackRes && fallbackRes.ok) {
+      try {
+        const data = (await fallbackRes.json()) as { rows?: PublishedArticle[] };
+        if (Array.isArray(data.rows)) {
+          return data.rows
+            .filter((a) => a.id !== articleId)
+            .slice(0, 3)
+            .map((a) => ({ ...a, reason: "Tin nổi bật khác" }));
+        }
+      } catch {
+        return [];
       }
     }
     return [];
@@ -182,8 +204,8 @@ export async function generateMetadata({
       description,
       url: canonical,
       type: "article",
-      publishedTime: article.createdAt,
-      modifiedTime: article.updatedAt,
+      publishedTime: article.createdAt || article.updatedAt,
+      modifiedTime: article.updatedAt || article.createdAt,
       images: imageUrl ? [{ url: imageUrl }] : undefined,
     },
     twitter: {
@@ -195,7 +217,7 @@ export async function generateMetadata({
   };
 }
 
-function normalizeArticleText(raw: string): string {
+function normalizeArticleText(raw?: string): string {
   if (!raw) return "";
   let text = raw
     .replace(/\\r\\n/g, "\n")
@@ -211,8 +233,8 @@ function normalizeArticleText(raw: string): string {
 
 function formatInlineMarkdown(text: string): string {
   let out = renderMarkdownLinks(text);
-  out = out.replace(/\*\*([^*]+)\*\*/g, "<strong class='font-bold text-slate-100'>$1</strong>");
-  out = out.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em class='italic text-slate-300'>$1</em>");
+  out = out.replace(/\*\*([^*]+)\*\*/g, "<strong class='font-bold text-slate-100 [html.light_&]:text-slate-900'>$1</strong>");
+  out = out.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em class='italic text-slate-300 [html.light_&]:text-slate-700'>$1</em>");
   return out;
 }
 
@@ -237,7 +259,7 @@ function BodyWithToc({ body }: { body: string }) {
         <h3
           id={headingId}
           key={`h3-${secIdx}`}
-          className="text-lg md:text-xl font-bold mt-8 mb-3 text-white tracking-tight scroll-mt-24"
+          className="text-lg md:text-xl font-bold mt-8 mb-3 text-white [html.light_&]:text-slate-900 tracking-tight scroll-mt-24"
         >
           {headingMatch[2].trim()}
         </h3>
@@ -245,7 +267,7 @@ function BodyWithToc({ body }: { body: string }) {
         <h2
           id={headingId}
           key={`h2-${secIdx}`}
-          className="text-xl md:text-2xl font-black mt-10 mb-4 pb-2 border-b border-white/10 text-white tracking-tight scroll-mt-24"
+          className="text-xl md:text-2xl font-black mt-10 mb-4 pb-2 border-b border-white/10 [html.light_&]:border-slate-200 text-white [html.light_&]:text-slate-900 tracking-tight scroll-mt-24"
         >
           {headingMatch[2].trim()}
         </h2>
@@ -256,13 +278,13 @@ function BodyWithToc({ body }: { body: string }) {
     const isBulletList = lines.every((line) => /^[-*]\s+/.test(line.trim()));
     if (isBulletList && lines.length > 0) {
       return (
-        <ul key={`ul-${secIdx}`} className="my-4 pl-5 space-y-2 leading-relaxed text-slate-300">
+        <ul key={`ul-${secIdx}`} className="my-4 pl-5 space-y-2 leading-relaxed text-slate-300 [html.light_&]:text-slate-700">
           {lines.map((l, lIdx) => {
             const itemText = l.trim().replace(/^[-*]\s+/, "");
             return (
               <li
                 key={`li-${secIdx}-${lIdx}`}
-                className="list-disc"
+                className="list-disc marker:text-cyan-400 [html.light_&]:marker:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(itemText) }}
               />
             );
@@ -276,7 +298,7 @@ function BodyWithToc({ body }: { body: string }) {
       return (
         <blockquote
           key={`quote-${secIdx}`}
-          className="my-6 rounded-r-2xl border-l-4 border-blue-500 bg-white/5 p-4 text-slate-300 italic leading-relaxed backdrop-blur-sm"
+          className="my-6 rounded-r-2xl border-l-4 border-blue-500 bg-white/5 [html.light_&]:bg-blue-50/70 p-4 text-slate-300 [html.light_&]:text-slate-800 italic leading-relaxed backdrop-blur-sm"
           dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(quoteText) }}
         />
       );
@@ -285,7 +307,7 @@ function BodyWithToc({ body }: { body: string }) {
     return (
       <p
         key={`p-${secIdx}`}
-        className="my-5 text-base md:text-[17px] leading-relaxed text-slate-200 tracking-normal"
+        className="my-5 text-base md:text-[17px] leading-relaxed text-slate-200 [html.light_&]:text-slate-800 tracking-normal font-normal"
         dangerouslySetInnerHTML={{
           __html: formatInlineMarkdown(trimmed.replace(/\n/g, "<br />")),
         }}
@@ -303,9 +325,32 @@ function BodyWithToc({ body }: { body: string }) {
   );
 }
 
-function ArticleBody({ body }: { body: string }) {
-  const cleanBody = normalizeArticleText(body);
-  const blocks = parseArticleBlocksBody(cleanBody);
+function ArticleBody({ body, summary }: { body?: string; summary?: string }) {
+  const cleanBody = normalizeArticleText(body || "");
+  if (!cleanBody) {
+    return (
+      <section aria-labelledby="article-body-heading" className="article-body-content my-6">
+        <h2 id="article-body-heading" className="sr-only">
+          Nội dung bài viết
+        </h2>
+        <div className="p-6 rounded-2xl bg-slate-800/50 [html.light_&]:bg-slate-50 border border-white/10 [html.light_&]:border-slate-200 text-slate-300 [html.light_&]:text-slate-700 text-base leading-relaxed">
+          {summary ? (
+            <p className="m-0 italic">{summary}</p>
+          ) : (
+            <p className="m-0 italic">Nội dung chi tiết của bài viết đang được đội ngũ biên tập cập nhật.</p>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  let blocks: ArticleBlock[] | undefined = undefined;
+  try {
+    blocks = parseArticleBlocksBody(cleanBody);
+  } catch {
+    blocks = undefined;
+  }
+
   if (!blocks) return <BodyWithToc body={cleanBody} />;
   return (
     <section aria-labelledby="article-body-heading" className="article-body-content">
@@ -352,13 +397,22 @@ export default async function ArticlePage({
   const categoryName = (article.categorySlug && CATEGORY_NAMES[article.categorySlug]) || "Tin tức";
   const theme = getCategoryColor(article.categorySlug);
 
-  const cleanBody = normalizeArticleText(article.body);
-  const blocks = parseArticleBlocksBody(cleanBody);
-  const headings = blocks ? headingsFromBlocks(blocks) : extractHeadings(cleanBody);
+  const cleanBody = normalizeArticleText(article.body || "");
+  let blocks: ArticleBlock[] | undefined = undefined;
+  if (cleanBody) {
+    try {
+      blocks = parseArticleBlocksBody(cleanBody);
+    } catch {
+      blocks = undefined;
+    }
+  }
+  const headings = blocks ? headingsFromBlocks(blocks) : (cleanBody ? extractHeadings(cleanBody) : []);
+
+  const formattedDate = (article.updatedAt || article.createdAt || new Date().toISOString()).slice(0, 10);
 
   return (
     <main
-      className="article-main relative min-h-screen bg-[var(--surface-sunlit,#0b0f19)] text-slate-100 pt-6 pb-28 overflow-hidden"
+      className="article-main relative min-h-screen bg-[var(--surface-sunlit,#0b0f19)] [html.light_&]:bg-[#F8FAFC] text-slate-100 [html.light_&]:text-slate-900 pt-6 pb-28 overflow-hidden"
       id="main-content"
     >
       {/* Category Ambient Glow */}
@@ -369,47 +423,47 @@ export default async function ArticlePage({
         <BentoGrid>
           {/* Main Reading Column (8 Columns) */}
           <BentoCard colSpan={8} className="p-0 border-none bg-transparent">
-            <article className="rounded-3xl border border-white/10 bg-slate-900/50 p-6 md:p-8 backdrop-blur-2xl shadow-2xl">
+            <article className="rounded-3xl border border-white/10 bg-slate-900/50 [html.light_&]:bg-white/95 [html.light_&]:border-slate-200/80 [html.light_&]:shadow-xl p-6 md:p-8 backdrop-blur-2xl shadow-2xl">
               {/* Category, Badges, Date */}
               <div className="flex flex-wrap items-center gap-2.5 mb-4">
                 {article.categorySlug ? (
                   <a
                     href={`/${article.categorySlug}`}
-                    className={`text-xs font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${theme.border} bg-white/5 ${theme.text} hover:bg-white/10 transition-colors`}
+                    className={`text-xs font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${theme.border} bg-white/5 [html.light_&]:bg-slate-100 ${theme.text} hover:bg-white/10 transition-colors`}
                   >
                     {categoryName}
                   </a>
                 ) : (
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+                  <span className="text-xs font-mono uppercase tracking-wider text-slate-400 [html.light_&]:text-slate-600">
                     Tin tức
                   </span>
                 )}
 
                 {article.isBreaking && (
-                  <span className="bg-rose-500/20 border border-rose-500/40 text-rose-300 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider animate-pulse">
+                  <span className="bg-rose-500/20 border border-rose-500/40 text-rose-300 [html.light_&]:bg-rose-50 [html.light_&]:text-rose-700 [html.light_&]:border-rose-300 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider animate-pulse">
                     Tin nóng
                   </span>
                 )}
 
                 {article.isTrending && (
-                  <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider">
+                  <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 [html.light_&]:bg-amber-50 [html.light_&]:text-amber-700 [html.light_&]:border-amber-300 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider">
                     Thịnh hành
                   </span>
                 )}
 
-                <span className="text-xs text-slate-400 ml-auto font-mono">
-                  {article.updatedAt.slice(0, 10)}
+                <span className="text-xs text-slate-400 [html.light_&]:text-slate-500 ml-auto font-mono">
+                  {formattedDate}
                   {article.sources && article.sources.length > 0 && ` · ${article.sources.length} nguồn`}
                 </span>
               </div>
 
               {/* Title */}
-              <h1 className="text-2xl md:text-4xl lg:text-[40px] font-black leading-tight text-white mb-6 tracking-tight">
+              <h1 className="text-2xl md:text-4xl lg:text-[40px] font-black leading-tight text-white [html.light_&]:text-slate-900 mb-6 tracking-tight">
                 {cleanText(article.title)}
               </h1>
 
               {/* Hero Media */}
-              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl mb-6">
+              <div className="rounded-2xl overflow-hidden border border-white/10 [html.light_&]:border-slate-200 shadow-2xl mb-6">
                 {article.videoUrl ? (
                   <VideoEmbed url={article.videoUrl} />
                 ) : (
@@ -425,23 +479,23 @@ export default async function ArticlePage({
               {article.summary && (
                 <section
                   aria-labelledby="article-summary-heading"
-                  className="article-summary rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 my-6 backdrop-blur-md"
+                  className="article-summary rounded-2xl border border-blue-500/30 bg-blue-500/10 [html.light_&]:bg-blue-50/80 [html.light_&]:border-blue-200 p-5 my-6 backdrop-blur-md"
                 >
-                  <h2 id="article-summary-heading" className="text-xs font-mono uppercase tracking-wider font-bold text-blue-300 mb-2 flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-blue-400" />
+                  <h2 id="article-summary-heading" className="text-xs font-mono uppercase tracking-wider font-bold text-blue-300 [html.light_&]:text-blue-900 mb-2 flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-blue-400 [html.light_&]:bg-blue-600" />
                     Tóm tắt cốt lõi
                   </h2>
-                  <p className="text-sm md:text-base text-slate-200 leading-relaxed m-0">
+                  <p className="text-sm md:text-base text-slate-200 [html.light_&]:text-slate-800 leading-relaxed m-0 font-normal">
                     {article.summary}
                   </p>
                 </section>
               )}
 
               {/* Body */}
-              <ArticleBody body={article.body} />
+              <ArticleBody body={article.body} summary={article.summary} />
 
               {/* Sources */}
-              <div className="mt-8 pt-6 border-t border-white/10">
+              <div className="mt-8 pt-6 border-t border-white/10 [html.light_&]:border-slate-200">
                 <SourceBlock
                   sources={(article.sources ?? []).map((source) => ({
                     name: source.name,
@@ -452,10 +506,10 @@ export default async function ArticlePage({
               </div>
 
               {/* Back to Home Link */}
-              <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between">
+              <div className="mt-8 pt-4 border-t border-white/5 [html.light_&]:border-slate-200 flex items-center justify-between">
                 <a
                   href="/"
-                  className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 transition-colors"
+                  className="text-xs font-semibold text-cyan-400 [html.light_&]:text-blue-600 hover:text-cyan-300 [html.light_&]:hover:text-blue-700 flex items-center gap-1.5 transition-colors"
                 >
                   ← Quay lại trang chủ MStudio Channel
                 </a>
@@ -477,8 +531,8 @@ export default async function ArticlePage({
 
               {/* Recommendations */}
               {related.length > 0 && (
-                <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 backdrop-blur-xl shadow-xl">
-                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-3 border-b border-white/10 pb-2">
+                <div className="rounded-3xl border border-white/10 bg-slate-900/90 [html.light_&]:bg-white/95 [html.light_&]:border-slate-200/80 [html.light_&]:shadow-lg p-5 backdrop-blur-xl shadow-xl">
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 [html.light_&]:text-slate-800 mb-3 border-b border-white/10 [html.light_&]:border-slate-200 pb-2">
                     Bài viết liên quan
                   </h3>
                   <div className="flex flex-col gap-3">
@@ -486,12 +540,12 @@ export default async function ArticlePage({
                       <a
                         key={item.id}
                         href={`/bai-viet/${item.slug || item.id}`}
-                        className="group rounded-xl border border-slate-700/80 bg-slate-800/90 p-3 hover:bg-slate-750 hover:border-cyan-500/40 transition-all shadow-sm"
+                        className="group rounded-xl border border-slate-700/80 bg-slate-800/90 [html.light_&]:bg-slate-50 [html.light_&]:border-slate-200 [html.light_&]:hover:bg-slate-100 p-3 hover:bg-slate-750 hover:border-cyan-500/40 transition-all shadow-sm"
                       >
-                        <span className="text-[10px] font-mono uppercase text-cyan-400 block mb-1 font-bold">
+                        <span className="text-[10px] font-mono uppercase text-cyan-400 [html.light_&]:text-blue-600 block mb-1 font-bold">
                           {item.reason}
                         </span>
-                        <h4 className="text-xs font-bold text-white group-hover:text-cyan-200 line-clamp-2 leading-snug">
+                        <h4 className="text-xs font-bold text-white [html.light_&]:text-slate-900 group-hover:text-cyan-200 [html.light_&]:group-hover:text-blue-600 line-clamp-2 leading-snug">
                           {item.title}
                         </h4>
                       </a>
@@ -512,8 +566,8 @@ export default async function ArticlePage({
               {
                 title: article.title,
                 summary: article.summary,
-                publishedAt: article.createdAt || article.updatedAt,
-                modifiedAt: article.updatedAt,
+                publishedAt: article.createdAt || article.updatedAt || new Date().toISOString(),
+                modifiedAt: article.updatedAt || article.createdAt || new Date().toISOString(),
                 author: article.sources?.[0]?.name || "Ban Biên Tập MStudio",
                 slug: article.slug || slug,
                 mainImage: article.heroImageUrl || article.sources?.[0]?.originUrl,

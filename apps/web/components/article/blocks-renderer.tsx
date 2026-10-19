@@ -8,7 +8,7 @@ import type {
   ArticleBlock,
   InlineContent,
   TextMark,
-} from "../../../../packages/contracts/src/blocks.ts";
+} from "../../lib/contracts";
 import {
   slugifyHeading,
   type TocHeading,
@@ -41,13 +41,20 @@ function splitText(text: string, baseKey: string): ReactNode[] {
 function wrapMark(child: ReactNode, mark: TextMark, key: string): ReactNode {
   switch (mark.type) {
     case "bold":
-      return <strong key={key} className="font-bold text-white">{child}</strong>;
+      return <strong key={key} className="font-bold text-white [html.light_&]:text-slate-900">{child}</strong>;
     case "italic":
-      return <em key={key} className="italic text-slate-200">{child}</em>;
+      return <em key={key} className="italic text-slate-200 [html.light_&]:text-slate-700">{child}</em>;
     case "strike":
-      return <s key={key} className="line-through text-slate-400">{child}</s>;
+      return <s key={key} className="line-through text-slate-400 [html.light_&]:text-slate-500">{child}</s>;
     case "code":
-      return <code key={key} className="bg-slate-800 text-cyan-300 px-1.5 py-0.5 rounded text-[0.9em] font-mono border border-slate-700">{child}</code>;
+      return (
+        <code
+          key={key}
+          className="bg-slate-800 [html.light_&]:bg-slate-200 text-cyan-300 [html.light_&]:text-cyan-800 px-1.5 py-0.5 rounded text-[0.9em] font-mono border border-slate-700 [html.light_&]:border-slate-300"
+        >
+          {child}
+        </code>
+      );
     case "link": {
       const href = mark.attrs?.href ? safeUrl(mark.attrs.href) : undefined;
       if (!href) return child;
@@ -58,7 +65,7 @@ function wrapMark(child: ReactNode, mark: TextMark, key: string): ReactNode {
           key={key}
           rel={mark.attrs?.rel ?? (target ? "noopener noreferrer nofollow" : undefined)}
           target={target}
-          className="text-cyan-400 underline underline-offset-4 hover:text-cyan-300 transition-colors"
+          className="text-cyan-400 [html.light_&]:text-blue-600 underline underline-offset-4 hover:text-cyan-300 [html.light_&]:hover:text-blue-700 transition-colors"
         >
           {child}
         </a>
@@ -93,32 +100,41 @@ function BlockView({
 }: {
   block: ArticleBlock;
   keyPrefix: string;
-  /** Id theo đúng thứ tự walk của headingsFromBlocks — ToC khớp anchor. */
   headingIds: string[];
   cursor: { index: number };
 }): ReactNode {
   switch (block.type) {
     case "paragraph":
-      return <p className="text-base md:text-[17px] leading-relaxed text-slate-200 mb-6 font-normal">{renderInline(block.content, keyPrefix)}</p>;
+      return (
+        <p className="text-base md:text-[17px] leading-relaxed text-slate-200 [html.light_&]:text-slate-800 mb-6 font-normal">
+          {renderInline(block.content, keyPrefix)}
+        </p>
+      );
     case "heading": {
       const headingId = headingIds[cursor.index];
       cursor.index += 1;
       const content = renderInline(block.content, keyPrefix);
       return block.attrs.level === 3 ? (
-        <h3 id={headingId} className="text-xl md:text-2xl font-bold mt-10 mb-4 text-white scroll-mt-24 tracking-tight">
+        <h3
+          id={headingId}
+          className="text-xl md:text-2xl font-bold mt-10 mb-4 text-white [html.light_&]:text-slate-900 scroll-mt-24 tracking-tight"
+        >
           {content}
         </h3>
       ) : (
-        <h2 id={headingId} className="text-2xl md:text-3xl font-black mt-12 mb-6 text-white border-b border-white/10 pb-2 scroll-mt-24 tracking-tight">
+        <h2
+          id={headingId}
+          className="text-2xl md:text-3xl font-black mt-12 mb-6 text-white [html.light_&]:text-slate-900 border-b border-white/10 [html.light_&]:border-slate-200 pb-2 scroll-mt-24 tracking-tight"
+        >
           {content}
         </h2>
       );
     }
     case "bulletList":
       return (
-        <ul className="list-disc list-outside ml-6 mb-8 text-base md:text-[17px] leading-relaxed text-slate-200 space-y-2">
+        <ul className="list-disc list-outside ml-6 mb-8 text-base md:text-[17px] leading-relaxed text-slate-200 [html.light_&]:text-slate-700 space-y-2">
           {block.content.map((item, index) => (
-            <li key={`${keyPrefix}-${index}`} className="pl-2 marker:text-cyan-400">
+            <li key={`${keyPrefix}-${index}`} className="pl-2 marker:text-cyan-400 [html.light_&]:marker:text-blue-600">
               {item.content.map((child, childIndex) => (
                 <BlockView
                   block={child}
@@ -134,9 +150,9 @@ function BlockView({
       );
     case "orderedList":
       return (
-        <ol className="list-decimal list-outside ml-6 mb-8 text-base md:text-[17px] leading-relaxed text-slate-200 space-y-2 font-medium">
+        <ol className="list-decimal list-outside ml-6 mb-8 text-base md:text-[17px] leading-relaxed text-slate-200 [html.light_&]:text-slate-700 space-y-2 font-medium">
           {block.content.map((item, index) => (
-            <li key={`${keyPrefix}-${index}`} className="pl-2 marker:text-cyan-400">
+            <li key={`${keyPrefix}-${index}`} className="pl-2 marker:text-cyan-400 [html.light_&]:marker:text-blue-600">
               {item.content.map((child, childIndex) => (
                 <BlockView
                   block={child}
@@ -154,7 +170,7 @@ function BlockView({
       return (
         <blockquote className="my-8 relative">
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-cyan-400 rounded-full" />
-          <div className="bg-slate-800/80 border border-white/10 rounded-r-2xl rounded-l-none pl-6 pr-4 py-4 text-lg md:text-xl font-medium italic text-slate-200 shadow-sm backdrop-blur-md">
+          <div className="bg-slate-800/80 [html.light_&]:bg-slate-100/90 border border-white/10 [html.light_&]:border-slate-200 rounded-r-2xl rounded-l-none pl-6 pr-4 py-4 text-lg md:text-xl font-medium italic text-slate-200 [html.light_&]:text-slate-800 shadow-sm backdrop-blur-md">
             {block.content.map((child, index) => (
               <BlockView
                 block={child}
@@ -171,11 +187,11 @@ function BlockView({
       const src = safeUrl(block.attrs.src);
       if (!src) return null;
       return (
-        <figure className="my-10 rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shadow-xl group">
+        <figure className="my-10 rounded-2xl overflow-hidden bg-slate-900 [html.light_&]:bg-slate-100 border border-white/10 [html.light_&]:border-slate-200 shadow-xl group">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img alt={block.attrs.alt ?? ""} loading="lazy" src={src} className="w-full h-auto object-cover block" />
           {block.attrs.alt ? (
-            <figcaption className="p-3 text-center text-xs md:text-sm text-slate-400 bg-slate-950/80 border-t border-white/10">
+            <figcaption className="p-3 text-center text-xs md:text-sm text-slate-400 [html.light_&]:text-slate-600 bg-slate-950/80 [html.light_&]:bg-slate-50 border-t border-white/10 [html.light_&]:border-slate-200">
               {block.attrs.alt}
             </figcaption>
           ) : null}
@@ -185,7 +201,6 @@ function BlockView({
   }
 }
 
-/** Gom heading (h2/h3) từ blocks để nuôi TableOfContents. */
 export function headingsFromBlocks(blocks: ArticleBlock[]): TocHeading[] {
   const headings: TocHeading[] = [];
   const usedIds = new Set<string>();

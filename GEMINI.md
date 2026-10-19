@@ -55,3 +55,26 @@ Mọi sản phẩm giao diện do **OpenCode CLI** thực hiện BẮT BUỘC ph
 ## 4. Quy tắc giao tiếp & bảo tồn Context
 - Các subagent làm việc độc lập và chỉ gửi **Bản tóm tắt ngắn (Summary-Only Protocol)** về cho Lead Agent: (1) Trạng thái Pass/Fail, (2) Danh sách file thay đổi, (3) Lỗi cụ thể nếu có. Toàn bộ chi tiết lưu vào file `walkthrough.md`.
 - Giữ context của Antigravity Lead luôn nhẹ và sắc bén để đưa ra quyết định kiến trúc chính xác.
+
+---
+
+## 5. Đúc kết Bài học & Bộ nhớ Kiến trúc (System Memory & Architecture Lessons)
+
+1. **Quy tắc Bento Grid & Tailwind CSS v4 (Monorepo Class Purging):**
+   - Tuyệt đối không dùng chuỗi nội suy động (dynamic template literals như ``lg:col-span-${colSpan}``) trong các package dùng chung (`packages/ui`), vì Tailwind v4 / Rolldown không tự động quét các dynamic tokens từ external libraries khi build ứng dụng con.
+   - Bắt buộc dùng Bảng tra cứu tĩnh (Static Lookup Table) kết hợp lớp định danh cứng (`.bento-col-1` đến `.bento-col-12` và `.bento-col-md-X`) được định nghĩa rõ ràng với `@media` và `!important` trong `globals.css` để đảm bảo lưới 12 cột chuẩn xác (8-4, 4-4-4, 3-6-3) trên mọi độ phân giải PC và Tablet.
+
+2. **Quy tắc Thao tác Máy chủ NAS (TerraMaster TOS 5 & Coolify / Docker):**
+   - Lệnh `scp` sang NAS TerraMaster BẮT BUỘC phải kèm cờ `-O` (`scp -O ...`) vì SSH daemon TOS 5 từ chối giao thức SFTP mode.
+   - Phải luôn tạo trước thư mục đích trên NAS (`ssh -T nas "mkdir -p '...'`) trước khi copy các file hoặc route mới, tránh trường hợp tạo nhầm file thường thay vì thư mục.
+   - Luôn duy trì giới hạn phần cứng an toàn (`cpus: '1.5'`, `max-old-space-size=1024`) trong cấu hình Docker để tránh kernel OOM-killer.
+
+3. **Quy tắc Quản lý Chuyên mục & Chống Empty State:**
+   - Mọi chuyên mục mới (hoặc khi tái định vị chuyên mục) phải đồng bộ đầy đủ 3 thành phần:
+     1. File route Next.js (`apps/web/app/(public)/<chuyen-muc>/page.tsx`).
+     2. Giao diện nhận diện đặc trưng (Theme Aura, Badges, Widget chuyên biệt trong `category-template.tsx`).
+     3. Tối thiểu 1-3 bài viết thực tế đã publish trong Cloudflare D1 database (kèm script seed lưu tại `packages/db/seeds/`).
+
+4. **Quy tắc Độ tương phản & Hai chế độ Sáng / Tối (Theme Switcher WCAG):**
+   - Tuyệt đối không hardcode màu nền tối (`bg-slate-900`, `bg-[#07080B]`) hay chữ trắng (`text-white`) mà không kèm biến CSS hoặc selector `[html.light_&]`. Mọi card, nút bấm, và text đều phải đạt chuẩn WCAG AA/AAA trên cả nền sáng (Light Solar) và nền tối (Dark Void).
+

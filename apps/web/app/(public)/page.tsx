@@ -10,8 +10,6 @@ import {
 import { StoriesRail } from "../../components/navigation/stories-rail";
 import {
   Hero3D,
-  BentoGrid,
-  BentoCard,
   BentoMarketStrip,
   AIBenchmarkWidget,
   CrisisTimeline,
@@ -75,70 +73,76 @@ export default async function PublicHomePage() {
   const breakingArticle = articles.find((a) => a.isBreaking);
 
   return (
-    <main className="home-main min-h-screen bg-[#07080B] text-slate-100 relative overflow-hidden" id="main-content">
+    <main className="home-main min-h-screen bg-[#07080B] text-slate-100" id="main-content">
       <h1 className="visually-hidden">MStudio Channel — Tạp chí tin tức công nghệ và đa nguồn</h1>
 
-      {/* ── Ambient Tech Canvas: Hero3D Background for Above-The-Fold ── */}
-      <div className="absolute inset-x-0 top-0 h-[920px] pointer-events-none opacity-25 md:opacity-30 z-0 overflow-hidden" aria-hidden="true">
-        <Hero3D className="w-full h-full" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#07080B]/60 to-[#07080B]" />
-      </div>
+      {/* ── 1. Editorial 3D Hero Section (Đã khôi phục hoàn chỉnh theo yêu cầu) ── */}
+      <section className="home-hero-section relative w-full h-[40vh] min-h-[340px] md:h-[46vh] md:min-h-[380px] border-b border-white/10 bg-[#07080B] overflow-hidden">
+        <Hero3D className="absolute inset-0" />
 
-      {/* Ambient Optical Glows */}
-      <AmbientGlow color="rgba(37,99,235,0.18)" size={650} className="-top-32 -left-32 pointer-events-none" />
-      <AmbientGlow color="rgba(6,182,212,0.14)" size={550} className="top-1/4 -right-32 pointer-events-none" />
-      <AmbientGlow color="rgba(168,85,247,0.12)" size={550} className="top-2/3 -left-40 pointer-events-none" />
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none p-4 text-center">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold uppercase tracking-wider mb-3 shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            Ấn Phẩm Thế Hệ Mới 2026
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-3 drop-shadow-2xl">
+            Tương Lai Của Tin Tức
+          </h2>
+          <p className="text-sm md:text-base text-slate-200 max-w-2xl font-medium drop-shadow-lg leading-relaxed">
+            Nền tảng báo chí evidence-first. Khám phá sự thật qua lăng kính trí tuệ nhân tạo và đối chiếu đa nguồn thời gian thực.
+          </p>
+        </div>
 
-      {/* ── Stories Rail (Optimized for Mobile/Tablet Quick Glance) ── */}
-      <div className="lg:hidden border-b border-white/10 bg-slate-950/70 backdrop-blur-md relative z-10">
-        <div className="container-content max-w-[var(--container)] mx-auto">
+        {/* Breaking News Floating Ticker */}
+        {breakingArticle && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 w-full max-w-4xl px-4">
+            <aside
+              aria-label="Tin nóng khẩn cấp"
+              className="glass-shell rounded-full px-4 py-2 flex items-center gap-4 border border-rose-500/30 shadow-2xl bg-slate-900/90 backdrop-blur-xl"
+            >
+              <span className="bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 shadow">
+                TIN NÓNG
+              </span>
+              <a
+                href={`/bai-viet/${breakingArticle.slug || breakingArticle.id}`}
+                className="text-white hover:text-cyan-300 font-semibold truncate transition-colors text-xs md:text-sm"
+              >
+                {cleanText(breakingArticle.title)}
+              </a>
+            </aside>
+          </div>
+        )}
+      </section>
+
+      {/* ── 2. Stories Rail 24h for Fast Glance ── */}
+      <div className="border-b border-white/10 bg-slate-950/90 backdrop-blur-md">
+        <div className="container-content max-w-[var(--container)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <StoriesRail articles={articles} />
         </div>
       </div>
 
-      <div className="relative z-10 pt-4 md:pt-6 pb-24">
-        <div className="container-content max-w-[var(--container)] mx-auto px-4 space-y-12">
+      {/* ── 3. Content Section ── */}
+      <div className="relative pt-8 pb-28 overflow-hidden">
+        {/* Ambient Glows */}
+        <AmbientGlow color="rgba(37,99,235,0.15)" size={600} className="-top-40 -left-40 pointer-events-none" />
+        <AmbientGlow color="rgba(6,182,212,0.12)" size={500} className="top-1/3 -right-40 pointer-events-none" />
+        <AmbientGlow color="rgba(168,85,247,0.12)" size={550} className="top-2/3 -left-40 pointer-events-none" />
+
+        <div className="container-content w-full max-w-[var(--container)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10 space-y-12">
           
-          {/* ── 0. Live Financial Ticker Strip (VN30, Global 30, Top 20 Crypto) ── */}
+          {/* Live Market Ticker Strip (VN30, Global 30, Top 20 Crypto) */}
           <div className="w-full">
             <BentoMarketStrip />
           </div>
 
-          {/* ── 1. Master 3-Column Bento Grid (Above-the-fold: 3 - 6 - 3 cols) ── */}
+          {/* ── 4. Master 3-Column Bento Grid Trên PC (Bố Cục 3 Cột Chuẩn: 3 - 6 - 3 cols) ── */}
           <section aria-label="Khu vực tin chính">
-            <BentoGrid className="items-stretch">
+            <div className="bento-grid-363 items-stretch">
               
-              {/* ── Cột Trái (3 cols / 25%): Tin nóng, Tin nhanh 24/7, AI Benchmark mini ── */}
-              <BentoCard
-                colSpan={3}
-                className="order-2 lg:order-1 bg-slate-900/90 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-xl flex flex-col justify-between space-y-5"
-              >
+              {/* ── Cột 1 (Trái: 3 cols / 25%): Tin nhanh 24/7, AI Benchmark mini ── */}
+              <div className="bento-col-3 bg-slate-900/90 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-xl flex flex-col justify-between space-y-5">
                 <div className="space-y-4">
-                  {/* Breaking News Banner (if present) */}
-                  {breakingArticle && (
-                    <aside
-                      aria-label="Tin nóng khẩn cấp"
-                      className="rounded-2xl p-3.5 bg-gradient-to-r from-rose-950/80 to-slate-900/90 border border-rose-500/40 shadow-lg"
-                    >
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                        <span className="bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shadow">
-                          TIN NÓNG
-                        </span>
-                        <span className="text-[10px] text-rose-300 font-mono font-medium ml-auto">
-                          {formatRelativeTime(breakingArticle.updatedAt)}
-                        </span>
-                      </div>
-                      <a
-                        href={`/bai-viet/${breakingArticle.slug || breakingArticle.id}`}
-                        className="text-xs font-bold text-white hover:text-rose-200 line-clamp-2 transition-colors block mt-1"
-                      >
-                        {cleanText(breakingArticle.title)}
-                      </a>
-                    </aside>
-                  )}
-
-                  {/* Realtime Fast News Stream */}
+                  {/* Realtime Fast News Stream Header */}
                   <div>
                     <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
                       <div className="flex items-center gap-2">
@@ -186,13 +190,10 @@ export default async function PublicHomePage() {
                     className="!p-4 border-cyan-500/30"
                   />
                 </div>
-              </BentoCard>
+              </div>
 
-              {/* ── Cột Giữa (6 cols / 50%): Lead Story 16:9 + 2 Featured Sub-Cards ── */}
-              <BentoCard
-                colSpan={6}
-                className="order-1 lg:order-2 p-0 overflow-visible bg-transparent border-none flex flex-col justify-between"
-              >
+              {/* ── Cột 2 (Giữa: 6 cols / 50%): Lead Story 16:9 + 2 Featured Sub-Cards ── */}
+              <div className="bento-col-6 p-0 overflow-visible bg-transparent border-none flex flex-col justify-between">
                 {/* Primary Lead Story Card */}
                 {heroArticle ? (
                   <LeadStoryCard article={heroArticle} layout="vertical" />
@@ -210,13 +211,10 @@ export default async function PublicHomePage() {
                     ))}
                   </div>
                 )}
-              </BentoCard>
+              </div>
 
-              {/* ── Cột Phải (3 cols / 25%): Tiêu điểm biên tập, Quick tags, Crisis Timeline ── */}
-              <BentoCard
-                colSpan={3}
-                className="order-3 lg:order-3 bg-slate-900/90 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-xl flex flex-col justify-between space-y-5"
-              >
+              {/* ── Cột 3 (Phải: 3 cols / 25%): Tiêu điểm biên tập, Quick tags, Crisis Timeline ── */}
+              <div className="bento-col-3 bg-slate-900/90 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-xl flex flex-col justify-between space-y-5">
                 <div>
                   <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
                     <div className="flex items-center gap-2">
@@ -272,12 +270,12 @@ export default async function PublicHomePage() {
 
                 {/* Crisis Timeline Live Briefing */}
                 <CrisisTimeline className="!p-4 border-amber-500/30" title="Diễn biến nóng 24h" />
-              </BentoCard>
+              </div>
 
-            </BentoGrid>
+            </div>
           </section>
 
-          {/* ── 2. Spotlight Hub: 3 Cột Chuyên Đề Cân Đối (4 - 4 - 4 cols) ── */}
+          {/* ── 5. Spotlight Hub: 3 Cột Chuyên Đề Cân Đối (4 - 4 - 4 cols) ── */}
           <section className="mt-14" aria-label="Chuyên đề tiêu điểm">
             <div className="flex items-center justify-between mb-6 px-1">
               <div>
@@ -296,12 +294,9 @@ export default async function PublicHomePage() {
               </a>
             </div>
 
-            <BentoGrid>
+            <div className="bento-grid-363 items-stretch">
               {/* Column 1: Công Nghệ & AI Frontier */}
-              <BentoCard
-                colSpan={4}
-                className="spotlight-card bg-slate-900/90 backdrop-blur-xl border border-cyan-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between"
-              >
+              <div className="bento-col-4 spotlight-card bg-slate-900/90 backdrop-blur-xl border border-cyan-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
@@ -333,13 +328,10 @@ export default async function PublicHomePage() {
                     ))}
                   </div>
                 </div>
-              </BentoCard>
+              </div>
 
               {/* Column 2: Góc Tối & Hồ Sơ Điều Tra */}
-              <BentoCard
-                colSpan={4}
-                className="spotlight-card bg-slate-900/90 backdrop-blur-xl border border-purple-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between"
-              >
+              <div className="bento-col-4 spotlight-card bg-slate-900/90 backdrop-blur-xl border border-purple-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
@@ -378,13 +370,10 @@ export default async function PublicHomePage() {
                     )}
                   </div>
                 </div>
-              </BentoCard>
+              </div>
 
               {/* Column 3: Kinh Doanh & Thị Trường */}
-              <BentoCard
-                colSpan={4}
-                className="spotlight-card bg-slate-900/90 backdrop-blur-xl border border-emerald-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between"
-              >
+              <div className="bento-col-4 spotlight-card bg-slate-900/90 backdrop-blur-xl border border-emerald-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
@@ -420,11 +409,11 @@ export default async function PublicHomePage() {
                     ))}
                   </div>
                 </div>
-              </BentoCard>
-            </BentoGrid>
+              </div>
+            </div>
           </section>
 
-          {/* ── 3. Featured Bento Strip: Tin Nổi Bật Tuyển Chọn ── */}
+          {/* ── 6. Featured Bento Strip: Tin Nổi Bật Tuyển Chọn (4 Cột) ── */}
           {featuredStrip.length > 0 && (
             <section className="mt-14" aria-label="Tin nổi bật">
               <div className="flex items-center justify-between mb-6 px-1">
@@ -438,17 +427,17 @@ export default async function PublicHomePage() {
                   Xem tất cả →
                 </a>
               </div>
-              <BentoGrid>
+              <div className="bento-grid-363">
                 {featuredStrip.map((article) => (
-                  <BentoCard key={article.id} colSpan={3} className="p-0 border-none bg-transparent">
+                  <div key={article.id} className="bento-col-3 p-0 border-none bg-transparent">
                     <FeaturedCard article={article} />
-                  </BentoCard>
+                  </div>
                 ))}
-              </BentoGrid>
+              </div>
             </section>
           )}
 
-          {/* ── 4. Deep Catalog Stream with Infinite Load More (8 - 4 cols) ── */}
+          {/* ── 7. Deep Catalog Stream with Infinite Load More (8 - 4 cols) ── */}
           <section className="mt-14" aria-label="Dòng thời sự trực tiếp">
             <div className="flex items-center justify-between mb-6 px-1">
               <div>
@@ -462,17 +451,17 @@ export default async function PublicHomePage() {
               </span>
             </div>
 
-            <BentoGrid>
+            <div className="bento-grid-363 items-start">
               {/* Main Stream (8 cols) */}
-              <BentoCard colSpan={8} className="stream-main-card bg-slate-900/90 backdrop-blur-lg border border-white/10 p-6 rounded-3xl shadow-xl">
+              <div className="bento-col-8 stream-main-card bg-slate-900/90 backdrop-blur-lg border border-white/10 p-6 rounded-3xl shadow-xl">
                 <HomeStreamClient
                   initialArticles={mainStream}
                   initialCursor={latestData.nextCursor}
                 />
-              </BentoCard>
+              </div>
 
               {/* Discovery Sidebar (4 cols) */}
-              <BentoCard colSpan={4} className="stream-side-card bg-slate-900/90 border border-white/10 text-white overflow-hidden p-6 rounded-3xl h-fit shadow-xl space-y-6">
+              <div className="bento-col-4 stream-side-card bg-slate-900/90 border border-white/10 text-white overflow-hidden p-6 rounded-3xl h-fit shadow-xl space-y-6">
                 {/* Editorial Lineage Info */}
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2 text-cyan-400">
@@ -519,8 +508,8 @@ export default async function PublicHomePage() {
                     <span className="text-white font-bold">100% LLM Automated</span>
                   </div>
                 </div>
-              </BentoCard>
-            </BentoGrid>
+              </div>
+            </div>
           </section>
 
         </div>

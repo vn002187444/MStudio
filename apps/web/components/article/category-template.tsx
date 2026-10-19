@@ -20,57 +20,71 @@ interface ArticlesResponse {
 
 function getCategoryTheme(slug?: string) {
   switch (slug) {
+    case "goc-toi":
+      return {
+        auraColor: "rgba(225, 29, 72, 0.25)",
+        accentText: "text-rose-400 [html.light_&]:text-rose-600",
+        badgeBg: "bg-rose-950/80 border-rose-500/50 text-rose-300 [html.light_&]:bg-rose-50 [html.light_&]:text-rose-700 [html.light_&]:border-rose-300",
+        tag: "Góc Khuất & Ký Sự",
+      };
+    case "blockchain":
+      return {
+        auraColor: "rgba(245, 158, 11, 0.25)",
+        accentText: "text-amber-400 [html.light_&]:text-amber-700",
+        badgeBg: "bg-amber-950/80 border-amber-500/50 text-amber-300 [html.light_&]:bg-amber-50 [html.light_&]:text-amber-700 [html.light_&]:border-amber-300",
+        tag: "Blockchain & On-Chain Frontier",
+      };
     case "cong-nghe":
     case "ai-channel":
       return {
         auraColor: "rgba(6, 182, 212, 0.25)",
-        accentText: "text-cyan-300",
-        badgeBg: "bg-cyan-950/80 border-cyan-500/50 text-cyan-300",
+        accentText: "text-cyan-300 [html.light_&]:text-cyan-700",
+        badgeBg: "bg-cyan-950/80 border-cyan-500/50 text-cyan-300 [html.light_&]:bg-cyan-50 [html.light_&]:text-cyan-700 [html.light_&]:border-cyan-300",
         tag: "Tech & AI Frontier",
       };
     case "kinh-doanh":
     case "kinh-te":
       return {
         auraColor: "rgba(16, 185, 129, 0.25)",
-        accentText: "text-emerald-300",
-        badgeBg: "bg-emerald-950/80 border-emerald-500/50 text-emerald-300",
+        accentText: "text-emerald-300 [html.light_&]:text-emerald-700",
+        badgeBg: "bg-emerald-950/80 border-emerald-500/50 text-emerald-300 [html.light_&]:bg-emerald-50 [html.light_&]:text-emerald-700 [html.light_&]:border-emerald-300",
         tag: "Finance & Economy",
       };
     case "thoi-su":
     case "the-gioi":
       return {
         auraColor: "rgba(245, 158, 11, 0.25)",
-        accentText: "text-amber-300",
-        badgeBg: "bg-amber-950/80 border-amber-500/50 text-amber-300",
+        accentText: "text-amber-300 [html.light_&]:text-amber-700",
+        badgeBg: "bg-amber-950/80 border-amber-500/50 text-amber-300 [html.light_&]:bg-amber-50 [html.light_&]:text-amber-700 [html.light_&]:border-amber-300",
         tag: "Global Pulse",
       };
     case "khoa-hoc":
       return {
         auraColor: "rgba(99, 102, 241, 0.25)",
-        accentText: "text-indigo-300",
-        badgeBg: "bg-indigo-950/80 border-indigo-500/50 text-indigo-300",
+        accentText: "text-indigo-300 [html.light_&]:text-indigo-700",
+        badgeBg: "bg-indigo-950/80 border-indigo-500/50 text-indigo-300 [html.light_&]:bg-indigo-50 [html.light_&]:text-indigo-700 [html.light_&]:border-indigo-300",
         tag: "Quantum & Space",
       };
     case "xe":
       return {
         auraColor: "rgba(239, 68, 68, 0.25)",
-        accentText: "text-red-300",
-        badgeBg: "bg-red-950/80 border-red-500/50 text-red-300",
+        accentText: "text-red-300 [html.light_&]:text-red-700",
+        badgeBg: "bg-red-950/80 border-red-500/50 text-red-300 [html.light_&]:bg-red-50 [html.light_&]:text-red-700 [html.light_&]:border-red-300",
         tag: "Mobility & EV",
       };
     case "doi-song":
     case "suc-khoe":
       return {
         auraColor: "rgba(20, 184, 166, 0.25)",
-        accentText: "text-teal-300",
-        badgeBg: "bg-teal-950/80 border-teal-500/50 text-teal-300",
+        accentText: "text-teal-300 [html.light_&]:text-teal-700",
+        badgeBg: "bg-teal-950/80 border-teal-500/50 text-teal-300 [html.light_&]:bg-teal-50 [html.light_&]:text-teal-700 [html.light_&]:border-teal-300",
         tag: "Lifestyle & Wellness",
       };
     default:
       return {
         auraColor: "rgba(59, 130, 246, 0.25)",
-        accentText: "text-blue-300",
-        badgeBg: "bg-blue-950/80 border-blue-500/50 text-blue-300",
+        accentText: "text-blue-300 [html.light_&]:text-blue-700",
+        badgeBg: "bg-blue-950/80 border-blue-500/50 text-blue-300 [html.light_&]:bg-blue-50 [html.light_&]:text-blue-700 [html.light_&]:border-blue-300",
         tag: "Editorial Stream",
       };
   }
@@ -78,6 +92,10 @@ function getCategoryTheme(slug?: string) {
 
 function renderCategoryWidget(slug?: string) {
   switch (slug) {
+    case "blockchain":
+      return <BentoMarketStrip className="mb-6" />;
+    case "goc-toi":
+      return <CrisisTimeline className="mb-6" title="Hồ sơ & Kỳ án nóng" />;
     case "cong-nghe":
     case "ai-channel":
       return <AIBenchmarkWidget className="mb-6" />;
@@ -140,7 +158,7 @@ export async function CategoryTemplate({
 
   return (
     <main
-      className="home-main relative min-h-screen bg-[#07080B] text-slate-100 pt-6 pb-28 overflow-hidden"
+      className="home-main relative min-h-screen bg-[#07080B] [html.light_&]:bg-[#F8FAFC] text-slate-100 [html.light_&]:text-slate-900 pt-6 pb-28 overflow-hidden"
       id="main-content"
     >
       {/* Category Ambient Optical Aura */}
@@ -157,12 +175,12 @@ export async function CategoryTemplate({
 
       <div className="container-content max-w-[var(--container)] mx-auto px-4 relative z-10">
         {/* Category Glass Header */}
-        <header className="relative mb-10 rounded-3xl border border-white/10 bg-slate-900/80 p-6 md:p-8 backdrop-blur-2xl shadow-2xl">
+        <header className="relative mb-10 rounded-3xl border border-white/10 [html.light_&]:border-slate-200 bg-slate-900/80 [html.light_&]:bg-white/90 p-6 md:p-8 backdrop-blur-2xl shadow-2xl">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2 text-xs text-slate-300">
-              <a href="/" className="hover:text-white transition-colors">Trang chủ</a>
+            <div className="flex items-center gap-2 text-xs text-slate-300 [html.light_&]:text-slate-600">
+              <a href="/" className="hover:text-white [html.light_&]:hover:text-slate-900 transition-colors">Trang chủ</a>
               <span>/</span>
-              <span className="text-slate-400">Chuyên mục</span>
+              <span className="text-slate-400 [html.light_&]:text-slate-500">Chuyên mục</span>
               <span>/</span>
               <span className={`font-bold ${theme.accentText}`}>{name}</span>
             </div>
@@ -171,10 +189,10 @@ export async function CategoryTemplate({
             </span>
           </div>
 
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-3">
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white [html.light_&]:text-slate-900 mb-3">
             {name}
           </h1>
-          <p className="text-sm md:text-base text-slate-300 max-w-3xl leading-relaxed">
+          <p className="text-sm md:text-base text-slate-300 [html.light_&]:text-slate-700 max-w-3xl leading-relaxed">
             {description}
           </p>
         </header>
@@ -182,8 +200,8 @@ export async function CategoryTemplate({
         <BentoGrid>
           {/* Main Column (8 Columns) */}
           <BentoCard colSpan={8} className="p-0 border-none bg-transparent">
-            {/* Top specialized widget if business or market */}
-            {(categorySlug === "kinh-doanh" || categorySlug === "kinh-te") && (
+            {/* Top specialized widget if business or market or blockchain */}
+            {(categorySlug === "kinh-doanh" || categorySlug === "kinh-te" || categorySlug === "blockchain") && (
               <div className="mb-6">{renderCategoryWidget(categorySlug)}</div>
             )}
 
@@ -196,8 +214,8 @@ export async function CategoryTemplate({
                 )}
 
                 {restArticles.length > 0 && (
-                  <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 md:p-6 backdrop-blur-xl shadow-xl">
-                    <h2 className="text-lg md:text-xl font-bold mb-5 flex items-center gap-2 border-b border-white/10 pb-3 text-white">
+                  <div className="rounded-3xl border border-white/10 [html.light_&]:border-slate-200 bg-slate-900/90 [html.light_&]:bg-white/95 p-5 md:p-6 backdrop-blur-xl shadow-xl">
+                    <h2 className="text-lg md:text-xl font-bold mb-5 flex items-center gap-2 border-b border-white/10 [html.light_&]:border-slate-200 pb-3 text-white [html.light_&]:text-slate-900">
                       <span className={`h-2.5 w-2.5 rounded-full ${theme.accentText} bg-current`} />
                       Các bài viết mới nhất thuộc {name}
                     </h2>
@@ -214,13 +232,13 @@ export async function CategoryTemplate({
                 {/* Glassmorphic Empty State */}
                 <section
                   aria-labelledby="empty-cat-heading"
-                  className="rounded-3xl border border-white/10 bg-slate-900/90 p-10 text-center backdrop-blur-2xl shadow-xl"
+                  className="rounded-3xl border border-white/10 [html.light_&]:border-slate-200 bg-slate-900/90 [html.light_&]:bg-white/95 p-10 text-center backdrop-blur-2xl shadow-xl"
                 >
                   <div className="text-5xl mb-4" aria-hidden="true">🌌</div>
-                  <h2 id="empty-cat-heading" className="text-2xl font-bold mb-3 text-white">
+                  <h2 id="empty-cat-heading" className="text-2xl font-bold mb-3 text-white [html.light_&]:text-slate-900">
                     Chuyên mục {name} đang được ban biên tập tổng hợp
                   </h2>
-                  <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto mb-6 leading-relaxed">
+                  <p className="text-slate-300 [html.light_&]:text-slate-600 text-sm md:text-base max-w-xl mx-auto mb-6 leading-relaxed">
                     Các bài viết chuyên sâu về {name.toLowerCase()} đang trong quy trình phân tích và đối chiếu nguồn tin tự động. Bạn có thể theo dõi những luồng tin mới nhất từ hệ thống dưới đây.
                   </p>
                   <a
@@ -234,9 +252,9 @@ export async function CategoryTemplate({
                 {suggestedArticles.length > 0 && (
                   <section
                     aria-labelledby="suggested-heading"
-                    className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 md:p-6 backdrop-blur-xl shadow-xl"
+                    className="rounded-3xl border border-white/10 [html.light_&]:border-slate-200 bg-slate-900/90 [html.light_&]:bg-white/95 p-5 md:p-6 backdrop-blur-xl shadow-xl"
                   >
-                    <h2 id="suggested-heading" className="text-lg font-bold mb-5 text-white border-b border-white/10 pb-3">
+                    <h2 id="suggested-heading" className="text-lg font-bold mb-5 text-white [html.light_&]:text-slate-900 border-b border-white/10 [html.light_&]:border-slate-200 pb-3">
                       Tin tức nổi bật khác trên MStudio Channel
                     </h2>
                     <div className="flex flex-col gap-4">
@@ -254,23 +272,23 @@ export async function CategoryTemplate({
           <BentoCard colSpan={4} className="p-0 border-none bg-transparent">
             <div className="flex flex-col gap-6">
               {/* Category-Specific Sidebar Widget */}
-              {categorySlug !== "kinh-doanh" && categorySlug !== "kinh-te" && renderCategoryWidget(categorySlug)}
+              {categorySlug !== "kinh-doanh" && categorySlug !== "kinh-te" && categorySlug !== "blockchain" && renderCategoryWidget(categorySlug)}
 
               {/* Editorial Statement */}
-              <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/90 p-5 backdrop-blur-2xl shadow-xl">
+              <section className="relative overflow-hidden rounded-3xl border border-white/10 [html.light_&]:border-slate-200 bg-slate-900/90 [html.light_&]:bg-white/95 p-5 backdrop-blur-2xl shadow-xl">
                 <AmbientGlow color={theme.auraColor} size={140} className="-top-8 -right-8" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-white mb-2 flex items-center gap-2">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-white [html.light_&]:text-slate-900 mb-2 flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-cyan-400" />
                   Về chuyên mục {name}
                 </h3>
-                <p className="text-xs text-slate-300 leading-relaxed m-0 font-normal">
+                <p className="text-xs text-slate-300 [html.light_&]:text-slate-600 leading-relaxed m-0 font-normal">
                   Phân tích công nghệ, dữ liệu thị trường và thông tin chuyên sâu độc quyền được giám tuyển bởi trí tuệ nhân tạo và ban biên tập MStudio Channel.
                 </p>
               </section>
 
               {/* Navigation Pill Grid */}
-              <section className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 backdrop-blur-xl shadow-xl">
-                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 mb-3">
+              <section className="rounded-3xl border border-white/10 [html.light_&]:border-slate-200 bg-slate-900/90 [html.light_&]:bg-white/95 p-5 backdrop-blur-xl shadow-xl">
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 [html.light_&]:text-slate-600 mb-3">
                   Khám phá chuyên mục khác
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -278,6 +296,8 @@ export async function CategoryTemplate({
                     { label: "Công nghệ", href: "/cong-nghe" },
                     { label: "AI Channel", href: "/ai-channel" },
                     { label: "Kinh doanh", href: "/kinh-doanh" },
+                    { label: "Blockchain", href: "/blockchain" },
+                    { label: "Góc Tối", href: "/goc-toi" },
                     { label: "Kinh tế", href: "/kinh-te" },
                     { label: "Thế giới", href: "/the-gioi" },
                     { label: "Thời sự", href: "/thoi-su" },
@@ -292,7 +312,7 @@ export async function CategoryTemplate({
                     <a
                       key={cat.href}
                       href={cat.href}
-                      className="px-3.5 py-1.5 bg-slate-800/90 border border-slate-700/80 hover:border-cyan-400 hover:bg-cyan-950/80 hover:text-cyan-200 transition-all rounded-full text-xs font-medium text-slate-200 shadow-sm"
+                      className="px-3.5 py-1.5 bg-slate-800/90 [html.light_&]:bg-slate-100 border border-slate-700/80 [html.light_&]:border-slate-200 hover:border-cyan-400 hover:bg-cyan-950/80 [html.light_&]:hover:bg-slate-200 hover:text-cyan-200 [html.light_&]:hover:text-slate-900 transition-all rounded-full text-xs font-medium text-slate-200 [html.light_&]:text-slate-800 shadow-sm"
                     >
                       {cat.label}
                     </a>

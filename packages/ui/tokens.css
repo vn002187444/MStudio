@@ -159,11 +159,25 @@
   --motion-spring-bouncy: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* ── Large Desktop & Ultra-wide screen expansion (>= 1536px, 1920px) ── */
+/* ── Desktop & Ultra-wide screen expansion (>= 1024px, 1280px, 1536px, 1920px) ── */
+@media (min-width: 1024px) {
+  :root {
+    --container: min(100% - 48px, 1440px);
+    --max-content-width: min(100% - 48px, 1440px);
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --container: min(100% - 64px, 1600px);
+    --max-content-width: min(100% - 64px, 1600px);
+  }
+}
+
 @media (min-width: 1536px) {
   :root {
-    --container: 1536px;
-    --max-content-width: 1536px;
+    --container: min(100% - 64px, 1740px);
+    --max-content-width: min(100% - 64px, 1740px);
     --gutter: 32px;
     --bento-padding: 24px;
     --bento-radius-outer: 28px;
@@ -175,8 +189,8 @@
 
 @media (min-width: 1920px) {
   :root {
-    --container: 1680px;
-    --max-content-width: 1680px;
+    --container: min(100% - 80px, 1840px);
+    --max-content-width: min(100% - 80px, 1840px);
     --gutter: 40px;
     --bento-padding: 28px;
     --bento-radius-outer: 32px;
@@ -185,6 +199,7 @@
     --bento-radius-lg-inner: calc(var(--bento-radius-lg-outer) - 28px);
   }
 }
+
 
 /* ── Light Mode Solar Glassmorphism Overrides (Non-Glare, High-Contrast) ── */
 :root[data-theme="light"], html.light {

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../../../packages/ui/tokens.css";
+@source "../../../packages/ui/src";
 
 :root {
   color-scheme: dark;
@@ -1631,5 +1632,44 @@ html.light .editorial-footer .footer-cms-btn:hover {
 html.light .editorial-footer .footer-bottom {
   border-top-color: rgba(15, 23, 42, 0.08) !important;
   color: #64748B !important;
+}
+
+/* ── Explicit Bento Grid 3-6-3 Desktop Column Math ── */
+.bento-grid-363 {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .bento-grid-363 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .bento-col-1, .bento-col-md-1 { grid-column: span 1 / span 6 !important; }
+  .bento-col-2, .bento-col-md-2 { grid-column: span 2 / span 6 !important; }
+  .bento-col-3, .bento-col-md-3 { grid-column: span 3 / span 6 !important; }
+  .bento-col-4, .bento-col-md-4 { grid-column: span 4 / span 6 !important; }
+  .bento-col-6, .bento-col-md-6 { grid-column: span 6 / span 6 !important; }
+  .bento-col-8, .bento-col-md-8 { grid-column: span 6 / span 6 !important; }
+  .bento-col-12, .bento-col-md-12 { grid-column: span 6 / span 6 !important; }
+}
+
+@media (min-width: 1024px) {
+  .bento-grid-363 {
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  }
+  .bento-col-1 { grid-column: span 1 / span 12 !important; }
+  .bento-col-2 { grid-column: span 2 / span 12 !important; }
+  .bento-col-3 { grid-column: span 3 / span 12 !important; }
+  .bento-col-4 { grid-column: span 4 / span 12 !important; }
+  .bento-col-5 { grid-column: span 5 / span 12 !important; }
+  .bento-col-6 { grid-column: span 6 / span 12 !important; }
+  .bento-col-7 { grid-column: span 7 / span 12 !important; }
+  .bento-col-8 { grid-column: span 8 / span 12 !important; }
+  .bento-col-9 { grid-column: span 9 / span 12 !important; }
+  .bento-col-10 { grid-column: span 10 / span 12 !important; }
+  .bento-col-11 { grid-column: span 11 / span 12 !important; }
+  .bento-col-12 { grid-column: span 12 / span 12 !important; }
 }
 
