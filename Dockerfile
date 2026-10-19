@@ -18,9 +18,9 @@ COPY packages/ ./packages/
 COPY apps/web ./apps/web
 COPY workers/ ./workers/
 
-RUN pnpm install --frozen-lockfile --workspace-concurrency=1
+RUN pnpm install --frozen-lockfile
 ENV NODE_OPTIONS="--max-old-space-size=1024"
-RUN pnpm --filter web build --workspace-concurrency=1
+RUN pnpm --filter web run build
 
 # -------------------------------------------------------------
 # 2. Production Runner (Glibc / Debian Slim siêu ổn định cho workerd)
