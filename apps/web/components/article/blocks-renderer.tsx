@@ -233,11 +233,3 @@ export function BlocksRenderer({ blocks }: { blocks: ArticleBlock[] }) {
     </div>
   );
 }
-
-export function slugifyHeading(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}

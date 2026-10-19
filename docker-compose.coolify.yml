@@ -53,16 +53,9 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: mstudio-tunnel
     restart: unless-stopped
-    entrypoint: >
-      sh -c '
-        if [ -z "$$TUNNEL_TOKEN" ]; then
-          echo "[Cloudflared] TUNNEL_TOKEN is not set. Standby mode active (Using Coolify Reverse Proxy).";
-          sleep infinity;
-        else
-          echo "[Cloudflared] Starting Cloudflare Tunnel...";
-          exec cloudflared tunnel --no-autoupdate run;
-        fi
-      '
+    profiles: ["tunnel"]
+    command: tunnel --no-autoupdate run
+
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:

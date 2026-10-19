@@ -15,7 +15,7 @@ import { ArticleShareBar } from "../../../../components/article/article-share-ba
 import { BlocksRenderer, headingsFromBlocks } from "../../../../components/article/blocks-renderer";
 import { parseArticleBlocksBody } from "../../../../lib/contracts";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface PublishedArticle {
   id: string;
@@ -104,7 +104,7 @@ function renderMarkdownLinks(text: string): string {
 
 async function fetchArticle(slug: string): Promise<PublishedArticle | undefined> {
   try {
-    const response = await fetchApi(`/articles/${encodeURIComponent(slug)}`, { cache: "no-store" });
+    const response = await fetchApi(`/articles/${encodeURIComponent(slug)}`, { next: { revalidate: 60 } });
     if (response.status === 404) return undefined;
     if (!response.ok) throw new Error(`article API ${response.status}`);
     const payload = (await response.json()) as { article: PublishedArticle };
@@ -118,7 +118,7 @@ async function fetchRelatedArticles(articleId: string, currentCategory?: string)
   try {
     const response = await fetchApi(
       `/recommendations?articleId=${encodeURIComponent(articleId)}&limit=4`,
-      { cache: "no-store" },
+      { next: { revalidate: 60 } },
     );
     let candidates: Array<{ articleId: string; reason: string }> = [];
     if (response.ok) {
@@ -139,7 +139,7 @@ async function fetchRelatedArticles(articleId: string, currentCategory?: string)
     const valid = fetched.filter((item): item is PublishedArticle & { reason: string } => Boolean(item));
     if (valid.length > 0) return valid;
 
-    const fallbackRes = await fetchApi(`/articles?limit=4`, { cache: "no-store" });
+    const fallbackRes = await fetchApi(`/articles?limit=4`, { next: { revalidate: 60 } });
     if (fallbackRes.ok) {
       const data = (await fallbackRes.json()) as { rows?: PublishedArticle[] };
       if (Array.isArray(data.rows)) {
@@ -237,7 +237,7 @@ function BodyWithToc({ body }: { body: string }) {
         <h3
           id={headingId}
           key={`h3-${secIdx}`}
-          className="text-lg md:text-xl font-bold mt-8 mb-3 text-white tracking-tight"
+          className="text-lg md:text-xl font-bold mt-8 mb-3 text-white tracking-tight scroll-mt-24"
         >
           {headingMatch[2].trim()}
         </h3>
@@ -245,7 +245,7 @@ function BodyWithToc({ body }: { body: string }) {
         <h2
           id={headingId}
           key={`h2-${secIdx}`}
-          className="text-xl md:text-2xl font-black mt-10 mb-4 pb-2 border-b border-white/10 text-white tracking-tight"
+          className="text-xl md:text-2xl font-black mt-10 mb-4 pb-2 border-b border-white/10 text-white tracking-tight scroll-mt-24"
         >
           {headingMatch[2].trim()}
         </h2>
@@ -512,8 +512,9 @@ export default async function ArticlePage({
               {
                 title: article.title,
                 summary: article.summary,
-                publishedAt: article.updatedAt,
-                author: article.sources?.[0]?.name,
+                publishedAt: article.createdAt || article.updatedAt,
+                modifiedAt: article.updatedAt,
+                author: article.sources?.[0]?.name || "Ban Biên Tập MStudio",
                 slug: article.slug || slug,
                 mainImage: article.heroImageUrl || article.sources?.[0]?.originUrl,
               },
