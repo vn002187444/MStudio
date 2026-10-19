@@ -65,15 +65,39 @@ export function getArticleImageUrl(article: PublishedArticleRecord): string {
   return CATEGORY_FALLBACK_IMAGES[category] ?? CATEGORY_FALLBACK_IMAGES["thoi-su"];
 }
 
-export function LeadStoryCard({ article }: { article: PublishedArticleRecord }) {
+export function LeadStoryCard({
+  article,
+  layout = "auto",
+  className = "",
+}: {
+  article: PublishedArticleRecord;
+  layout?: "horizontal" | "vertical" | "auto";
+  className?: string;
+}) {
   const url = `/bai-viet/${article.slug || article.id}`;
   const categoryLabel = (article.categorySlug && CATEGORY_NAMES[article.categorySlug]) || "Tiêu điểm";
+  const isVertical = layout === "vertical";
 
   return (
-    <TiltCard maxAngle={3} scale={1.01} className="w-full h-full bg-slate-900/95 rounded-[var(--bento-radius-outer)] overflow-hidden shadow-2xl flex flex-col md:flex-row group border border-white/15">
+    <TiltCard
+      maxAngle={3}
+      scale={1.01}
+      className={`w-full h-full bg-slate-900/95 rounded-[var(--bento-radius-outer)] overflow-hidden shadow-2xl flex ${
+        isVertical ? "flex-col" : "flex-col md:flex-row"
+      } group border border-white/15 ${className}`}
+    >
       {/* Visual Side */}
-      <div className="relative w-full md:w-[58%] shrink-0 h-[280px] md:h-[480px] bg-black overflow-hidden">
-        <AmbientGlow color="rgba(37,99,235,0.4)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+      <div
+        className={`relative w-full ${
+          isVertical
+            ? "h-[240px] sm:h-[300px] lg:h-[320px] aspect-[16/9]"
+            : "md:w-[58%] shrink-0 h-[280px] md:h-[480px]"
+        } bg-black overflow-hidden`}
+      >
+        <AmbientGlow
+          color="rgba(37,99,235,0.4)"
+          className="opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+        />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={getArticleImageUrl(article)}
@@ -81,7 +105,7 @@ export function LeadStoryCard({ article }: { article: PublishedArticleRecord }) 
           className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-all duration-700 group-hover:scale-105"
           fetchPriority="high"
         />
-        
+
         {/* Top Badges */}
         <div className="absolute top-4 left-4 z-20 flex gap-2">
           {article.isBreaking && (
@@ -96,10 +120,14 @@ export function LeadStoryCard({ article }: { article: PublishedArticleRecord }) 
       </div>
 
       {/* Content Side */}
-      <div className="flex flex-col flex-1 p-6 md:p-8 lg:p-10 justify-between bg-gradient-to-br from-slate-900 to-slate-950 text-white relative z-10">
+      <div
+        className={`flex flex-col flex-1 ${
+          isVertical ? "p-5 md:p-6" : "p-6 md:p-8 lg:p-10"
+        } justify-between bg-gradient-to-br from-slate-900 to-slate-950 text-white relative z-10`}
+      >
         <div>
           {/* Metadata */}
-          <div className="flex items-center gap-3 text-xs text-slate-300 mb-4 font-medium">
+          <div className="flex items-center gap-3 text-xs text-slate-300 mb-3 font-medium">
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-200">
               <span className="text-cyan-400 font-bold">◎</span>
               {article.sourceCount > 0 ? `${article.sourceCount} nguồn xác thực` : "Kiểm chứng AI"}
@@ -109,30 +137,37 @@ export function LeadStoryCard({ article }: { article: PublishedArticleRecord }) 
             </time>
           </div>
 
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-black leading-tight mb-4 text-white">
-            <a href={url} className="text-white hover:text-cyan-300 transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 outline-none">
+          <h2
+            className={`${
+              isVertical ? "text-xl sm:text-2xl lg:text-3xl" : "text-2xl md:text-3xl lg:text-4xl"
+            } font-black leading-tight mb-3 text-white`}
+          >
+            <a
+              href={url}
+              className="text-white hover:text-cyan-300 transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 outline-none"
+            >
               {stripHtml(article.title)}
             </a>
           </h2>
 
           {article.summary && (
-            <p className="text-slate-300 text-base md:text-lg leading-relaxed line-clamp-3 font-normal">
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed line-clamp-3 font-normal">
               {stripHtml(article.summary)}
             </p>
           )}
         </div>
 
-        <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+        <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
           <a
             href={url}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold hover:from-blue-500 hover:to-cyan-400 transition-all shadow-lg shadow-cyan-500/25 border border-cyan-400/40 focus-visible:ring-2 focus-visible:ring-cyan-400"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold hover:from-blue-500 hover:to-cyan-400 transition-all shadow-lg shadow-cyan-500/25 border border-cyan-400/40 focus-visible:ring-2 focus-visible:ring-cyan-400 text-sm"
           >
             <span>Đọc bài sâu</span>
             <span aria-hidden="true">→</span>
           </a>
-          
+
           {article.isTrending && (
-            <span className="flex items-center gap-1.5 text-amber-300 text-sm font-bold bg-amber-950/60 border border-amber-500/30 px-3 py-1 rounded-full">
+            <span className="flex items-center gap-1.5 text-amber-300 text-xs sm:text-sm font-bold bg-amber-950/60 border border-amber-500/30 px-3 py-1 rounded-full">
               <span>🔥</span> Đang thịnh hành
             </span>
           )}

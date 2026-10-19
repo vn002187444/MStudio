@@ -23,13 +23,26 @@ export async function fetchApi(path: string, init?: RequestInit): Promise<Respon
   const primaryUrl = `${apiBaseUrl()}${normPath}`;
   const fallbackUrl = `${apiFallbackUrl()}${normPath}`;
 
+  const defaultInit: RequestInit = {
+    ...init,
+    signal: init?.signal ?? AbortSignal.timeout(3500),
+  };
+
   try {
-    const res = await fetch(primaryUrl, init);
+    const res = await fetch(primaryUrl, defaultInit);
     if (!res.ok) {
-      return await fetch(fallbackUrl, init);
+      return await fetch(fallbackUrl, defaultInit);
     }
     return res;
   } catch {
-    return await fetch(fallbackUrl, init);
+    try {
+      return await fetch(fallbackUrl, defaultInit);
+    } catch {
+      return new Response(JSON.stringify({ rows: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
   }
 }
+
