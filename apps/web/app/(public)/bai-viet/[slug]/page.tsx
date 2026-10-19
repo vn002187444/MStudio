@@ -8,14 +8,14 @@ import { cleanText, BentoGrid, BentoCard, AmbientGlow } from "@mstudio/ui";
 import {
   extractHeadings,
   slugifyHeading,
-  TableOfContents,
-} from "../../../../components/article/table-of-contents";
+} from "../../../../components/article/toc-utils";
+import { TableOfContents } from "../../../../components/article/table-of-contents";
 import { SourceBlock } from "../../../../components/article/source-block";
 import { ArticleShareBar } from "../../../../components/article/article-share-bar";
 import { BlocksRenderer, headingsFromBlocks } from "../../../../components/article/blocks-renderer";
 import { parseArticleBlocksBody } from "../../../../lib/contracts";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 interface PublishedArticle {
   id: string;
@@ -104,7 +104,7 @@ function renderMarkdownLinks(text: string): string {
 
 async function fetchArticle(slug: string): Promise<PublishedArticle | undefined> {
   try {
-    const response = await fetchApi(`/articles/${encodeURIComponent(slug)}`, { next: { revalidate: 60 } });
+    const response = await fetchApi(`/articles/${encodeURIComponent(slug)}`, { cache: "no-store" });
     if (response.status === 404) return undefined;
     if (!response.ok) throw new Error(`article API ${response.status}`);
     const payload = (await response.json()) as { article: PublishedArticle };
@@ -118,7 +118,7 @@ async function fetchRelatedArticles(articleId: string, currentCategory?: string)
   try {
     const response = await fetchApi(
       `/recommendations?articleId=${encodeURIComponent(articleId)}&limit=4`,
-      { next: { revalidate: 60 } },
+      { cache: "no-store" },
     );
     let candidates: Array<{ articleId: string; reason: string }> = [];
     if (response.ok) {
@@ -139,7 +139,7 @@ async function fetchRelatedArticles(articleId: string, currentCategory?: string)
     const valid = fetched.filter((item): item is PublishedArticle & { reason: string } => Boolean(item));
     if (valid.length > 0) return valid;
 
-    const fallbackRes = await fetchApi(`/articles?limit=4`, { next: { revalidate: 60 } });
+    const fallbackRes = await fetchApi(`/articles?limit=4`, { cache: "no-store" });
     if (fallbackRes.ok) {
       const data = (await fallbackRes.json()) as { rows?: PublishedArticle[] };
       if (Array.isArray(data.rows)) {
@@ -425,7 +425,7 @@ export default async function ArticlePage({
               {article.summary && (
                 <section
                   aria-labelledby="article-summary-heading"
-                  className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 my-6 backdrop-blur-md"
+                  className="article-summary rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 my-6 backdrop-blur-md"
                 >
                   <h2 id="article-summary-heading" className="text-xs font-mono uppercase tracking-wider font-bold text-blue-300 mb-2 flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-blue-400" />

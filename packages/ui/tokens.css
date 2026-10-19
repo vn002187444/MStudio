@@ -203,6 +203,14 @@
   --brand: #2563EB;
   --brand-hover: #1D4ED8;
   
+  /* Void & Solar Zone Inversion in Light Mode */
+  --void-deep: #F1F5F9;
+  --void-surface: #FFFFFF;
+  --void-subtle: #E2E8F0;
+  --solar-light: #0F172A;
+  --solar-surface: #FFFFFF;
+  --solar-border: rgba(15, 23, 42, 0.08);
+
   --glass-backdrop-filter: blur(24px) saturate(180%);
   --glass-bg-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.88) 100%);
   --glass-border: 1px solid rgba(15, 23, 42, 0.08);
@@ -215,8 +223,10 @@ html.light body {
 }
 
 html.light .home-main,
-html.light .article-main {
+html.light .article-main,
+html.light .category-main {
   background-color: #F8FAFC !important;
   color: #0F172A !important;
 }
+
 

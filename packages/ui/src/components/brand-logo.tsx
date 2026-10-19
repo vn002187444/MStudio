@@ -152,8 +152,9 @@ export function BrandLogo({
               className={cn(
                 "font-black tracking-wider uppercase drop-shadow-sm",
                 sizeConfig.text,
-                isDark ? "text-white" : "text-[var(--ink,#101114)]"
+                isDark ? "text-white [html.light_&]:text-slate-900" : "text-[var(--ink,#101114)]"
               )}
+
             >
               MSTUDIO
             </span>

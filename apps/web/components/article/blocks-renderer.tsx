@@ -12,7 +12,7 @@ import type {
 import {
   slugifyHeading,
   type TocHeading,
-} from "./table-of-contents";
+} from "./toc-utils";
 
 /** Chỉ cho qua http(s) tuyệt đối hoặc path bắt đầu bằng "/". */
 function safeUrl(raw: string): string | undefined {

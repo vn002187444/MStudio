@@ -74,8 +74,9 @@ export default async function PublicHomePage() {
       <h1 className="visually-hidden">MStudio Channel — Tạp chí tin tức công nghệ và đa nguồn</h1>
 
       {/* ── 1. Compact Editorial 3D Hero ── */}
-      <section className="relative w-full h-[40vh] min-h-[340px] md:h-[46vh] md:min-h-[380px] border-b border-white/10 bg-[#07080B] overflow-hidden">
+      <section className="home-hero-section relative w-full h-[40vh] min-h-[340px] md:h-[46vh] md:min-h-[380px] border-b border-white/10 bg-[#07080B] overflow-hidden">
         <Hero3D className="absolute inset-0" />
+
         
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none p-4 text-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold uppercase tracking-wider mb-3 shadow-lg">
@@ -198,7 +199,7 @@ export default async function PublicHomePage() {
 
             <BentoGrid>
               {/* Column 1: Công Nghệ & AI Frontier */}
-              <BentoCard colSpan={4} className="bg-slate-900/90 backdrop-blur-xl border border-cyan-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
+              <BentoCard colSpan={4} className="spotlight-card bg-slate-900/90 backdrop-blur-xl border border-cyan-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
@@ -222,7 +223,7 @@ export default async function PublicHomePage() {
               </BentoCard>
 
               {/* Column 2: Góc Tối & Hồ Sơ Điều Tra */}
-              <BentoCard colSpan={4} className="bg-slate-900/90 backdrop-blur-xl border border-purple-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
+              <BentoCard colSpan={4} className="spotlight-card bg-slate-900/90 backdrop-blur-xl border border-purple-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
@@ -255,7 +256,8 @@ export default async function PublicHomePage() {
               </BentoCard>
 
               {/* Column 3: Diễn Biến Nóng & Tài Chính */}
-              <BentoCard colSpan={4} className="bg-slate-900/90 backdrop-blur-xl border border-emerald-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
+              <BentoCard colSpan={4} className="spotlight-card bg-slate-900/90 backdrop-blur-xl border border-emerald-500/30 p-5 rounded-3xl shadow-xl flex flex-col justify-between">
+
                 <div>
                   <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
@@ -316,7 +318,7 @@ export default async function PublicHomePage() {
             
             <BentoGrid>
               {/* Main Stream (8 cols) */}
-              <BentoCard colSpan={8} className="bg-slate-900/90 backdrop-blur-lg border border-white/10 p-6 rounded-3xl shadow-xl">
+              <BentoCard colSpan={8} className="stream-main-card bg-slate-900/90 backdrop-blur-lg border border-white/10 p-6 rounded-3xl shadow-xl">
                 <HomeStreamClient
                   initialArticles={mainStream}
                   initialCursor={latestData.nextCursor}
@@ -324,7 +326,7 @@ export default async function PublicHomePage() {
               </BentoCard>
 
               {/* Discovery Sidebar (4 cols) */}
-              <BentoCard colSpan={4} className="bg-slate-900/90 border border-white/10 text-white overflow-hidden p-6 rounded-3xl h-fit shadow-xl space-y-6">
+              <BentoCard colSpan={4} className="stream-side-card bg-slate-900/90 border border-white/10 text-white overflow-hidden p-6 rounded-3xl h-fit shadow-xl space-y-6">
                 {/* Lineage Info */}
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2 text-cyan-400">
@@ -352,7 +354,8 @@ export default async function PublicHomePage() {
                 <hr className="border-white/10" />
 
                 {/* System Specs */}
-                <div className="rounded-2xl p-4 bg-slate-950/60 border border-white/10 text-[11px] font-mono text-slate-400 space-y-2">
+                <div className="system-status-box rounded-2xl p-4 bg-slate-950/60 border border-white/10 text-[11px] font-mono text-slate-400 space-y-2">
+
                   <div className="flex justify-between">
                     <span>Phiên bản:</span>
                     <span className="text-cyan-400 font-bold">v2.0 Hybrid Glassmorphic</span>
