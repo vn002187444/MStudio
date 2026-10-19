@@ -30,7 +30,7 @@ export const BentoCard = ({
 }: {
   className?: string;
   children?: React.ReactNode;
-  colSpan?: 1 | 2 | 3 | 4 | 6 | 8 | 12;
+  colSpan?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
   rowSpan?: 1 | 2;
 }) => {
   const colSpanClasses: Record<number, string> = {
@@ -38,8 +38,13 @@ export const BentoCard = ({
     2: "bento-col-2 bento-col-md-2 lg:col-span-2 md:col-span-2 col-span-1",
     3: "bento-col-3 bento-col-md-3 lg:col-span-3 md:col-span-3 col-span-1",
     4: "bento-col-4 bento-col-md-4 lg:col-span-4 md:col-span-4 col-span-1",
+    5: "bento-col-5 bento-col-md-5 lg:col-span-5 md:col-span-5 col-span-1",
     6: "bento-col-6 bento-col-md-6 lg:col-span-6 md:col-span-6 col-span-1",
+    7: "bento-col-7 bento-col-md-6 lg:col-span-7 md:col-span-6 col-span-1",
     8: "bento-col-8 bento-col-md-6 lg:col-span-8 md:col-span-6 col-span-1",
+    9: "bento-col-9 bento-col-md-6 lg:col-span-9 md:col-span-6 col-span-1",
+    10: "bento-col-10 bento-col-md-6 lg:col-span-10 md:col-span-6 col-span-1",
+    11: "bento-col-11 bento-col-md-6 lg:col-span-11 md:col-span-6 col-span-1",
     12: "bento-col-12 bento-col-md-6 lg:col-span-12 md:col-span-6 col-span-1",
   };
 

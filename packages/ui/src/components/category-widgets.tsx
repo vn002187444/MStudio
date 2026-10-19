@@ -25,41 +25,72 @@ export function AIBenchmarkWidget({
   items?: BenchmarkItem[];
   className?: string;
 }) {
+  const [benchmarks, setBenchmarks] = React.useState<BenchmarkItem[]>(items);
+  const [sourceLabel, setSourceLabel] = React.useState<string>("MMLU-Pro / Live");
+
+  React.useEffect(() => {
+    let isMounted = true;
+    fetch("/api/ai-benchmark")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted && data?.benchmarks?.length) {
+          setBenchmarks(data.benchmarks);
+          if (data.source) setSourceLabel(data.source);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
-    <div className={`relative overflow-hidden rounded-3xl border border-cyan-500/30 bg-slate-900/90 p-5 shadow-2xl backdrop-blur-xl ${className}`}>
+    <div
+      className={`relative overflow-hidden rounded-3xl border border-cyan-500/30 bg-slate-900/90 [html.light_&]:bg-white/90 [html.light_&]:border-cyan-200/80 p-5 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${className}`}
+    >
       <AmbientGlow color="rgba(6, 182, 212, 0.18)" size={180} className="-top-12 -right-12" />
-      <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+      <div className="flex items-center justify-between pb-3 border-b border-white/10 [html.light_&]:border-slate-200/80 mb-3">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-cyan-400 animate-pulse" />
-          <h3 className="text-xs font-bold tracking-wider text-cyan-300 uppercase">{title}</h3>
+          <h3 className="text-xs font-bold tracking-wider text-cyan-300 [html.light_&]:text-cyan-700 uppercase">
+            {title}
+          </h3>
         </div>
-        <span className="text-[10px] text-slate-300 font-mono font-medium">MMLU-Pro / Live</span>
+        <span className="text-[10px] text-slate-300 [html.light_&]:text-slate-600 font-mono font-medium truncate max-w-[130px]">
+          {sourceLabel}
+        </span>
       </div>
 
       <div className="space-y-2.5">
-        {items.map((item, idx) => (
+        {benchmarks.map((item, idx) => (
           <div
             key={idx}
             className={`rounded-xl p-3 transition-all ${
               item.highlight
-                ? "bg-cyan-950/70 border border-cyan-500/50 text-white shadow-lg shadow-cyan-950/50"
-                : "bg-slate-800/90 border border-slate-700/80 text-slate-100"
+                ? "bg-cyan-950/70 border border-cyan-500/50 [html.light_&]:bg-cyan-50/90 [html.light_&]:border-cyan-300 text-white [html.light_&]:text-cyan-950 shadow-lg shadow-cyan-950/50"
+                : "bg-slate-800/90 border border-slate-700/80 [html.light_&]:bg-slate-50/90 [html.light_&]:border-slate-200/80 text-slate-100 [html.light_&]:text-slate-800"
             }`}
           >
             <div className="flex items-center justify-between text-xs mb-2">
-              <span className="font-semibold text-white">{item.model}</span>
+              <span className="font-semibold text-white [html.light_&]:text-slate-900">
+                {item.model}
+              </span>
               <div className="flex items-center gap-2 font-mono">
-                <span className="text-cyan-300 font-bold text-sm">{item.score}%</span>
-                <span className="text-[10px] text-slate-300 font-medium">{item.tokensPerSec} t/s</span>
+                <span className="text-cyan-300 [html.light_&]:text-cyan-700 font-bold text-sm">
+                  {item.score}%
+                </span>
+                <span className="text-[10px] text-slate-300 [html.light_&]:text-slate-600 font-medium">
+                  {item.tokensPerSec} t/s
+                </span>
               </div>
             </div>
             {/* Progress bar */}
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-950">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-950 [html.light_&]:bg-slate-200">
               <div
                 className={`h-full rounded-full transition-all duration-1000 ${
                   item.highlight
                     ? "bg-gradient-to-r from-cyan-400 to-blue-500"
-                    : "bg-slate-500"
+                    : "bg-slate-500 [html.light_&]:bg-slate-400"
                 }`}
                 style={{ width: `${item.score}%` }}
               />
@@ -179,42 +210,60 @@ export function BentoMarketStrip({
   className?: string;
 }) {
   const [activeTab, setActiveTab] = React.useState<MarketTab>("vn30");
+  const [cryptoList, setCryptoList] = React.useState<MarketTicker[]>(TOP20_COINS);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    fetch("/api/market-tickers")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted && data?.crypto?.length) {
+          setCryptoList(data.crypto);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const currentList =
     activeTab === "vn30"
       ? VN30_TICKERS
       : activeTab === "global30"
       ? GLOBAL30_TICKERS
-      : TOP20_COINS;
+      : cryptoList;
 
   // Duplicate for seamless 60 FPS infinite loop
   const marqueeList = [...currentList, ...currentList];
 
   return (
-    <div className={`overflow-hidden rounded-3xl border border-emerald-500/30 bg-slate-900/90 p-4 md:p-5 shadow-2xl backdrop-blur-xl ${className}`}>
+    <div
+      className={`overflow-hidden rounded-3xl border border-emerald-500/30 bg-slate-900/90 [html.light_&]:bg-white/90 [html.light_&]:border-emerald-200/80 p-4 md:p-5 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${className}`}
+    >
       <AmbientGlow color="rgba(16, 185, 129, 0.15)" size={200} className="-top-12 -left-12" />
 
       {/* Header with Live Status & Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-white/10">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-white/10 [html.light_&]:border-slate-200/80">
         <div className="flex items-center gap-2.5">
           <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400 [html.light_&]:text-emerald-700">
             Dữ liệu Tài chính 24/7
           </h3>
-          <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
+          <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-950/60 [html.light_&]:bg-emerald-50 text-emerald-300 [html.light_&]:text-emerald-800 border border-emerald-500/30 [html.light_&]:border-emerald-200">
             Trực tiếp 60 FPS
           </span>
         </div>
 
         {/* Filter Tabs */}
-        <div className="inline-flex items-center gap-1 p-1 rounded-full bg-slate-800/90 border border-white/10 text-xs font-semibold">
+        <div className="inline-flex items-center gap-1 p-1 rounded-full bg-slate-800/90 [html.light_&]:bg-slate-100 border border-white/10 [html.light_&]:border-slate-200 text-xs font-semibold">
           <button
             type="button"
             onClick={() => setActiveTab("vn30")}
             className={`px-3 py-1 rounded-full transition-all duration-200 ${
               activeTab === "vn30"
                 ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md font-bold"
-                : "text-slate-400 hover:text-white"
+                : "text-slate-400 [html.light_&]:text-slate-600 hover:text-white [html.light_&]:hover:text-slate-900"
             }`}
           >
             VN30 (30 Mã)
@@ -225,7 +274,7 @@ export function BentoMarketStrip({
             className={`px-3 py-1 rounded-full transition-all duration-200 ${
               activeTab === "global30"
                 ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md font-bold"
-                : "text-slate-400 hover:text-white"
+                : "text-slate-400 [html.light_&]:text-slate-600 hover:text-white [html.light_&]:hover:text-slate-900"
             }`}
           >
             Global 30 & Vàng
@@ -236,7 +285,7 @@ export function BentoMarketStrip({
             className={`px-3 py-1 rounded-full transition-all duration-200 ${
               activeTab === "crypto20"
                 ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-bold"
-                : "text-slate-400 hover:text-white"
+                : "text-slate-400 [html.light_&]:text-slate-600 hover:text-white [html.light_&]:hover:text-slate-900"
             }`}
           >
             Top 20 Crypto
@@ -250,28 +299,28 @@ export function BentoMarketStrip({
           {marqueeList.map((t, idx) => (
             <div
               key={`${t.symbol}-${idx}`}
-              className="flex-shrink-0 min-w-[155px] rounded-2xl border border-slate-700/80 bg-slate-800/90 px-3.5 py-2.5 transition-all hover:scale-[1.03] hover:border-emerald-500/40 shadow-sm cursor-pointer group"
+              className="flex-shrink-0 min-w-[155px] rounded-2xl border border-slate-700/80 [html.light_&]:border-slate-200/90 bg-slate-800/90 [html.light_&]:bg-slate-50/90 px-3.5 py-2.5 transition-all hover:scale-[1.03] hover:border-emerald-500/40 shadow-sm cursor-pointer group"
             >
               <div className="flex items-center justify-between gap-2 text-xs">
-                <span className="font-black text-white group-hover:text-emerald-300 transition-colors tracking-tight">
+                <span className="font-black text-white [html.light_&]:text-slate-900 group-hover:text-emerald-300 [html.light_&]:group-hover:text-emerald-600 transition-colors tracking-tight">
                   {t.symbol}
                 </span>
                 <span
                   className={`font-mono font-bold text-[10px] px-1.5 py-0.5 rounded-md ${
                     t.isPositive
-                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                      : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                      ? "bg-emerald-500/20 [html.light_&]:bg-emerald-50 text-emerald-300 [html.light_&]:text-emerald-700 border border-emerald-500/40 [html.light_&]:border-emerald-300"
+                      : "bg-rose-500/20 [html.light_&]:bg-rose-50 text-rose-300 [html.light_&]:text-rose-700 border border-rose-500/40 [html.light_&]:border-rose-300"
                   }`}
                 >
                   {t.change}
                 </span>
               </div>
               <div className="mt-1 flex items-baseline justify-between gap-1">
-                <span className="font-mono text-sm font-black text-slate-100 tracking-tight">
+                <span className="font-mono text-sm font-black text-slate-100 [html.light_&]:text-slate-900 tracking-tight">
                   {t.value}
                 </span>
                 {t.name && (
-                  <span className="text-[10px] text-slate-400 truncate max-w-[65px] font-medium">
+                  <span className="text-[10px] text-slate-400 [html.light_&]:text-slate-500 truncate max-w-[65px] font-medium">
                     {t.name}
                   </span>
                 )}
@@ -306,20 +355,26 @@ export function CrisisTimeline({
   className?: string;
 }) {
   return (
-    <div className={`rounded-3xl border border-amber-500/30 bg-slate-900/90 p-5 shadow-2xl backdrop-blur-xl ${className}`}>
-      <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+    <div
+      className={`rounded-3xl border border-amber-500/30 bg-slate-900/90 [html.light_&]:bg-white/90 [html.light_&]:border-amber-200/80 p-5 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${className}`}
+    >
+      <div className="flex items-center justify-between pb-3 border-b border-white/10 [html.light_&]:border-slate-200/80 mb-3">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping" />
-          <h3 className="text-xs font-bold tracking-wider text-amber-300 uppercase">{title}</h3>
+          <h3 className="text-xs font-bold tracking-wider text-amber-300 [html.light_&]:text-amber-800 uppercase">
+            {title}
+          </h3>
         </div>
-        <span className="text-[10px] text-amber-200 font-mono font-medium">Live Briefing</span>
+        <span className="text-[10px] text-amber-200 [html.light_&]:text-amber-700 font-mono font-medium">
+          Live Briefing
+        </span>
       </div>
 
-      <div className="relative pl-3 space-y-3 before:absolute before:left-1 before:top-2 before:bottom-2 before:w-[2px] before:bg-white/20">
+      <div className="relative pl-3 space-y-3 before:absolute before:left-1 before:top-2 before:bottom-2 before:w-[2px] before:bg-white/20 [html.light_&]:before:bg-slate-300">
         {events.map((ev, idx) => (
           <div key={idx} className="relative group">
             <span
-              className={`absolute -left-[11px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-slate-950 ${
+              className={`absolute -left-[11px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-slate-950 [html.light_&]:border-white ${
                 ev.urgency === "critical"
                   ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"
                   : ev.urgency === "high"
@@ -327,9 +382,13 @@ export function CrisisTimeline({
                   : "bg-slate-400"
               }`}
             />
-            <div className="rounded-xl bg-slate-800/90 border border-slate-700/80 p-3 hover:bg-slate-750 transition-colors shadow-sm">
-              <span className="font-mono text-[11px] text-amber-300 font-bold">{ev.time}</span>
-              <p className="text-xs text-slate-100 font-medium mt-1 line-clamp-2 leading-relaxed">{ev.title}</p>
+            <div className="rounded-xl bg-slate-800/90 border border-slate-700/80 [html.light_&]:bg-amber-50/70 [html.light_&]:border-amber-200/70 p-3 hover:bg-slate-750 transition-colors shadow-sm">
+              <span className="font-mono text-[11px] text-amber-300 [html.light_&]:text-amber-800 font-bold">
+                {ev.time}
+              </span>
+              <p className="text-xs text-slate-100 [html.light_&]:text-slate-800 font-medium mt-1 line-clamp-2 leading-relaxed">
+                {ev.title}
+              </p>
             </div>
           </div>
         ))}
@@ -352,18 +411,24 @@ export function ScienceDataBox({
   className?: string;
 }) {
   return (
-    <div className={`relative overflow-hidden rounded-3xl border border-indigo-500/30 bg-slate-900/90 p-5 shadow-2xl backdrop-blur-xl ${className}`}>
+    <div
+      className={`relative overflow-hidden rounded-3xl border border-indigo-500/30 bg-slate-900/90 [html.light_&]:bg-white/90 [html.light_&]:border-indigo-200/80 p-5 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${className}`}
+    >
       <AmbientGlow color="rgba(99, 102, 241, 0.2)" size={160} className="-bottom-8 -right-8" />
-      <div className="flex items-center gap-2 pb-3 border-b border-white/10 mb-3">
+      <div className="flex items-center gap-2 pb-3 border-b border-white/10 [html.light_&]:border-slate-200/80 mb-3">
         <span className="flex h-2.5 w-2.5 rounded-full bg-indigo-400" />
-        <span className="text-xs font-bold uppercase tracking-wider text-indigo-300">{label}</span>
+        <span className="text-xs font-bold uppercase tracking-wider text-indigo-300 [html.light_&]:text-indigo-700">
+          {label}
+        </span>
       </div>
-      <div className="rounded-xl bg-indigo-950/60 border border-indigo-500/40 p-4">
+      <div className="rounded-xl bg-indigo-950/60 border border-indigo-500/40 [html.light_&]:bg-indigo-50/80 [html.light_&]:border-indigo-200 p-4">
         <div className="flex items-baseline gap-2 font-mono">
-          <span className="text-3xl font-black text-white">{metric}</span>
-          <span className="text-xs text-indigo-300 font-bold">{unit}</span>
+          <span className="text-3xl font-black text-white [html.light_&]:text-indigo-950">{metric}</span>
+          <span className="text-xs text-indigo-300 [html.light_&]:text-indigo-700 font-bold">{unit}</span>
         </div>
-        <p className="mt-2 text-xs text-slate-200 font-medium leading-relaxed">{description}</p>
+        <p className="mt-2 text-xs text-slate-200 [html.light_&]:text-slate-700 font-medium leading-relaxed">
+          {description}
+        </p>
       </div>
     </div>
   );
@@ -383,26 +448,32 @@ export function EVParamWidget({
   className?: string;
 }) {
   return (
-    <div className={`rounded-3xl border border-red-500/30 bg-slate-900/90 p-5 shadow-2xl backdrop-blur-xl ${className}`}>
-      <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+    <div
+      className={`rounded-3xl border border-red-500/30 bg-slate-900/90 [html.light_&]:bg-white/90 [html.light_&]:border-red-200/80 p-5 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${className}`}
+    >
+      <div className="flex items-center justify-between pb-3 border-b border-white/10 [html.light_&]:border-slate-200/80 mb-3">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-red-400" />
-          <span className="text-xs font-bold uppercase tracking-wider text-red-300">{modelName}</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-red-300 [html.light_&]:text-red-700">
+            {modelName}
+          </span>
         </div>
-        <span className="text-[10px] font-mono text-slate-300 font-medium">Spec Matrix</span>
+        <span className="text-[10px] font-mono text-slate-300 [html.light_&]:text-slate-600 font-medium">
+          Spec Matrix
+        </span>
       </div>
 
       <div className="grid grid-cols-3 gap-2.5">
-        <div className="rounded-xl bg-slate-800/90 border border-slate-700/80 p-2.5 text-center shadow-sm">
-          <div className="text-[11px] text-slate-300 font-medium">0-100 km/h</div>
+        <div className="rounded-xl bg-slate-800/90 border border-slate-700/80 [html.light_&]:bg-slate-50/90 [html.light_&]:border-slate-200/80 p-2.5 text-center shadow-sm">
+          <div className="text-[11px] text-slate-300 [html.light_&]:text-slate-600 font-medium">0-100 km/h</div>
           <div className="font-mono text-base font-black text-red-400 mt-0.5">{accel}</div>
         </div>
-        <div className="rounded-xl bg-slate-800/90 border border-slate-700/80 p-2.5 text-center shadow-sm">
-          <div className="text-[11px] text-slate-300 font-medium">Tầm hoạt động</div>
-          <div className="font-mono text-base font-black text-white mt-0.5">{range}</div>
+        <div className="rounded-xl bg-slate-800/90 border border-slate-700/80 [html.light_&]:bg-slate-50/90 [html.light_&]:border-slate-200/80 p-2.5 text-center shadow-sm">
+          <div className="text-[11px] text-slate-300 [html.light_&]:text-slate-600 font-medium">Tầm hoạt động</div>
+          <div className="font-mono text-base font-black text-white [html.light_&]:text-slate-900 mt-0.5">{range}</div>
         </div>
-        <div className="rounded-xl bg-slate-800/90 border border-slate-700/80 p-2.5 text-center shadow-sm">
-          <div className="text-[11px] text-slate-300 font-medium">Sạc nhanh</div>
+        <div className="rounded-xl bg-slate-800/90 border border-slate-700/80 [html.light_&]:bg-slate-50/90 [html.light_&]:border-slate-200/80 p-2.5 text-center shadow-sm">
+          <div className="text-[11px] text-slate-300 [html.light_&]:text-slate-600 font-medium">Sạc nhanh</div>
           <div className="font-mono text-xs font-black text-emerald-400 mt-1">{charging}</div>
         </div>
       </div>
@@ -424,26 +495,30 @@ export function HealthAirQualityWidget({
   className?: string;
 }) {
   return (
-    <div className={`rounded-3xl border border-teal-500/30 bg-slate-900/90 p-5 shadow-2xl backdrop-blur-xl ${className}`}>
-      <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+    <div
+      className={`rounded-3xl border border-teal-500/30 bg-slate-900/90 [html.light_&]:bg-white/90 [html.light_&]:border-teal-200/80 p-5 shadow-2xl backdrop-blur-xl transition-colors duration-300 ${className}`}
+    >
+      <div className="flex items-center justify-between pb-3 border-b border-white/10 [html.light_&]:border-slate-200/80 mb-3">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-teal-400" />
-          <span className="text-xs font-bold uppercase tracking-wider text-teal-300">Môi trường sống</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-teal-300 [html.light_&]:text-teal-700">
+            Môi trường sống
+          </span>
         </div>
-        <span className="text-[11px] text-slate-300 font-medium">{location}</span>
+        <span className="text-[11px] text-slate-300 [html.light_&]:text-slate-600 font-medium">{location}</span>
       </div>
 
-      <div className="rounded-xl bg-teal-950/60 border border-teal-500/40 p-3.5 flex items-center justify-between">
+      <div className="rounded-xl bg-teal-950/60 border border-teal-500/40 [html.light_&]:bg-teal-50/80 [html.light_&]:border-teal-200 p-3.5 flex items-center justify-between">
         <div>
           <div className="flex items-baseline gap-2 font-mono">
-            <span className="text-3xl font-black text-teal-300">{aqi}</span>
-            <span className="text-xs text-teal-400 font-bold">AQI</span>
+            <span className="text-3xl font-black text-teal-300 [html.light_&]:text-teal-700">{aqi}</span>
+            <span className="text-xs text-teal-400 [html.light_&]:text-teal-600 font-bold">AQI</span>
           </div>
-          <p className="text-xs text-slate-100 font-medium mt-1">{status}</p>
+          <p className="text-xs text-slate-100 [html.light_&]:text-slate-800 font-medium mt-1">{status}</p>
         </div>
         <div className="text-right">
-          <span className="text-[11px] text-slate-300 font-medium">Chỉ số UV</span>
-          <p className="text-xs font-mono font-bold text-amber-300 mt-0.5">{uv}</p>
+          <span className="text-[11px] text-slate-300 [html.light_&]:text-slate-600 font-medium">Chỉ số UV</span>
+          <p className="text-xs font-mono font-bold text-amber-300 [html.light_&]:text-amber-700 mt-0.5">{uv}</p>
         </div>
       </div>
     </div>

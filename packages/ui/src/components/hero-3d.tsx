@@ -80,12 +80,17 @@ export const Hero3D = ({ className }: { className?: string }) => {
 
       time += 0.01;
       
-      // Clear with dark void background
-      ctx.fillStyle = "#09090D";
+      const isLight =
+        typeof document !== "undefined" &&
+        (document.documentElement.classList.contains("light") ||
+          document.documentElement.getAttribute("data-theme") === "light");
+
+      // Clear background according to active theme
+      ctx.fillStyle = isLight ? "#F1F5F9" : "#09090D";
       ctx.fillRect(0, 0, width, height);
 
       // Draw grid lines
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+      ctx.strokeStyle = isLight ? "rgba(15, 23, 42, 0.06)" : "rgba(255, 255, 255, 0.03)";
       ctx.lineWidth = 1;
       
       // Horizontal lines
@@ -120,8 +125,10 @@ export const Hero3D = ({ className }: { className?: string }) => {
         p.x = p.baseX - pushX;
         p.y = p.baseY - pushY + wave;
 
-        // Draw particle
-        ctx.fillStyle = `rgba(37, 99, 235, ${Math.max(0.1, 1 - distance / 300)})`; // AI Blue
+        // Draw particle with theme-aware accent
+        ctx.fillStyle = isLight
+          ? `rgba(37, 99, 235, ${Math.max(0.15, 0.85 - distance / 350)})`
+          : `rgba(6, 182, 212, ${Math.max(0.1, 1 - distance / 300)})`;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
@@ -143,10 +150,10 @@ export const Hero3D = ({ className }: { className?: string }) => {
   return (
     <div
       ref={containerRef}
-      className={cn("relative w-full h-full overflow-hidden bg-[var(--void-deep)]", className)}
+      className={cn("relative w-full h-full overflow-hidden bg-[var(--void-deep)] transition-colors duration-500", className)}
     >
       {/* Fallback CSS gradient when JS not running or reduced motion */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#09090D] via-[#0D1117] to-[#1a1a2e]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#09090D] via-[#0D1117] to-[#1a1a2e] [html.light_&]:from-[#F1F5F9] [html.light_&]:via-[#E2E8F0] [html.light_&]:to-[#CBD5E1]" />
       
       <canvas
         ref={canvasRef}
