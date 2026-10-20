@@ -1297,6 +1297,14 @@ export default {
   ): Promise<void> {
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     const now = new Date().toISOString();
+
+    try {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      await env.DB.prepare(`DELETE FROM agent_runs WHERE created_at < ?`).bind(thirtyDaysAgo).run();
+      await env.DB.prepare(`DELETE FROM reader_events WHERE created_at < ?`).bind(thirtyDaysAgo).run();
+    } catch (err) {
+      console.error("Log archival cron error:", err);
+    }
     try {
       // Auto-publish PHẢI kèm published_revision_id, nếu không reader query
       // (PUBLISHED_ARTICLE_SELECT dùng INNER JOIN article_revisions) sẽ ẩn

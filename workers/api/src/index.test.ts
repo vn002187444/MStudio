@@ -1469,3 +1469,29 @@ test("wrong method on /stories returns 405", async () => {
     close();
   }
 });
+
+test("scheduled worker prunes log records older than 30 days", async () => {
+  const { env, db, close } = await setup();
+  try {
+    const thirtyOneDaysAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString();
+    const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+    
+    await db.prepare(`INSERT INTO agent_runs (id, story_id, type, prompt_version, model, input, status, attempt, max_attempts, created_at) VALUES ('run-old', 'story-1', 'draft', 'v1', 'gpt-4', 'input', 'succeeded', 1, 1, ?)`).bind(thirtyOneDaysAgo).run();
+    await db.prepare(`INSERT INTO agent_runs (id, story_id, type, prompt_version, model, input, status, attempt, max_attempts, created_at) VALUES ('run-new', 'story-1', 'draft', 'v1', 'gpt-4', 'input', 'succeeded', 1, 1, ?)`).bind(tenDaysAgo).run();
+    
+    await db.prepare(`INSERT INTO reader_events (id, event_type, occurred_at, created_at) VALUES ('evt-old', 'view', ?, ?)`).bind(thirtyOneDaysAgo, thirtyOneDaysAgo).run();
+    await db.prepare(`INSERT INTO reader_events (id, event_type, occurred_at, created_at) VALUES ('evt-new', 'view', ?, ?)`).bind(tenDaysAgo, tenDaysAgo).run();
+
+    await worker.scheduled({}, env as any, {} as any);
+
+    const runs = await db.prepare("SELECT id FROM agent_runs").all();
+    assert.equal(runs.results.length, 1);
+    assert.equal(runs.results[0].id, "run-new");
+
+    const events = await db.prepare("SELECT id FROM reader_events").all();
+    assert.equal(events.results.length, 1);
+    assert.equal(events.results[0].id, "evt-new");
+  } finally {
+    close();
+  }
+});
