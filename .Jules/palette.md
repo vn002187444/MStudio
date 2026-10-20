@@ -8,6 +8,3 @@
 ## 2026-10-20 - Article Share Bar Accessibility
 **Learning:** Added aria-label for clear screen reader context on share buttons and aria-live polite region on copy state text. Verified that replacing dynamic text with aria-label on interactive controls might hide the state change for screen readers, so maintained dynamic visible text and used aria-live and aria-hidden to properly announce state changes without double reading.
 **Action:** Always maintain aria-live text inside buttons when visual text changes instead of replacing it with a static aria-label, using aria-hidden for decorative elements.
-## 2026-10-20 - Deploy Missing KV Bindings Fix
-**Learning:** Found that when configuring the `vinext` plugin cache data adapter via `kvDataAdapter()`, the respective KV binding needs to be explicitly defined in `cloudflare.config.ts`. The object format `bindings.kv({ id: "VINEXT_KV_CACHE" })` must be used instead of `{ namespace: ... }` or `bindings.kv("...")` because the TypeScript definitions for `@cloudflare/config` specify `KvBindingOptions` containing an `id` property.
-**Action:** Always check the type definitions for specific Cloudflare Workers configurations (e.g. `KvBindingOptions`) before assuming the signature, and configure the `VINEXT_KV_CACHE` binding as `bindings.kv({ id: "VINEXT_KV_CACHE" })` when utilizing caching in Vite plugins.
