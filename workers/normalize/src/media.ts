@@ -9,7 +9,7 @@ export interface MediaBucket {
 }
 
 export interface RehostOptions {
-  fetchImage?: (url: string) => Promise<Response>;
+  fetchImage?: (url: string, init?: RequestInit) => Promise<Response>;
 }
 
 export function isRehostable(
@@ -41,7 +41,27 @@ export async function rehostImage(
   options: RehostOptions = {},
 ): Promise<string> {
   const fetchImage = options.fetchImage ?? globalThis.fetch;
-  const response = await fetchImage(originUrl);
+
+  const headers = new Headers({
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    Accept:
+      "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+  });
+
+  try {
+    headers.set("Referer", new URL(originUrl).origin);
+  } catch {
+    // Ignore invalid origin URL format
+  }
+
+  let response = await fetchImage(originUrl, { headers });
+
+  if (!response.ok && (response.status === 401 || response.status === 403)) {
+    headers.delete("Referer");
+    response = await fetchImage(originUrl, { headers });
+  }
+
   if (!response.ok) {
     throw new Error(
       `image fetch failed: ${response.status} ${originUrl}`,
