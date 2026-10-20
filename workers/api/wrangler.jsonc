@@ -5,7 +5,7 @@
   "vars": {
     "ENVIRONMENT": "production",
     "LOG_LEVEL": "info",
-    "QUOTA_MODE": "NORMAL",
+    "QUOTA_MODE": "SAFE",
     "READER_EVENT_SAMPLING_RATE": "0.05"
   },
   "d1_databases": [

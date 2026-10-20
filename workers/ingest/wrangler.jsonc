@@ -15,7 +15,7 @@
   "vars": {
     "ENVIRONMENT": "production",
     "LOG_LEVEL": "info",
-    "QUOTA_MODE": "NORMAL"
+    "QUOTA_MODE": "STOP"
   },
   "d1_databases": [
     {
