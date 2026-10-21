@@ -2,10 +2,8 @@ import type { D1Database } from "@cloudflare/workers-types";
 import {
   getArticleSourceMap,
   getReaderProfile,
-  listFreshArticleIds,
+  batchFetchRecommendationPools,
   listPublishedArticleIdsByEntities,
-  listRelatedArticles,
-  listTrendingArticles,
 } from "@mstudio/db";
 
 export type RecommendationPool =
@@ -74,15 +72,12 @@ export async function buildRecommendations(
     ).toISOString();
   const poolFetchSize = limit * 3;
 
-  const [profile, freshIds, trending, related] = await Promise.all([
+  // ⚡ Bolt: Batch recommendation queries into a single D1 execution
+  const [profile, { freshIds, trending, related }] = await Promise.all([
     input.userId
       ? getReaderProfile(db, input.userId)
       : Promise.resolve(undefined),
-    listFreshArticleIds(db, poolFetchSize),
-    listTrendingArticles(db, since, poolFetchSize),
-    input.articleId
-      ? listRelatedArticles(db, input.articleId, poolFetchSize)
-      : Promise.resolve([]),
+    batchFetchRecommendationPools(db, poolFetchSize, since, input.articleId),
   ]);
 
   const [followedIds, hiddenArticleIds] = await Promise.all([

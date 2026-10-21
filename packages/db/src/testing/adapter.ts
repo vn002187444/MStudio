@@ -31,12 +31,13 @@ function d1Meta(changes = 0, lastRowId = 0): TestD1Meta {
 }
 
 function toStatement(
-  stmt: StatementSyncLike,
+  stmt: StatementSyncLike & { source?: string },
   params: unknown[],
+  query?: string
 ): D1PreparedStatement {
   const statement = {
     bind(...values: unknown[]) {
-      return toStatement(stmt, [...params, ...values]);
+      return toStatement(stmt, [...params, ...values], query);
     },
     async first<T = unknown>(): Promise<T | null> {
       const row = stmt.get(...params) as T | undefined;
@@ -70,6 +71,7 @@ function toStatement(
   };
   // Structural test double for the abstract D1PreparedStatement:
   // the cast bridges abstract-class typing, not behavior.
+  (statement as any).__query = query ?? stmt.source ?? "";
   return statement as unknown as D1PreparedStatement;
 }
 
@@ -85,13 +87,19 @@ export function openTestDatabase(): TestDatabase {
   sqlite.exec("PRAGMA foreign_keys = ON");
   const db = {
     prepare(query: string): D1PreparedStatement {
-      return toStatement(sqlite.prepare(query), []);
+      return toStatement(sqlite.prepare(query), [], query);
     },
     batch<T = unknown>(
       statements: D1PreparedStatement[],
     ): Promise<D1Result<T>[]> {
       return Promise.all(
-        statements.map((statement) => statement.run() as Promise<D1Result<T>>),
+        statements.map(async (statement) => {
+          const q = ((statement as any).__query || "").trim().toUpperCase();
+          if (q.startsWith("SELECT")) {
+             return await statement.all() as D1Result<T>;
+          }
+          return await statement.run() as D1Result<T>;
+        }),
       );
     },
     async exec(query: string): Promise<D1ExecResult> {
