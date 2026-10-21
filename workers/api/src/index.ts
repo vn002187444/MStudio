@@ -702,11 +702,16 @@ app.get("/analytics/overview", async (c) => {
 
 app.get("/stats/summary", async (c) => {
   // ⚡ Bolt: Batch independent D1 count queries into a single HTTP request to reduce latency
-  const [rawCount, rawIncoming, articlesCount] = await Promise.all([
-    c.env.DB.prepare(`SELECT COUNT(*) as total FROM raw_items`).first<{ total: number }>(),
-    c.env.DB.prepare(`SELECT COUNT(*) as incoming FROM raw_items WHERE status = 'incoming'`).first<{ incoming: number }>(),
-    c.env.DB.prepare(`SELECT COUNT(*) as total FROM articles`).first<{ total: number }>(),
+  // Cloudflare D1 batching executes multiple queries in a single round-trip.
+  const batchResults = await c.env.DB.batch<{ total?: number; incoming?: number }>([
+    c.env.DB.prepare(`SELECT COUNT(*) as total FROM raw_items`),
+    c.env.DB.prepare(`SELECT COUNT(*) as incoming FROM raw_items WHERE status = 'incoming'`),
+    c.env.DB.prepare(`SELECT COUNT(*) as total FROM articles`),
   ]);
+
+  const rawCount = batchResults[0]?.results?.[0];
+  const rawIncoming = batchResults[1]?.results?.[0];
+  const articlesCount = batchResults[2]?.results?.[0];
 
   return c.json({
     rawItems: {
