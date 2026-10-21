@@ -5,3 +5,7 @@
 ## 2026-10-17 - Missing Form Focus States (Select Elements)
 **Learning:** The custom `focus-visible` ring definition in `apps/web/app/globals.css` and `apps/studio/app/globals.css` included `input` and `textarea` but missed `select` elements. This caused select dropdowns (like the subject dropdown in the contact form) to lack clear visual feedback when navigated via keyboard.
 **Action:** Added `select:focus-visible` to the global CSS selector list for both applications to ensure a consistent, accessible focus ring (`outline: 2px solid var(--ai-blue)`) is applied to all form controls, significantly improving keyboard navigation usability.
+
+## 2024-10-21 - Repeated Context-less Action Buttons in Lists
+**Learning:** Found that inline action buttons in topic lists (like "Theo dõi" / "Follow" or "Ẩn" / "Hide") lack sufficient context for screen reader users when read out of context. They were being repeatedly read as "Theo dõi, button".
+**Action:** Added explicit dynamic `aria-label` to buttons (e.g. `aria-label={\`\${isFollow ? "Theo dõi" : "Ẩn"} chủ đề \${topicLabel}\`}`) to provide specific context about exactly which topic is being targeted. Also added `focus-visible` utility classes to support keyboard navigation. This pattern should be applied to all repeating list action buttons.
