@@ -37,8 +37,9 @@ function TopicAction({
   return (
     <span className="inline-flex items-center gap-1">
       <button
+        aria-label={`${isFollow ? "Theo dõi" : "Ẩn"} chủ đề ${topicLabel}`}
         aria-pressed={state === "done"}
-        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900 ${
           state === "done"
             ? "bg-slate-800 text-slate-400 border border-slate-700 cursor-default"
             : state === "sending"
