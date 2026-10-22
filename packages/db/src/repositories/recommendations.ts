@@ -128,3 +128,65 @@ export async function getArticleSourceMap(
   }
   return sourceMap;
 }
+
+export async function batchFetchRecommendationPools(
+  db: D1Database,
+  limit: number,
+  since: string,
+  articleId?: string,
+): Promise<{
+  freshIds: string[];
+  trending: TrendingArticleRow[];
+  related: RelatedArticleRow[];
+}> {
+  const statements = [
+    db
+      .prepare(
+        `SELECT id FROM articles
+         WHERE status = 'published'
+         ORDER BY updated_at DESC, id DESC
+         LIMIT ?`,
+      )
+      .bind(limit),
+    db
+      .prepare(
+        `SELECT article_id AS articleId, COUNT(*) AS eventCount
+         FROM reader_events
+         WHERE article_id IS NOT NULL AND occurred_at >= ?
+         GROUP BY article_id
+         ORDER BY eventCount DESC, articleId ASC
+         LIMIT ?`,
+      )
+      .bind(since, limit),
+  ];
+
+  if (articleId) {
+    statements.push(
+      db
+        .prepare(
+          `SELECT a.id AS articleId, COUNT(*) AS sharedEntities
+           FROM articles a
+           JOIN story_entities se ON se.story_id = a.story_id
+           WHERE se.entity_id IN (
+               SELECT se0.entity_id
+               FROM story_entities se0
+               JOIN articles a0 ON a0.story_id = se0.story_id
+               WHERE a0.id = ?
+             )
+             AND a.id != ? AND a.status = 'published'
+           GROUP BY a.id
+           ORDER BY sharedEntities DESC, a.updated_at DESC, a.id ASC
+           LIMIT ?`,
+        )
+        .bind(articleId, articleId, limit)
+    );
+  }
+
+  const results = await db.batch(statements);
+
+  const freshIds = ((results[0].results ?? []) as { id: string }[]).map(row => row.id);
+  const trending = (results[1].results ?? []) as unknown as TrendingArticleRow[];
+  const related = articleId && results[2] ? ((results[2].results ?? []) as unknown as RelatedArticleRow[]) : [];
+
+  return { freshIds, trending, related };
+}
