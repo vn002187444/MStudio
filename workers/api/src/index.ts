@@ -501,6 +501,16 @@ app.get("/articles", async (c) => {
       pagination.errors,
     );
   }
+  const idsParam = url.searchParams.get("ids");
+  if (idsParam) {
+    const ids = idsParam.split(",").filter(Boolean);
+    if (ids.length > 0) {
+      const { getPublishedArticlesByIds } = await import("@mstudio/db");
+      const rows = await getPublishedArticlesByIds(c.env.DB, ids);
+      return c.json({ rows });
+    }
+  }
+
   const statusParam = url.searchParams.get("status");
   if (statusParam === null) {
     const categorySlug = url.searchParams.get("category") ?? undefined;

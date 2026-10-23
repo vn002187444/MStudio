@@ -603,6 +603,50 @@ export async function getPublishedArticle(
  * Keyset trên (updated_at DESC, id DESC); cursor tái dùng PageInput
  * (createdAt mang updated_at của row cuối). Hỗ trợ lọc theo categorySlug.
  */
+export async function getPublishedArticlesByIds(
+  db: D1Database,
+  ids: string[],
+): Promise<PublishedArticleRecord[]> {
+  if (ids.length === 0) return [];
+  const placeholders = ids.map(() => "?").join(", ");
+  const statusesPlaceholders = READER_VISIBLE_STATUSES.map(() => "?").join(", ");
+  const rows = (await db
+    .prepare(
+      `${PUBLISHED_ARTICLE_SELECT} WHERE a.id IN (${placeholders}) AND a.status IN (${statusesPlaceholders})`,
+    )
+    .bind(...ids, ...READER_VISIBLE_STATUSES)
+    .all<PublishedArticleRowRaw>()).results;
+
+  const mapped: PublishedArticleRecord[] = rows.map((row) => ({
+    id: row.id,
+    storyId: row.storyId,
+    status: row.status,
+    title: row.title,
+    body: row.body,
+    summary: row.summary ?? undefined,
+    publishedRevisionId: row.publishedRevisionId,
+    slug: row.slug ?? undefined,
+    categorySlug: row.categorySlug ?? undefined,
+    heroImageUrl: row.heroImageUrl ?? undefined,
+    videoUrl: row.videoUrl ?? undefined,
+    metaTitle: row.metaTitle ?? undefined,
+    metaDescription: row.metaDescription ?? undefined,
+    canonicalUrl: row.canonicalUrl ?? undefined,
+    ogImageUrl: row.ogImageUrl ?? undefined,
+    keywords: row.keywords ?? undefined,
+    sourceCount: Number(row.sourceCount ?? 0),
+    qualityScore: row.qualityScore != null ? row.qualityScore : undefined,
+    isBreaking: Boolean(row.isBreaking),
+    isTrending: Boolean(row.isTrending),
+    updatedAt: row.updatedAt,
+    createdAt: row.createdAt,
+  }));
+
+  // Return mapped articles in the order of the requested IDs
+  const lookup = new Map(mapped.map((m) => [m.id, m]));
+  return ids.map((id) => lookup.get(id)).filter((m): m is PublishedArticleRecord => m !== undefined);
+}
+
 export async function listPublishedArticles(
   db: D1Database,
   input: PageInput & { categorySlug?: string } = {},

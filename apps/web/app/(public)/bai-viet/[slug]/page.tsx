@@ -144,17 +144,20 @@ async function fetchRelatedArticles(articleId: string, currentCategory?: string)
       }
     }
 
-    const fetched = await Promise.all(
-      candidates.map(async (c) => {
-        try {
-          const art = await fetchArticle(c.articleId);
-          return art ? { ...art, reason: c.reason } : null;
-        } catch {
-          return null;
+    let valid: (PublishedArticle & { reason: string })[] = [];
+    if (candidates.length > 0) {
+      const ids = candidates.map(c => c.articleId).join(",");
+      const response = await fetchApi(`/articles?ids=${ids}`, { cache: "no-store" }).catch(() => null);
+      if (response && response.ok) {
+        const data = (await response.json()) as { rows?: PublishedArticle[] };
+        if (Array.isArray(data.rows)) {
+          valid = data.rows.map(row => {
+            const reason = candidates.find(c => c.articleId === row.id)?.reason || "";
+            return { ...row, reason };
+          });
         }
-      }),
-    );
-    const valid = fetched.filter((item): item is PublishedArticle & { reason: string } => Boolean(item));
+      }
+    }
     if (valid.length > 0) return valid;
 
     const fallbackRes = await fetchApi(`/articles?limit=4`, { cache: "no-store" }).catch(() => null);
