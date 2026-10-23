@@ -27,6 +27,7 @@ export type {
   InternalLinkOptions,
 } from "./internal-links.ts";
 export type { AddRevisionOptions } from "./repositories/articles.ts";
+export { getPublishedArticlesByIds } from "./repositories/articles.ts";
 export * from "./repositories/auth.ts";
 export * from "./repositories/categories.ts";
 export * from "./repositories/media.ts";

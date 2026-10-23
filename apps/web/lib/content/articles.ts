@@ -79,8 +79,11 @@ export async function fetchTrendingArticles(limit = 8): Promise<PublishedArticle
         .slice(0, limit)
         .map((candidate) => candidate.articleId);
       if (trendingIds.length > 0) {
-        const resolved = await Promise.all(trendingIds.map((id) => fetchArticleById(id)));
-        trendingArticles = resolved.filter((article): article is PublishedArticle => article !== undefined);
+        const response = await fetchApi(`/articles?ids=${trendingIds.join(",")}`, { cache: "no-store" });
+        if (response.ok) {
+          const payload = (await response.json()) as ArticlesResponse;
+          trendingArticles = Array.isArray(payload.rows) ? payload.rows : [];
+        }
       }
     }
 

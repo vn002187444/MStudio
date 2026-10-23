@@ -13,3 +13,7 @@
 ## 2026-10-21 - Batch D1 Count Queries
 **Learning:** Even when run inside `Promise.all()`, multiple independent `.first()` or `.all()` Cloudflare D1 query calls over HTTP from the Worker generate separate subrequests and incur multiple round-trip network latencies, which counts against the 50 subrequests Free Tier quota.
 **Action:** Unroll `Promise.all` containing D1 queries into a single `db.batch()` call to consolidate into a single HTTP roundtrip and reduce subrequest usage.
+
+## 2024-05-20 - Batch Independent API Subrequests
+**Learning:** Resolving multiple recommendation candidates from the frontend using `Promise.all` and multiple `fetchArticleById` calls generates N+1 independent HTTP subrequests to the Cloudflare Worker API. This incurs significant network latency and exhausts Free Tier subrequest quotas.
+**Action:** Update the `/articles` endpoint to support an `ids` query parameter and use a single batched fetch from the frontend to retrieve all candidate articles in one roundtrip.
