@@ -13,3 +13,7 @@
 ## 2026-10-21 - Repeated Context-less Action Buttons in Lists
 **Learning:** Found that inline action buttons in topic lists (like "Theo dõi" / "Follow" or "Ẩn" / "Hide") lack sufficient context for screen reader users when read out of context. They were being repeatedly read as "Theo dõi, button".
 **Action:** Added explicit dynamic `aria-label` to buttons (e.g. `aria-label={\`${isFollow ? "Theo dõi" : "Ẩn"} chủ đề ${topicLabel}\`}`) to provide specific context about exactly which topic is being targeted. Also added `focus-visible` utility classes to support keyboard navigation. This pattern should be applied to all repeating list action buttons.
+
+## 2026-10-22 - Missing ARIA roles and keyboard states on details/summary menus
+**Learning:** `summary` elements acting as dropdown toggles (like in navigation menus) need `aria-haspopup="menu"` for screen readers to understand they open a menu. Additionally, when using `summary` elements, they require custom `focus-visible` styling since they are natively interactive but often missed in global focus resets.
+**Action:** Added `summary:focus-visible` to global focus rules in both apps, and added `aria-haspopup="menu"` to the navigation `summary` elements in the web app header. Also added `aria-expanded` to the mobile menu toggle button in the studio app to properly announce its state.
