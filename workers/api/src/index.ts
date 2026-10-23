@@ -15,6 +15,7 @@ import {
   listActiveCategories,
   listArticlesByStatus,
   listFeedsBySource,
+  getPublishedArticlesByIds,
   listPublishedArticles,
   listRawItemsByStatus,
   listSources,
@@ -505,10 +506,6 @@ app.get("/articles", async (c) => {
   if (idsParam) {
     const ids = idsParam.split(",").filter(Boolean);
     if (ids.length > 0) {
-      // Dynamic import bypasses top-level Cloudflare Worker resolution restrictions
-      // inside routing logic if needed, but standard static imports are preferred
-      // if available.
-      const { getPublishedArticlesByIds } = await import("@mstudio/db");
       const rows = await getPublishedArticlesByIds(c.env.DB, ids);
       return c.json({ rows });
     }
