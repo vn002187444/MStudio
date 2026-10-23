@@ -179,9 +179,9 @@ export function BlocksEditor({
           <ToolButton active={state.isH2} disabled={!editor} label="Tiêu đề H2" onClick={() => run((chain) => chain.toggleHeading({ level: 2 }).run())}>H2</ToolButton>
           <ToolButton active={state.isH3} disabled={!editor} label="Tiêu đề H3" onClick={() => run((chain) => chain.toggleHeading({ level: 3 }).run())}>H3</ToolButton>
         </div>
-        
+
         <div className="w-px h-6 bg-black/10 mx-1" />
-        
+
         <div className="flex items-center bg-gray-100/50 p-1 rounded-lg gap-1 border border-black/5">
           <ToolButton active={state.isBold} disabled={!editor} label="Đậm" onClick={() => run((chain) => chain.toggleBold().run())}>B</ToolButton>
           <ToolButton active={state.isItalic} disabled={!editor} label="Nghiêng" onClick={() => run((chain) => chain.toggleItalic().run())}>I</ToolButton>
@@ -202,7 +202,7 @@ export function BlocksEditor({
           <ToolButton active={state.isLink} disabled={!editor} label="Liên kết" onClick={toggleLink}>🔗 Link</ToolButton>
           <ToolButton disabled={!editor} label="Chèn ảnh" onClick={insertImage}>🖼️ Image</ToolButton>
         </div>
-        
+
         <div className="ml-auto flex items-center bg-gray-100/50 p-1 rounded-lg gap-1 border border-black/5">
           <ToolButton disabled={!state.canUndo} label="Hoàn tác" onClick={() => run((chain) => chain.undo().run())}>↩</ToolButton>
           <ToolButton disabled={!state.canRedo} label="Làm lại" onClick={() => run((chain) => chain.redo().run())}>↪</ToolButton>

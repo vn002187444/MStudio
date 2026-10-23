@@ -45,7 +45,7 @@ export async function SiteHeader() {
             </ul>
             {otherNavItems.length > 0 && (
               <details className="desktop-dropdown relative shrink-0">
-                <summary className="desktop-nav-link cursor-pointer list-none text-slate-200 hover:text-white transition-colors font-medium">Khác ▾</summary>
+                <summary aria-haspopup="menu" className="desktop-nav-link cursor-pointer list-none text-slate-200 hover:text-white transition-colors font-medium">Khác ▾</summary>
                 <ul className="desktop-dropdown-menu glass-shell text-white border border-white/10 mt-2 bg-slate-900/95">
                   {otherNavItems.map((item) => (
                     <li key={item.href}>
@@ -112,7 +112,7 @@ export async function SiteHeader() {
           </a>
 
           <details className="mobile-menu group">
-            <summary aria-label="Mở menu chuyên mục" className="text-white border-white/20">Menu</summary>
+            <summary aria-haspopup="menu" aria-label="Mở menu chuyên mục" className="text-white border-white/20">Menu</summary>
             <nav aria-label="Chuyên mục (di động)">
               <div className="mobile-menu-drawer glass-shell border border-white/10 mt-2 grid grid-cols-2 gap-x-4 gap-y-2 bg-slate-900/95 p-4 rounded-2xl">
                 <div className="col-span-2 text-white font-bold mb-2">Chuyên mục chính</div>
