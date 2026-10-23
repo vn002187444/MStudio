@@ -8,3 +8,6 @@
 ## 2026-10-20 - Article Share Bar Accessibility
 **Learning:** Added aria-label for clear screen reader context on share buttons and aria-live polite region on copy state text. Verified that replacing dynamic text with aria-label on interactive controls might hide the state change for screen readers, so maintained dynamic visible text and used aria-live and aria-hidden to properly announce state changes without double reading.
 **Action:** Always maintain aria-live text inside buttons when visual text changes instead of replacing it with a static aria-label, using aria-hidden for decorative elements.
+## 2026-10-22 - Missing ARIA roles and keyboard states on details/summary menus
+**Learning:** `summary` elements acting as dropdown toggles (like in navigation menus) need `aria-haspopup="menu"` for screen readers to understand they open a menu. Additionally, when using `summary` elements, they require custom `focus-visible` styling since they are natively interactive but often missed in global focus resets.
+**Action:** Added `summary:focus-visible` to global focus rules in both apps, and added `aria-haspopup="menu"` to the navigation `summary` elements in the web app header. Also added `aria-expanded` to the mobile menu toggle button in the studio app to properly announce its state.

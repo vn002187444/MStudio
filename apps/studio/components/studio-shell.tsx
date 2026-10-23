@@ -61,6 +61,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="text-white p-2"
+          aria-expanded={mobileMenuOpen}
           aria-label={mobileMenuOpen ? "Đóng menu" : "Mở menu"}
         >
           {mobileMenuOpen ? "✕" : "☰"}
