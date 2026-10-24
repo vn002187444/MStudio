@@ -594,6 +594,7 @@ export function SourcesManager() {
                     <button
                       type="button"
                       title="Chỉnh sửa nguồn"
+                      aria-label="Chỉnh sửa nguồn"
                       onClick={() => setEditingSource(source)}
                       style={{
                         fontSize: 11,
@@ -604,11 +605,12 @@ export function SourcesManager() {
                         cursor: "pointer",
                       }}
                     >
-                      ✏️
+                      <span aria-hidden="true">✏️</span>
                     </button>
                     <button
                       type="button"
                       title="Xoá nguồn"
+                      aria-label="Xoá nguồn"
                       onClick={() => handleDeleteSource(source.id)}
                       style={{
                         fontSize: 11,
@@ -620,7 +622,7 @@ export function SourcesManager() {
                         cursor: "pointer",
                       }}
                     >
-                      🗑️
+                      <span aria-hidden="true">🗑️</span>
                     </button>
                   </div>
                 </div>
@@ -688,6 +690,8 @@ export function SourcesManager() {
                               </button>
                               <button
                                 type="button"
+                                aria-label="Xoá feed"
+                                title="Xoá feed"
                                 onClick={() => handleDeleteFeed(feed.id)}
                                 style={{
                                   fontSize: 10,
@@ -699,7 +703,7 @@ export function SourcesManager() {
                                   cursor: "pointer",
                                 }}
                               >
-                                ×
+                                <span aria-hidden="true">×</span>
                               </button>
                             </div>
                           </div>
