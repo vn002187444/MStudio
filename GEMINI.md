@@ -87,3 +87,7 @@ Mọi sản phẩm giao diện do **OpenCode CLI** thực hiện BẮT BUỘC ph
 5. **Quy tắc Dữ liệu Thời gian Thực (Live Real-Time Feeds & Ground Truth):**
    - Mọi widget dữ liệu (AI Benchmark, VN30 / Market Tickers, Crypto) BẮT BUỘC kết nối nguồn API thực tế hoặc Cloudflare Worker background cron fetcher lưu trữ vào D1/KV. Tuyệt đối không dùng số liệu tĩnh giả lập không nguồn gốc khi đưa lên production.
 
+6. **Quy tắc Điều phối Jules Cloud (Tái sử dụng Session khi sửa lỗi / Feedback Loop):**
+   - Khi một tác vụ hoặc nhánh PR do Jules Cloud thực hiện cần sửa đổi, tinh chỉnh theo kết quả review hoặc sửa lỗi kiểm thử: BẮT BUỘC tiếp tục gửi yêu cầu follow-up trực tiếp trên chính Session ID hiện tại của Jules bằng `jules_send_message`.
+   - TUYỆT ĐỐI KHÔNG tự ý tạo phiên mới (`jules_create_session` hay `jules_quick_session`) cho cùng một nhánh đang xử lý, nhằm bảo toàn ngữ cảnh làm việc liên tục, tránh phân mảnh PR trên GitHub và giữ trọn vẹn lịch sử đối thoại của Jules Agent.
+
