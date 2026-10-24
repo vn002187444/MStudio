@@ -190,3 +190,70 @@ export async function batchFetchRecommendationPools(
 
   return { freshIds, trending, related };
 }
+
+
+export async function batchFetchProfileArticleIds(
+  db: D1Database,
+  followedTopicIds: string[],
+  followedLimit: number,
+  hiddenTopicIds: string[],
+  hiddenLimit: number,
+): Promise<{
+  followedIds: string[];
+  hiddenIds: string[];
+}> {
+  const statements = [];
+
+  if (followedTopicIds.length > 0) {
+    const placeholders = followedTopicIds.map(() => "?").join(", ");
+    statements.push(
+      db
+        .prepare(
+          `SELECT DISTINCT a.id AS id
+           FROM articles a
+           JOIN story_entities se ON se.story_id = a.story_id
+           WHERE se.entity_id IN (${placeholders}) AND a.status = 'published'
+           ORDER BY a.updated_at DESC, a.id DESC
+           LIMIT ?`,
+        )
+        .bind(...followedTopicIds, followedLimit)
+    );
+  }
+
+  if (hiddenTopicIds.length > 0) {
+    const placeholders = hiddenTopicIds.map(() => "?").join(", ");
+    statements.push(
+      db
+        .prepare(
+          `SELECT DISTINCT a.id AS id
+           FROM articles a
+           JOIN story_entities se ON se.story_id = a.story_id
+           WHERE se.entity_id IN (${placeholders}) AND a.status = 'published'
+           ORDER BY a.updated_at DESC, a.id DESC
+           LIMIT ?`,
+        )
+        .bind(...hiddenTopicIds, hiddenLimit)
+    );
+  }
+
+  if (statements.length === 0) {
+    return { followedIds: [], hiddenIds: [] };
+  }
+
+  const results = await db.batch(statements);
+
+  let followedIds: string[] = [];
+  let hiddenIds: string[] = [];
+  let resultIndex = 0;
+
+  if (followedTopicIds.length > 0) {
+    followedIds = ((results[resultIndex].results ?? []) as { id: string }[]).map(row => row.id);
+    resultIndex++;
+  }
+
+  if (hiddenTopicIds.length > 0) {
+    hiddenIds = ((results[resultIndex].results ?? []) as { id: string }[]).map(row => row.id);
+  }
+
+  return { followedIds, hiddenIds };
+}
