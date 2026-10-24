@@ -3,7 +3,7 @@ import {
   getArticleSourceMap,
   getReaderProfile,
   batchFetchRecommendationPools,
-  listPublishedArticleIdsByEntities,
+  batchFetchProfileArticleIds,
 } from "@mstudio/db";
 
 export type RecommendationPool =
@@ -80,22 +80,14 @@ export async function buildRecommendations(
     batchFetchRecommendationPools(db, poolFetchSize, since, input.articleId),
   ]);
 
-  const [followedIds, hiddenArticleIds] = await Promise.all([
-    profile?.followedTopicIds.length
-      ? listPublishedArticleIdsByEntities(
-          db,
-          profile.followedTopicIds,
-          poolFetchSize,
-        )
-      : Promise.resolve([] as string[]),
-    profile?.hiddenTopicIds.length
-      ? listPublishedArticleIdsByEntities(
-          db,
-          profile.hiddenTopicIds,
-          MAX_RECOMMENDATION_LIMIT,
-        ).then(ids => new Set(ids))
-      : Promise.resolve(new Set<string>()),
-  ]);
+  const { followedIds, hiddenIds } = await batchFetchProfileArticleIds(
+    db,
+    profile?.followedTopicIds ?? [],
+    poolFetchSize,
+    profile?.hiddenTopicIds ?? [],
+    MAX_RECOMMENDATION_LIMIT,
+  );
+  const hiddenArticleIds = new Set(hiddenIds);
 
   const poolCandidates: PoolCandidate[] = [];
   followedIds.forEach((articleId, index) =>
