@@ -4,7 +4,6 @@ import {
   getReaderProfile,
   batchFetchRecommendationPools,
   batchFetchProfileArticleIds,
-  listPublishedArticleIdsByEntities,
 } from "@mstudio/db";
 
 export type RecommendationPool =

@@ -247,12 +247,12 @@ export async function batchFetchProfileArticleIds(
   let resultIndex = 0;
 
   if (followedTopicIds.length > 0) {
-    followedIds = ((results[resultIndex].results ?? []) as { id: string }[]).map(row => row.id);
+    followedIds = ((results[resultIndex]?.results ?? []) as { id: string }[]).map(row => row.id);
     resultIndex++;
   }
 
   if (hiddenTopicIds.length > 0) {
-    hiddenIds = ((results[resultIndex].results ?? []) as { id: string }[]).map(row => row.id);
+    hiddenIds = ((results[resultIndex]?.results ?? []) as { id: string }[]).map(row => row.id);
   }
 
   return { followedIds, hiddenIds };
