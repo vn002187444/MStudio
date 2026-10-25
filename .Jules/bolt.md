@@ -20,3 +20,7 @@
 ## 2026-10-24 - [Subrequest Limit Exhaustion via Promise.all]
 **Learning:** In Cloudflare Workers, firing multiple independent queries concurrently (e.g. using `Promise.all([db.prepare().all(), db.prepare().all()])`) executes N independent HTTP subrequests to D1. This quickly exhausts the strict 50 subrequests limit per invocation on the free tier.
 **Action:** Always refactor concurrent independent queries into batched requests using `db.batch(statements)` within a unified database repository method.
+
+## 2024-10-24 - Batch Frontend API Calls for IDs to Reduce Subrequests
+**Learning:** Resolving multiple recommendation candidates from the frontend using an N+1 loop of `fetchArticleById` generates multiple independent HTTP subrequests to the Cloudflare Worker API, increasing network latency and exhausting Free Tier subrequest quotas. However, batching heterogeneous category sections into a single SQL query (`WHERE category_slug IN (...)`) with a global `LIMIT` causes category starvation if one topic updates more frequently, breaking the UI layout.
+**Action:** Always batch unique entity fetch calls using an `ids=...` query parameter to avoid N+1 issues. Do NOT batch distinct category list fetches into a single global query; instead, keep them as concurrent `Promise.all` fetches to ensure the per-category `LIMIT` is respected safely.

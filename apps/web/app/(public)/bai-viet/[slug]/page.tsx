@@ -146,7 +146,8 @@ async function fetchRelatedArticles(articleId: string, currentCategory?: string)
 
     let valid: (PublishedArticle & { reason: string })[] = [];
     if (candidates.length > 0) {
-      const ids = candidates.map(c => c.articleId).join(",");
+      const uniqueIds = Array.from(new Set(candidates.map(c => c.articleId)));
+      const ids = uniqueIds.join(",");
       const response = await fetchApi(`/articles?ids=${ids}`, { cache: "no-store" }).catch(() => null);
       if (response && response.ok) {
         const data = (await response.json()) as { rows?: PublishedArticle[] };
