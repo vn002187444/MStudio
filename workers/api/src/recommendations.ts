@@ -72,13 +72,9 @@ export async function buildRecommendations(
     ).toISOString();
   const poolFetchSize = limit * 3;
 
-  // ⚡ Bolt: Batch recommendation queries into a single D1 execution
-  const [profile, { freshIds, trending, related }] = await Promise.all([
-    input.userId
-      ? getReaderProfile(db, input.userId)
-      : Promise.resolve(undefined),
-    batchFetchRecommendationPools(db, poolFetchSize, since, input.articleId),
-  ]);
+  // ⚡ Bolt: Execute profile and pools sequentially or safely to avoid Promise.all subrequest exhaustion
+  const profile = input.userId ? await getReaderProfile(db, input.userId) : undefined;
+  const { freshIds, trending, related } = await batchFetchRecommendationPools(db, poolFetchSize, since, input.articleId);
 
   const { followedIds, hiddenIds } = await batchFetchProfileArticleIds(
     db,

@@ -82,12 +82,28 @@ async function getEnrichedRecommendations(): Promise<EnrichedRecommendation[]> {
     const enrichedList: EnrichedRecommendation[] = [];
     const seenIds = new Set<string>();
 
-    for (const cand of candidates) {
-      if (!cand.articleId || seenIds.has(cand.articleId)) continue;
-      const article = await fetchArticleById(cand.articleId);
-      if (article) {
-        seenIds.add(cand.articleId);
-        enrichedList.push({ candidate: cand, article });
+    const candIds = candidates
+      .map((c) => c.articleId)
+      .filter((id): id is string => Boolean(id) && !seenIds.has(id));
+    const uniqueIds = Array.from(new Set(candIds));
+
+    if (uniqueIds.length > 0) {
+      const response = await fetchApi(`/articles?ids=${uniqueIds.join(",")}`, {
+        next: { revalidate: 60 },
+      });
+      if (response.ok) {
+        const payload = (await response.json()) as { rows?: PublishedArticle[] };
+        const articles = payload.rows || [];
+        const articleMap = new Map(articles.map((a) => [a.id, a]));
+
+        for (const cand of candidates) {
+          if (!cand.articleId || seenIds.has(cand.articleId)) continue;
+          const article = articleMap.get(cand.articleId);
+          if (article) {
+            seenIds.add(cand.articleId);
+            enrichedList.push({ candidate: cand, article });
+          }
+        }
       }
     }
 
