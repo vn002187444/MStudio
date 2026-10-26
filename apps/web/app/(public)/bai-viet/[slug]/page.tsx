@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect, RedirectType } from "next/navigation";
 import { fetchApi } from "../../../../lib/api";
 import { newsArticleJsonLd, siteOrigin } from "../../../../lib/seo";
 import { ArticleHero } from "../../../../components/article/article-hero";
@@ -395,6 +395,11 @@ export default async function ArticlePage({
   const article = await fetchArticle(slug);
   if (!article) {
     notFound();
+  }
+
+  // Canonical Permanent Redirect: nếu truy cập qua ID hoặc slug cũ/alias khác article.slug chuẩn
+  if (article.slug && slug !== article.slug) {
+    redirect(`/bai-viet/${article.slug}`, RedirectType.replace);
   }
 
   const related = await fetchRelatedArticles(article.id, article.categorySlug);

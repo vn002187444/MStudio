@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../../../lib/seo";
 import { CategoryTemplate } from "../../../components/article/category-template";
 
 /**
@@ -10,6 +11,9 @@ export const metadata: Metadata = {
   description:
     "Giáo dục: giáo dục đại học, học bổng, EdTech và xu hướng đào tạo — MStudio Channel.",
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: `${siteOrigin()}/giao-duc`,
+  },
 };
 
 export default function EducationCategoryPage() {

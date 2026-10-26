@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../../../lib/seo";
 import { CategoryTemplate } from "../../../components/article/category-template";
 
 export const dynamic = "force-dynamic";

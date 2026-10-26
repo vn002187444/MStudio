@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../lib/seo";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteOrigin()),
   title: "MStudio Channel",
   description: "MStudio Channel — tin tức evidence-first, biên tập có kiểm chứng.",
 };

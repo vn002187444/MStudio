@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../../../lib/seo";
 import { CategoryTemplate } from "../../../components/article/category-template";
 
 /**
@@ -9,6 +10,9 @@ export const metadata: Metadata = {
   description:
     "Tin tức chuyên sâu về Blockchain, Web3, tiền mã hóa, DeFi và hạ tầng phi tập trung thời gian thực.",
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: `${siteOrigin()}/blockchain`,
+  },
 };
 
 export default function BlockchainCategoryPage() {

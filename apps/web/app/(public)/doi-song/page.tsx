@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../../../lib/seo";
 import { CategoryTemplate } from "../../../components/article/category-template";
 
 /**
@@ -10,6 +11,9 @@ export const metadata: Metadata = {
   description:
     "Đời sống: Tâm sự, Kỹ năng sống, Gia đình, Sức khỏe, Du lịch — MStudio Channel.",
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: `${siteOrigin()}/doi-song`,
+  },
 };
 
 export default function LifeCategoryPage() {
