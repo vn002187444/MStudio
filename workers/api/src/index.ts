@@ -15,6 +15,7 @@ import {
   listActiveCategories,
   listArticlesByStatus,
   listFeedsBySource,
+  listFeedsBySourceIds,
   getPublishedArticlesByIds,
   listPublishedArticles,
   listRawItemsByStatus,
@@ -895,6 +896,22 @@ app.post(
   return c.json(feed, 201);
 });
 
+
+app.get("/feeds", async (c) => {
+  const url = new URL(c.req.url);
+  const sourceIdsParam = url.searchParams.get("sourceIds");
+
+  if (sourceIdsParam) {
+    const sourceIds = sourceIdsParam.split(",").filter(Boolean);
+    if (sourceIds.length > 0) {
+      const rows = await listFeedsBySourceIds(c.env.DB, sourceIds);
+      return c.json({ rows });
+    }
+  }
+
+  return c.json({ rows: [] });
+});
+
 app.get("/sources/:id/feeds", async (c) => {
   const sourceId = c.req.param("id");
   const source = await getSource(c.env.DB, sourceId);
@@ -1276,6 +1293,7 @@ app.all("/sources/:id/allow-status", (c) =>
   c.text("Method not allowed", 405),
 );
 app.all("/sources/:id/feeds", (c) => c.text("Method not allowed", 405));
+app.all("/feeds", (c) => c.text("Method not allowed", 405));
 app.all("/feeds/:id", (c) => c.text("Method not allowed", 405));
 
 app.notFound((c) => c.text("Not found", 404));
