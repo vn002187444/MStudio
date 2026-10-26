@@ -24,3 +24,8 @@
 ## 2024-10-24 - Accessibility improvements for icon-only buttons
 **Learning:** Found that decorative text-based icons (✏️, 🗑️, ×) in icon-only buttons lacked proper ARIA attributes, causing screen readers to either ignore them or read out distracting textual approximations without clear context.
 **Action:** Added `aria-label` attributes to these icon-only buttons to clearly state their purpose (e.g. "Chỉnh sửa nguồn", "Xoá nguồn") and wrapped the emoji/character symbols in `<span aria-hidden="true">` to prevent distracting interruptions for screen reader users. Always apply this pattern to icon-only buttons to ensure they remain accessible without extra visual clutter.
+
+
+## 2026-10-25 - Decorative Load More Button Spinner Needs ARIA Hidden & Busy
+**Learning:** Decorative elements inside loading buttons (like spinning circles or arrows) can cause screen readers to announce confusing extraneous information or misinterpret async progress.
+**Action:** Always add `aria-hidden="true"` to purely decorative SVGs, spans, or icons within buttons, and explicitly use `aria-busy={loading}` on the button container when an asynchronous action is pending.
