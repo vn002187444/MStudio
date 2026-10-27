@@ -38,7 +38,7 @@ export function ContactForm() {
   if (status === "success") {
     return (
       <div className="p-8 text-center bg-emerald-950/40 border border-emerald-500/30 rounded-2xl backdrop-blur-md">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-3xl">
+        <div aria-hidden="true" className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-3xl">
           ✨
         </div>
         <h3 className="text-xl font-bold text-emerald-300 mb-2">
@@ -167,9 +167,10 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-lg shadow-blue-500/25 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed self-start"
+        aria-busy={status === "submitting"}
+        className="inline-flex items-center gap-1.5 px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-lg shadow-blue-500/25 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed self-start"
       >
-        {status === "submitting" ? "Đang gửi thông điệp..." : "Gửi thông điệp ngay →"}
+        {status === "submitting" ? "Đang gửi thông điệp..." : <>Gửi thông điệp ngay <span aria-hidden="true">→</span></>}
       </button>
     </form>
   );

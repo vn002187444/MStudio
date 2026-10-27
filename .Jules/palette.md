@@ -25,10 +25,13 @@
 **Learning:** Found that decorative text-based icons (✏️, 🗑️, ×) in icon-only buttons lacked proper ARIA attributes, causing screen readers to either ignore them or read out distracting textual approximations without clear context.
 **Action:** Added `aria-label` attributes to these icon-only buttons to clearly state their purpose (e.g. "Chỉnh sửa nguồn", "Xoá nguồn") and wrapped the emoji/character symbols in `<span aria-hidden="true">` to prevent distracting interruptions for screen reader users. Always apply this pattern to icon-only buttons to ensure they remain accessible without extra visual clutter.
 
-
 ## 2026-10-25 - Decorative Load More Button Spinner Needs ARIA Hidden & Busy
 **Learning:** Decorative elements inside loading buttons (like spinning circles or arrows) can cause screen readers to announce confusing extraneous information or misinterpret async progress.
 **Action:** Always add `aria-hidden="true"` to purely decorative SVGs, spans, or icons within buttons, and explicitly use `aria-busy={loading}` on the button container when an asynchronous action is pending.
 ## 2026-10-26 - Missing Context on Icon-only Star Buttons in Email App
 **Learning:** Found that the "star" toggle buttons in the email app (`apps/studio/app/email/page.tsx`) were using a raw text character (★) without any `aria-label` or `aria-hidden` attributes. This causes screen readers to read "Black star" without any context on what the button actually does (i.e., marking an email as important).
 **Action:** Always add dynamic `aria-label`s to icon-only buttons (e.g. `aria-label={isStarred ? "Bỏ đánh dấu sao" : "Đánh dấu sao"}`) and wrap the decorative icon (like ★) in a `<span aria-hidden="true">` to improve accessibility and provide clear context for screen reader users.
+
+## 2024-10-26 - Ngăn chặn screen reader đọc icon trang trí và text cũ khi loading
+**Learning:** Khi một button chuyển sang trạng thái loading, nó thường làm hai việc: thay thế nội dung text bằng text báo trạng thái (ví dụ "Đang tải...") và vô hiệu hóa button (disabled). Tuy nhiên, nếu nút có chứa các ký tự/icon trang trí (như →, ↓, ✨) mà không có `aria-hidden="true"`, screen reader vẫn có thể đọc chúng hoặc đọc nội dung cũ nếu không được xử lý cẩn thận, gây nhiễu cho người khiếm thị. Ngoài ra, việc thiếu `aria-busy="true"` khiến các công cụ hỗ trợ không nhận diện rõ trạng thái loading.
+**Action:** Khi tạo loading button: 1) Luôn thêm `aria-busy={loading}`, 2) Wrap tất cả các icon trang trí (arrow, emoji) trong `<span aria-hidden="true">`, 3) Cân nhắc thiết kế loading state sao cho screen reader không bị nhầm lẫn giữa text cũ và text mới.
