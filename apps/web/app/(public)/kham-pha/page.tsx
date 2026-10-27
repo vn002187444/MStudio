@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../../../lib/seo";
 import { CategoryTemplate } from "../../../components/article/category-template";
 
 /**
@@ -10,6 +11,9 @@ export const metadata: Metadata = {
   description:
     "Khám phá: Chuyện lạ, Kỳ án, Ký sự, Hồ sơ, Bí ẩn, Lịch sử — MStudio Channel.",
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: `${siteOrigin()}/kham-pha`,
+  },
 };
 
 export default function DiscoveryCategoryPage() {

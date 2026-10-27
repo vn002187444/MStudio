@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../../../lib/seo";
 import { fetchLatestArticles } from "../../../lib/content/articles";
 import { CompactNewsCard, LeadStoryCard } from "../../../components/article/news-card";
 import { BentoGrid, BentoCard, AmbientGlow } from "@mstudio/ui";

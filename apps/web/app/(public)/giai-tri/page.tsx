@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../../../lib/seo";
 import { CategoryTemplate } from "../../../components/article/category-template";
 
 /**
@@ -9,6 +10,9 @@ export const metadata: Metadata = {
   title: "Giải trí | MStudio Channel",
   description: "Giải trí: Ngôi sao, Âm nhạc, Điện ảnh, Showbiz, Scandal — MStudio Channel.",
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: `${siteOrigin()}/giai-tri`,
+  },
 };
 
 export default function EntertainmentCategoryPage() {

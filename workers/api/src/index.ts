@@ -246,6 +246,29 @@ app.use("*", async (c, next) => {
   await next();
 });
 
+// Root & Robots handlers — ngăn bot cào 404 subdomain API (GSC Clean)
+app.get("/robots.txt", (c) => {
+  return c.text("User-agent: *\nDisallow: /\n", 200, {
+    "Content-Type": "text/plain; charset=utf-8",
+    "X-Robots-Tag": "noindex, nofollow",
+  });
+});
+
+app.get("/", (c) => {
+  return c.json(
+    {
+      ok: true,
+      service: "mstudio-api",
+      environment: c.env.ENVIRONMENT,
+      time: new Date().toISOString(),
+    },
+    200,
+    {
+      "X-Robots-Tag": "noindex, nofollow",
+    },
+  );
+});
+
 app.get("/healthz", (c) =>
   c.json({
     ok: true,

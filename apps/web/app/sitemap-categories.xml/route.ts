@@ -26,7 +26,7 @@ export async function GET() {
         if (category.status !== "active") continue;
         if (!/^[a-z0-9-]+$/.test(category.slug)) continue;
         entries.push({
-          loc: `${origin}/${category.slug}/`,
+          loc: `${origin}/${category.slug}`,
           changefreq: "daily",
           priority: 0.8,
         });

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../../../lib/seo";
 import { CategoryTemplate } from "../../../components/article/category-template";
 
 /**
@@ -10,6 +11,9 @@ export const metadata: Metadata = {
   title: "AI Channel | MStudio Channel",
   description: "Tin AI, models, agents, research và công cụ AI — MStudio Channel.",
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: `${siteOrigin()}/ai-channel`,
+  },
 };
 
 export default function AiChannelIndexPage() {

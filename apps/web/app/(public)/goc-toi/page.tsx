@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../../../lib/seo";
 import { CategoryTemplate } from "../../../components/article/category-template";
 
 /**
@@ -9,6 +10,9 @@ export const metadata: Metadata = {
   description:
     "Hồ sơ điều tra, phóng sự góc khuất xã hội, tệ nạn, ma tuý, scandal và ký sự ăn chơi — góc nhìn chân thực, kiểm chứng đa chiều.",
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: `${siteOrigin()}/goc-toi`,
+  },
 };
 
 export default function DarkCategoryPage() {

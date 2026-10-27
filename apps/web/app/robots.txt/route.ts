@@ -9,6 +9,8 @@ export function GET() {
   const body = [
     "User-agent: *",
     "Allow: /",
+    "Disallow: /search",
+    "Disallow: /api/",
     "",
     `Sitemap: ${origin}/sitemap.xml`,
     `Sitemap: ${origin}/sitemap-news.xml`,

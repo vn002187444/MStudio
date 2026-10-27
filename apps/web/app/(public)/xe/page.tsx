@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../../../lib/seo";
 import { CategoryTemplate } from "../../../components/article/category-template";
 
 /**
@@ -10,6 +11,9 @@ export const metadata: Metadata = {
   description:
     "Xe: ô tô, xe máy, EV và thị trường xe Việt Nam & quốc tế — MStudio Channel.",
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: `${siteOrigin()}/xe`,
+  },
 };
 
 export default function AutoCategoryPage() {

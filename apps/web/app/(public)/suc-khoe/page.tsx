@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "../../../lib/seo";
 import { CategoryTemplate } from "../../../components/article/category-template";
 
 /**
@@ -10,6 +11,9 @@ export const metadata: Metadata = {
   description:
     "Sức khỏe: y tế, dinh dưỡng, tâm lý và lifehacks sức khỏe có nguồn — MStudio Channel.",
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: `${siteOrigin()}/suc-khoe`,
+  },
 };
 
 export default function HealthCategoryPage() {
