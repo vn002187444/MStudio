@@ -71,6 +71,7 @@ export function HomeStreamClient({ initialArticles, initialCursor }: HomeStreamC
           <button
             type="button"
             onClick={loadMore}
+            aria-busy={loading}
             disabled={loading}
             aria-busy={loading}
             className="group relative inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full font-bold text-sm text-white bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:from-blue-500 hover:via-cyan-400 hover:to-teal-400 active:scale-95 transition-all shadow-xl shadow-cyan-500/20 border border-cyan-400/40 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"

@@ -216,3 +216,24 @@ export async function updateFeedFetchResult(
   if (update.meta.changes === 0) return undefined;
   return getFeed(db, id);
 }
+
+
+export async function listFeedsBySourceIds(
+  db: D1Database,
+  sourceIds: string[],
+): Promise<FeedRow[]> {
+  if (sourceIds.length === 0) return [];
+  const results: FeedRow[] = [];
+  for (let i = 0; i < sourceIds.length; i += 100) {
+    const chunk = sourceIds.slice(i, i + 100);
+    const placeholders = chunk.map(() => "?").join(", ");
+    const res = await db
+      .prepare(`${FEED_SELECT} WHERE source_id IN (${placeholders}) ORDER BY created_at ASC, id ASC`)
+      .bind(...chunk)
+      .all<FeedRowRaw>();
+    if (res.results) {
+      results.push(...res.results.map(toFeedRow));
+    }
+  }
+  return results;
+}

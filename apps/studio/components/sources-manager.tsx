@@ -43,20 +43,35 @@ export function SourcesManager() {
       const loadedSources = data.rows ?? [];
       setSources(loadedSources);
 
-      // Load feeds for all sources in parallel
-      const feedEntries = await Promise.all(
-        loadedSources.map(async (s) => {
-          try {
-            const fRes = await fetch(`${apiBaseUrl()}/sources/${s.id}/feeds`);
-            if (!fRes.ok) return [s.id, []] as const;
-            const fData = (await fRes.json()) as { rows?: FeedRow[]; feeds?: FeedRow[] };
-            return [s.id, fData.rows ?? fData.feeds ?? []] as const;
-          } catch {
-            return [s.id, []] as const;
+      // ⚡ Bolt: Batch fetch feeds to prevent N+1 subrequest limit exhaustion
+      if (loadedSources.length > 0) {
+        const sourceIds = loadedSources.map(s => s.id).join(",");
+        try {
+          const feedsRes = await fetch(`${apiBaseUrl()}/feeds?sourceIds=${sourceIds}`);
+          if (feedsRes.ok) {
+            const feedsData = (await feedsRes.json()) as { rows?: FeedRow[] };
+            const allFeeds = feedsData.rows ?? [];
+
+            // Group by sourceId
+            const groupedFeeds: Record<string, FeedRow[]> = {};
+            for (const s of loadedSources) {
+              groupedFeeds[s.id] = [];
+            }
+            for (const feed of allFeeds) {
+              if (groupedFeeds[feed.sourceId]) {
+                groupedFeeds[feed.sourceId].push(feed);
+              }
+            }
+            setFeedsBySource(groupedFeeds);
+          } else {
+            setFeedsBySource({});
           }
-        }),
-      );
-      setFeedsBySource(Object.fromEntries(feedEntries));
+        } catch {
+          setFeedsBySource({});
+        }
+      } else {
+        setFeedsBySource({});
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
