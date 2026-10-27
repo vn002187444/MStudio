@@ -24,7 +24,10 @@
 ## 2024-10-24 - Batch Frontend API Calls for IDs to Reduce Subrequests
 **Learning:** Resolving multiple recommendation candidates from the frontend using an N+1 loop of `fetchArticleById` generates multiple independent HTTP subrequests to the Cloudflare Worker API, increasing network latency and exhausting Free Tier subrequest quotas. However, batching heterogeneous category sections into a single SQL query (`WHERE category_slug IN (...)`) with a global `LIMIT` causes category starvation if one topic updates more frequently, breaking the UI layout.
 **Action:** Always batch unique entity fetch calls using an `ids=...` query parameter to avoid N+1 issues. Do NOT batch distinct category list fetches into a single global query; instead, keep them as concurrent `Promise.all` fetches to ensure the per-category `LIMIT` is respected safely.
-
 ## 2026-10-26 - [Batch API Calls to Prevent N+1 Exhaustion]
 **Learning:** React components frequently rendering lists of sources/entities often map over them and use `Promise.all` to fetch related data (e.g. `feeds` per `source`). In Cloudflare Workers Free Tier, this creates an N+1 subrequest limit exhaustion (max 50 per invocation).
 **Action:** When working with relation endpoints (like `/sources/:id/feeds`), expose a batched version (e.g. `/feeds?sourceIds=1,2,3`) that uses SQL `IN (...)` instead of individual fetches, to keep HTTP subrequests O(1) in the frontend. Chunk database operations with `db.batch()` or batched arrays up to 100 statements to stay within D1 execution limits.
+
+## 2026-10-26 - Missing Composite Indexes for Keyset Pagination
+**Learning:** Cloudflare D1 (SQLite) relies on temporary B-Trees for `ORDER BY` when the `WHERE` clause filters by an `IN (...)` list without a matching composite index that covers both the filter columns and the exact order columns.
+**Action:** Always create composite indices combining filter keys (e.g., status, category_slug) and order keys (e.g., updated_at DESC, id DESC) for high-traffic pagination endpoints like `listPublishedArticles` to enable covering index lookups.
