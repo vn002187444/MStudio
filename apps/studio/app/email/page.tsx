@@ -837,6 +837,7 @@ export default function EmailMailboxPage() {
                           <span style={{ fontSize: 11, color: "#9ca3af" }}>{mail.timestamp}</span>
                           <button
                             type="button"
+                            aria-label={mail.starred ? "Unstar" : "Star"}
                             onClick={(e) => handleToggleStar(mail.id, e)}
                             style={{
                               background: "none",
@@ -847,7 +848,7 @@ export default function EmailMailboxPage() {
                               color: mail.starred ? "#f59e0b" : "#d1d5db",
                             }}
                           >
-                            ★
+                            <span aria-hidden="true">★</span>
                           </button>
                         </div>
                       </div>
@@ -1051,6 +1052,7 @@ export default function EmailMailboxPage() {
                       </button>
                       <button
                         type="button"
+                        aria-label={selectedMail.starred ? "Unstar" : "Star"}
                         onClick={() => handleToggleStar(selectedMail.id)}
                         style={{
                           background: "#f3f4f6",
@@ -1062,7 +1064,7 @@ export default function EmailMailboxPage() {
                           color: selectedMail.starred ? "#f59e0b" : "#6b7280",
                         }}
                       >
-                        ★
+                        <span aria-hidden="true">★</span>
                       </button>
                     </div>
                   </div>

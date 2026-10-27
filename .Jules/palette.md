@@ -29,3 +29,6 @@
 ## 2026-10-25 - Decorative Load More Button Spinner Needs ARIA Hidden & Busy
 **Learning:** Decorative elements inside loading buttons (like spinning circles or arrows) can cause screen readers to announce confusing extraneous information or misinterpret async progress.
 **Action:** Always add `aria-hidden="true"` to purely decorative SVGs, spans, or icons within buttons, and explicitly use `aria-busy={loading}` on the button container when an asynchronous action is pending.
+## 2026-10-26 - Missing Context on Icon-only Star Buttons in Email App
+**Learning:** Found that the "star" toggle buttons in the email app (`apps/studio/app/email/page.tsx`) were using a raw text character (★) without any `aria-label` or `aria-hidden` attributes. This causes screen readers to read "Black star" without any context on what the button actually does (i.e., marking an email as important).
+**Action:** Always add dynamic `aria-label`s to icon-only buttons (e.g. `aria-label={isStarred ? "Bỏ đánh dấu sao" : "Đánh dấu sao"}`) and wrap the decorative icon (like ★) in a `<span aria-hidden="true">` to improve accessibility and provide clear context for screen reader users.
