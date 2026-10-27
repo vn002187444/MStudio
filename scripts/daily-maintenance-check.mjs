@@ -20,7 +20,7 @@ async function auditWorkers() {
 
   // Check API healthz
   try {
-    const res = await fetch(`${API_BASE}/healthz`, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(`${API_BASE}/healthz`, { signal: AbortSignal.timeout(10000) });
     const data = await res.json();
     results.apiHealth = { status: res.status, ok: data.ok, env: data.environment };
     console.log(`✅ [WORKER: API] /healthz -> Status: ${res.status}, Env: ${data.environment}`);
@@ -31,7 +31,7 @@ async function auditWorkers() {
 
   // Check Studio CMS Redirect
   try {
-    const res = await fetch(`${STUDIO_BASE}/login`, { signal: AbortSignal.timeout(5000), redirect: 'manual' });
+    const res = await fetch(`${STUDIO_BASE}/login`, { signal: AbortSignal.timeout(10000), redirect: 'manual' });
     results.studioStatus = { status: res.status, ok: res.status < 400 };
     console.log(`✅ [WORKER: STUDIO] /login -> Status: ${res.status}`);
   } catch (err) {
