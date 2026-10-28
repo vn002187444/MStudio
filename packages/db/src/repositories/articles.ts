@@ -385,6 +385,45 @@ export async function listArticlesByStatus(
   return paginate(results.map(toArticleRow), limit);
 }
 
+export async function listArticlesByStatusesBatched(
+  db: D1Database,
+  statuses: ArticleStatus[],
+  input: PageInput = {},
+): Promise<ArticleRecord[]> {
+  if (statuses.length === 0) return [];
+  const limit = pageSize(input.limit);
+  const statements = statuses.map(status => {
+    if (input.cursor) {
+      return db
+        .prepare(
+          `${ARTICLE_SELECT} WHERE status = ? AND (created_at, id) > (?, ?) ORDER BY created_at ASC, id ASC LIMIT ?`,
+        )
+        .bind(status, input.cursor.createdAt, input.cursor.id, limit + 1);
+    } else {
+      return db
+        .prepare(
+          `${ARTICLE_SELECT} WHERE status = ? ORDER BY created_at ASC, id ASC LIMIT ?`,
+        )
+        .bind(status, limit + 1);
+    }
+  });
+
+  // Execute batched queries in Cloudflare D1
+  const results = await db.batch<ArticleRowRaw>(statements);
+
+  // Flatten and map rows
+  const flattened: ArticleRowRaw[] = [];
+  for (const result of results) {
+    if (result.results) {
+      // Respect pagination mapping but we don't return nextCursor here as it's grouped per status
+      // We will slice each group to limit to emulate PagedRows per status if needed,
+      // but the frontend simply groups by status
+      flattened.push(...result.results.slice(0, limit));
+    }
+  }
+  return flattened.map(toArticleRow);
+}
+
 export type ArticleStatusCounts = Record<ArticleStatus, number>;
 
 /**

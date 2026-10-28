@@ -31,3 +31,7 @@
 ## 2026-10-26 - Missing Composite Indexes for Keyset Pagination
 **Learning:** Cloudflare D1 (SQLite) relies on temporary B-Trees for `ORDER BY` when the `WHERE` clause filters by an `IN (...)` list without a matching composite index that covers both the filter columns and the exact order columns.
 **Action:** Always create composite indices combining filter keys (e.g., status, category_slug) and order keys (e.g., updated_at DESC, id DESC) for high-traffic pagination endpoints like `listPublishedArticles` to enable covering index lookups.
+
+## 2024-10-29 - Batch Status Fetch API
+**Learning:** Resolving multiple editorial queue statuses from the frontend using `Promise.all` and multiple `/articles?status=` calls generates N+1 independent HTTP subrequests to the Cloudflare Worker API. This incurs unnecessary network latency and exhausts Free Tier subrequest quotas.
+**Action:** Enhance the `/articles` endpoint to support a comma-separated `statuses` query parameter (e.g. `?statuses=draft,in_review`). Always replace parallel distinct frontend status queries with a single batched fetch that returns multiple groups of articles, grouping them client-side to keep HTTP subrequests to O(1).

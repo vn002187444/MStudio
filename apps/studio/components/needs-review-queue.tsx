@@ -21,25 +21,33 @@ interface QueueState {
   error?: string;
 }
 
-async function fetchStatus(
-  status: ArticleStatus,
+async function fetchStatusesBatched(
+  statuses: ArticleStatus[],
   token: string,
-): Promise<QueueState> {
+): Promise<QueueState[]> {
   try {
+    const statusesQuery = statuses.join(",");
     const response = await fetch(
-      `${apiBaseUrl()}/articles?status=${status}&limit=50`,
+      `${apiBaseUrl()}/articles?statuses=${statusesQuery}&limit=150`,
       { headers: { authorization: `Bearer ${token}` }, cache: "no-store" },
     );
+
     if (!response.ok) {
-      return { status, rows: [], error: `HTTP ${response.status}` };
+      return statuses.map(status => ({ status, rows: [], error: `HTTP ${response.status}` }));
     }
+
     const payload = (await response.json()) as { rows?: ArticleRow[] };
-    return {
-      status,
-      rows: Array.isArray(payload.rows) ? payload.rows : [],
-    };
-  } catch {
-    return { status, rows: [], error: "Không gọi được API" };
+    const allRows = Array.isArray(payload.rows) ? payload.rows : [];
+
+    // Group by status
+    const grouped = statuses.map(status => ({
+       status,
+       rows: allRows.filter(r => r.status === status)
+    }));
+
+    return grouped;
+  } catch (err) {
+    return statuses.map(status => ({ status, rows: [], error: "Không gọi được API" }));
   }
 }
 
@@ -104,7 +112,8 @@ export function NeedsReviewQueue() {
   useEffect(() => {
     let cancelled = false;
     const activeToken = token || "f53d9495ecf616aa1d771f82c5b06d8b0f4c3c5153fa6ff69ea9a620f310b77f";
-    void Promise.all(REVIEW_STATUSES.map((status) => fetchStatus(status, activeToken))).then(
+    // ⚡ Bolt: Batch independent fetch calls to prevent N+1 subrequest limit exhaustion
+    void fetchStatusesBatched(REVIEW_STATUSES, activeToken).then(
       (results) => {
         if (!cancelled) setQueues(results);
       },
