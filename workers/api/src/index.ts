@@ -14,6 +14,7 @@ import {
   getSource,
   listActiveCategories,
   listArticlesByStatus,
+  listArticlesByStatusesBatched,
   listFeedsBySource,
   listFeedsBySourceIds,
   getPublishedArticlesByIds,
@@ -536,7 +537,9 @@ app.get("/articles", async (c) => {
   }
 
   const statusParam = url.searchParams.get("status");
-  if (statusParam === null) {
+  const statusesParam = url.searchParams.get("statuses");
+
+  if (statusParam === null && statusesParam === null) {
     const categorySlug = url.searchParams.get("category") ?? undefined;
     const page = await listPublishedArticles(c.env.DB, {
       ...pagination.value,
@@ -544,6 +547,7 @@ app.get("/articles", async (c) => {
     });
     return c.json(page);
   }
+
   // Editorial queue (CMS nội bộ): yêu cầu Editor+ — reader surfaces
   // không truyền status nên vẫn public như cũ.
   const identity = await verifyBearer(
@@ -560,17 +564,37 @@ app.get("/articles", async (c) => {
       "requires role: admin, editor, reviewer",
     );
   }
-  if (!isArticleStatus(statusParam)) {
-    throw badRequest("VALIDATION_FAILED", "invalid article status", {
-      status: ["must be a valid article status"],
-    });
+
+  if (statusesParam) {
+    const targetStatuses = statusesParam.split(",").filter(Boolean) as any[];
+    for (const s of targetStatuses) {
+      if (!isArticleStatus(s)) {
+         throw badRequest("VALIDATION_FAILED", "invalid article status in statuses", {
+           statuses: ["must be a valid article status array"],
+         });
+      }
+    }
+
+    // Batched version
+    const rows = await listArticlesByStatusesBatched(c.env.DB, targetStatuses, pagination.value);
+
+    // The frontend queue component expects `{ rows: [] }` structure, but groups them client-side.
+    return c.json({ rows });
+  } else if (statusParam) {
+    if (!isArticleStatus(statusParam)) {
+      throw badRequest("VALIDATION_FAILED", "invalid article status", {
+        status: ["must be a valid article status"],
+      });
+    }
+    const page = await listArticlesByStatus(
+      c.env.DB,
+      statusParam,
+      pagination.value,
+    );
+    return c.json(page);
   }
-  const page = await listArticlesByStatus(
-    c.env.DB,
-    statusParam,
-    pagination.value,
-  );
-  return c.json(page);
+
+  return c.json({ rows: [] });
 });
 
 // CMS dashboard: đếm bài theo status. Editor+ — cùng pattern với
