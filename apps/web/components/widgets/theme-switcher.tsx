@@ -75,6 +75,7 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
       <button
         type="button"
         title="Giao diện Tối Obsidian (Dark Glassmorphism)"
+        aria-label="Giao diện Tối Obsidian"
         aria-pressed={mode === "dark"}
         onClick={() => handleChange("dark")}
         className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-200 active:scale-95 ${
@@ -90,6 +91,7 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
       <button
         type="button"
         title="Giao diện Sáng Solar (Solar Frosted, chống chói)"
+        aria-label="Giao diện Sáng Solar"
         aria-pressed={mode === "light"}
         onClick={() => handleChange("light")}
         className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-200 active:scale-95 ${
@@ -105,6 +107,7 @@ export function ThemeSwitcher({ className = "" }: { className?: string }) {
       <button
         type="button"
         title="Tự động theo giờ thực tế (6h-18h Sáng / 18h-6h Tối)"
+        aria-label="Tự động theo giờ thực tế"
         aria-pressed={mode === "auto"}
         onClick={() => handleChange("auto")}
         className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-200 active:scale-95 ${
