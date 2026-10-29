@@ -22,7 +22,7 @@ interface QueueState {
 }
 
 async function fetchStatusesBatched(
-  statuses: ArticleStatus[],
+  statuses: readonly ArticleStatus[],
   token: string,
 ): Promise<QueueState[]> {
   try {
