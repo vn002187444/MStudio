@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  fetchArticlesByStatuses,
   fetchArticlesByStatus,
   TokenGate,
   TransitionPublishButtons,
@@ -30,15 +31,11 @@ export function CorrectionsQueue() {
     } catch {
       token = "";
     }
-    void Promise.all(
-      CORRECTION_ARTICLE_STATUSES.map((status) =>
-        fetchArticlesByStatus(status, token),
-      ),
-    ).then((pages) => {
+    void fetchArticlesByStatuses(CORRECTION_ARTICLE_STATUSES, token).then((page) => {
       if (cancelled) return;
       setArticles({
-        rows: pages.flatMap((page) => page.rows),
-        error: pages.find((page) => page.error)?.error,
+        rows: page.rows,
+        error: page.error,
       });
     });
     return () => {
