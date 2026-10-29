@@ -448,3 +448,30 @@ export function TransitionPublishButtons({
     </span>
   );
 }
+
+export async function fetchArticlesByStatuses(
+  statuses: readonly ArticleStatus[],
+  token: string,
+): Promise<ArticleQueuePage> {
+  if (!token || statuses.length === 0) return { rows: [] };
+  try {
+    const response = await authedFetch(
+      `${apiBaseUrl()}/articles?statuses=${statuses.join(",")}&limit=50`,
+      token,
+      { cache: "no-store" },
+    );
+    if (!response.ok) {
+      return { rows: [], error: `HTTP ${response.status}` };
+    }
+    const payload = (await response.json()) as {
+      rows?: ArticleRow[];
+      nextCursor?: KeysetCursor;
+    };
+    return {
+      rows: Array.isArray(payload.rows) ? payload.rows : [],
+      nextCursor: payload.nextCursor,
+    };
+  } catch {
+    return { rows: [], error: "Network error" };
+  }
+}
