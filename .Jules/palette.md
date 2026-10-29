@@ -35,3 +35,6 @@
 ## 2024-10-26 - Ngăn chặn screen reader đọc icon trang trí và text cũ khi loading
 **Learning:** Khi một button chuyển sang trạng thái loading, nó thường làm hai việc: thay thế nội dung text bằng text báo trạng thái (ví dụ "Đang tải...") và vô hiệu hóa button (disabled). Tuy nhiên, nếu nút có chứa các ký tự/icon trang trí (như →, ↓, ✨) mà không có `aria-hidden="true"`, screen reader vẫn có thể đọc chúng hoặc đọc nội dung cũ nếu không được xử lý cẩn thận, gây nhiễu cho người khiếm thị. Ngoài ra, việc thiếu `aria-busy="true"` khiến các công cụ hỗ trợ không nhận diện rõ trạng thái loading.
 **Action:** Khi tạo loading button: 1) Luôn thêm `aria-busy={loading}`, 2) Wrap tất cả các icon trang trí (arrow, emoji) trong `<span aria-hidden="true">`, 3) Cân nhắc thiết kế loading state sao cho screen reader không bị nhầm lẫn giữa text cũ và text mới.
+## 2024-10-28 - Add aria-hidden to decorative bullet dots in legal and category pages
+**Learning:** Decorative elements such as colored dots (`span.rounded-full`) that are used solely for visual presentation must be hidden from screen readers to prevent confusing interruptions.
+**Action:** Ensure all purely visual UI elements (like decorative spans) explicitly have `aria-hidden="true"` set.

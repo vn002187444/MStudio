@@ -52,7 +52,7 @@ export default function PrivacyPolicyPage() {
         <div className="space-y-8">
           <section className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block" aria-hidden="true" />
               1. Nguyên tắc thu thập dữ liệu tối thiểu (Data Minimization)
             </h2>
             <p className="text-base text-slate-300 leading-relaxed mb-4">
@@ -77,7 +77,7 @@ export default function PrivacyPolicyPage() {
 
           <section className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" aria-hidden="true" />
               2. Cam kết không bán dữ liệu cho bên thứ ba
             </h2>
             <p className="text-base text-slate-300 leading-relaxed mb-3">
@@ -93,7 +93,7 @@ export default function PrivacyPolicyPage() {
 
           <section className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" aria-hidden="true" />
               3. Hạ tầng lưu trữ an toàn & mã hóa bảo mật
             </h2>
             <p className="text-base text-slate-300 leading-relaxed mb-3">
@@ -108,7 +108,7 @@ export default function PrivacyPolicyPage() {
 
           <section className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" aria-hidden="true" />
               4. Quyền của độc giả đối với dữ liệu cá nhân
             </h2>
             <p className="text-base text-slate-300 leading-relaxed mb-3">
@@ -123,7 +123,7 @@ export default function PrivacyPolicyPage() {
 
           <section className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block" aria-hidden="true" />
               5. Thông tin đầu mối phụ trách bảo vệ dữ liệu
             </h2>
             <p className="text-base text-slate-300 leading-relaxed mb-4">
