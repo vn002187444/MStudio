@@ -23,9 +23,10 @@ export const Hero3D = ({ className }: { className?: string }) => {
     canvas.height = height;
 
     let particles: { x: number; y: number; baseX: number; baseY: number; size: number }[] = [];
-    const spacing = 40;
-    
+    let spacing = 40;
+
     const initParticles = () => {
+      spacing = width < 768 ? 60 : 40;
       particles = [];
       for (let x = 0; x < width; x += spacing) {
         for (let y = 0; y < height; y += spacing) {
@@ -72,18 +73,35 @@ export const Hero3D = ({ className }: { className?: string }) => {
     let animationFrameId: number;
     let time = 0;
 
+
+    let isLight =
+      typeof document !== "undefined" &&
+      (document.documentElement.classList.contains("light") ||
+        document.documentElement.getAttribute("data-theme") === "light");
+
+    const themeObserver = new MutationObserver(() => {
+      isLight =
+        document.documentElement.classList.contains("light") ||
+        document.documentElement.getAttribute("data-theme") === "light";
+    });
+
+    if (typeof document !== "undefined") {
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class", "data-theme"],
+      });
+    }
+
     const draw = () => {
+
       if (!isIntersecting) {
         animationFrameId = requestAnimationFrame(draw);
         return;
       }
 
       time += 0.01;
-      
-      const isLight =
-        typeof document !== "undefined" &&
-        (document.documentElement.classList.contains("light") ||
-          document.documentElement.getAttribute("data-theme") === "light");
+
+
 
       // Clear background according to active theme
       ctx.fillStyle = isLight ? "#F1F5F9" : "#09090D";
@@ -92,7 +110,7 @@ export const Hero3D = ({ className }: { className?: string }) => {
       // Draw grid lines
       ctx.strokeStyle = isLight ? "rgba(15, 23, 42, 0.06)" : "rgba(255, 255, 255, 0.03)";
       ctx.lineWidth = 1;
-      
+
       // Horizontal lines
       ctx.beginPath();
       for (let y = 0; y < height; y += spacing) {
@@ -113,10 +131,10 @@ export const Hero3D = ({ className }: { className?: string }) => {
         const dx = mouseX - p.baseX;
         const dy = mouseY - p.baseY;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
+
         // Wave effect
         const wave = Math.sin(p.baseX * 0.01 + time) * Math.cos(p.baseY * 0.01 + time) * 10;
-        
+
         // Mouse repulsion
         const force = Math.max(0, 150 - distance) / 150;
         const pushX = dx * force * 0.1;
@@ -137,13 +155,29 @@ export const Hero3D = ({ className }: { className?: string }) => {
       animationFrameId = requestAnimationFrame(draw);
     };
 
-    draw();
+
+    let idleId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    if (typeof requestIdleCallback !== "undefined") {
+      idleId = requestIdleCallback(() => {
+        animationFrameId = requestAnimationFrame(draw);
+      });
+    } else {
+      timeoutId = setTimeout(() => {
+        animationFrameId = requestAnimationFrame(draw);
+      }, 0);
+    }
+
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
+      themeObserver.disconnect();
       cancelAnimationFrame(animationFrameId);
+      if (idleId !== undefined && typeof cancelIdleCallback !== "undefined") cancelIdleCallback(idleId);
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
     };
   }, []);
 
@@ -154,7 +188,7 @@ export const Hero3D = ({ className }: { className?: string }) => {
     >
       {/* Fallback CSS gradient when JS not running or reduced motion */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#09090D] via-[#0D1117] to-[#1a1a2e] [html.light_&]:from-[#F1F5F9] [html.light_&]:via-[#E2E8F0] [html.light_&]:to-[#CBD5E1]" />
-      
+
       <canvas
         ref={canvasRef}
         className="absolute inset-0 z-10 block pointer-events-none"

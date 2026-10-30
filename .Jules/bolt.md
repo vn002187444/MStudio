@@ -39,3 +39,7 @@
 ## 2026-10-31 - Batch corrections queue status fetch to prevent N+1 subrequests
 **Learning:** Resolving multiple editorial queue statuses from the frontend using `Promise.all` and multiple `/articles?status=` calls generates N+1 independent HTTP subrequests to the Cloudflare Worker API. This incurs unnecessary network latency and exhausts Free Tier subrequest quotas.
 **Action:** Enhance the `/articles` endpoint (and frontend CMS actions) to support a comma-separated `statuses` query parameter (e.g. `?statuses=draft,in_review`). Always replace parallel distinct frontend status queries (like in `corrections-queue.tsx`) with a single batched fetch that returns multiple groups of articles, grouping them client-side to keep HTTP subrequests to O(1).
+
+## 2024-10-31 - Optimize Hero3D canvas loop and mobile particle density
+**Learning:** Caching DOM queries (like `isLight`) outside `requestAnimationFrame` loops using a `MutationObserver` avoids reading the DOM on every frame, which significantly improves main thread execution time. Additionally, conditionally reducing calculation loads like particle counts based on the viewport size drastically reduces rendering costs on mobile devices.
+**Action:** Always extract static DOM queries from animation loops and use responsive values for computationally expensive rendering operations.
