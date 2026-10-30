@@ -51,7 +51,7 @@ export function AIBenchmarkWidget({
       <AmbientGlow color="rgba(6, 182, 212, 0.18)" size={180} className="-top-12 -right-12" />
       <div className="flex items-center justify-between pb-3 border-b border-white/10 [html.light_&]:border-slate-200/80 mb-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="flex h-2.5 w-2.5 rounded-full bg-cyan-400 animate-pulse"  aria-hidden="true" />
           <h3 className="text-xs font-bold tracking-wider text-cyan-300 [html.light_&]:text-cyan-700 uppercase">
             {title}
           </h3>
@@ -246,7 +246,7 @@ export function BentoMarketStrip({
       {/* Header with Live Status & Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-white/10 [html.light_&]:border-slate-200/80">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+          <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"  aria-hidden="true" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400 [html.light_&]:text-emerald-700">
             Dữ liệu Tài chính 24/7
           </h3>
@@ -360,7 +360,7 @@ export function CrisisTimeline({
     >
       <div className="flex items-center justify-between pb-3 border-b border-white/10 [html.light_&]:border-slate-200/80 mb-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping" />
+          <span className="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping"  aria-hidden="true" />
           <h3 className="text-xs font-bold tracking-wider text-amber-300 [html.light_&]:text-amber-800 uppercase">
             {title}
           </h3>
@@ -416,7 +416,7 @@ export function ScienceDataBox({
     >
       <AmbientGlow color="rgba(99, 102, 241, 0.2)" size={160} className="-bottom-8 -right-8" />
       <div className="flex items-center gap-2 pb-3 border-b border-white/10 [html.light_&]:border-slate-200/80 mb-3">
-        <span className="flex h-2.5 w-2.5 rounded-full bg-indigo-400" />
+        <span className="flex h-2.5 w-2.5 rounded-full bg-indigo-400"  aria-hidden="true" />
         <span className="text-xs font-bold uppercase tracking-wider text-indigo-300 [html.light_&]:text-indigo-700">
           {label}
         </span>
@@ -453,7 +453,7 @@ export function EVParamWidget({
     >
       <div className="flex items-center justify-between pb-3 border-b border-white/10 [html.light_&]:border-slate-200/80 mb-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-red-400" />
+          <span className="flex h-2.5 w-2.5 rounded-full bg-red-400"  aria-hidden="true" />
           <span className="text-xs font-bold uppercase tracking-wider text-red-300 [html.light_&]:text-red-700">
             {modelName}
           </span>
@@ -500,7 +500,7 @@ export function HealthAirQualityWidget({
     >
       <div className="flex items-center justify-between pb-3 border-b border-white/10 [html.light_&]:border-slate-200/80 mb-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-teal-400" />
+          <span className="flex h-2.5 w-2.5 rounded-full bg-teal-400"  aria-hidden="true" />
           <span className="text-xs font-bold uppercase tracking-wider text-teal-300 [html.light_&]:text-teal-700">
             Môi trường sống
           </span>

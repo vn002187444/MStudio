@@ -52,7 +52,7 @@ export default function TermsOfServicePage() {
         <div className="space-y-8">
           <section className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block" aria-hidden="true" />
               1. Chấp thuận điều khoản
             </h2>
             <p className="text-base text-slate-300 leading-relaxed m-0">
@@ -64,7 +64,7 @@ export default function TermsOfServicePage() {
 
           <section className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" aria-hidden="true" />
               2. Quyền sở hữu trí tuệ & Quy định trích dẫn
             </h2>
             <p className="text-base text-slate-300 leading-relaxed mb-4">
@@ -85,7 +85,7 @@ export default function TermsOfServicePage() {
 
           <section className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" aria-hidden="true" />
               3. Trách nhiệm của người sử dụng
             </h2>
             <p className="text-base text-slate-300 leading-relaxed mb-4">Khi tương tác, gửi đóng góp hoặc chia sẻ bài viết, bạn cam kết không:</p>
@@ -98,7 +98,7 @@ export default function TermsOfServicePage() {
 
           <section className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" aria-hidden="true" />
               4. Miễn trừ trách nhiệm (Disclaimer)
             </h2>
             <p className="text-base text-slate-300 leading-relaxed mb-4">
@@ -118,7 +118,7 @@ export default function TermsOfServicePage() {
 
           <section className="bg-slate-900/90 rounded-2xl border border-white/10 p-6 md:p-8 shadow-xl backdrop-blur-xl">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block" aria-hidden="true" />
               5. Luật điều chỉnh & Giải quyết tranh chấp
             </h2>
             <p className="text-base text-slate-300 leading-relaxed mb-4">
