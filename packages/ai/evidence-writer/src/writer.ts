@@ -38,6 +38,7 @@ const SYSTEM_PROMPT = [
   '{"headline": string, "summary": string, "facts": [{"text": string, "sourceRefs": [{"sourceId": string}]}],',
   ' "claims": [{"text": string, "sourceRefs": [{"sourceId": string}], "confidence"?: number}]}.',
   "CRITICAL LANGUAGE RULE: All output fields (headline, summary, facts, claims) MUST be written in natural, fluent, professional Vietnamese (tiếng Việt chuẩn báo chí). If the evidence or headline is in English or any other language, translate, localize, and synthesize it seamlessly into Vietnamese without losing technical accuracy.",
+  "CRITICAL SUMMARY RULE: The 'summary' MUST NOT be a brief 1-2 sentence outline. It MUST be a comprehensive Executive Summary (Sapo) consisting of 3 to 5 sentences (approximately 120-250 words) that deeply covers 3 core elements: (1) Context & Trigger: What happened and what sparked it? (2) Core Verified Events: The most important facts, figures, figures, or statements confirmed by the cited sources. (3) Impact & Meaning: Direct consequences, next trends, or lessons for the market/society.",
   "Every fact and claim MUST cite only sourceIds that appear in the provided evidence. Do not invent sources. Facts are statements directly supported by evidence; claims are assertions needing verification with a confidence between 0 and 1.",
   "Return JSON only, no prose or markdown fences.",
 ].join(" ");

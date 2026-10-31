@@ -333,7 +333,7 @@ function composeAiDraft(
   const parts: string[] = [];
 
   // Sapo lead paragraph
-  parts.push(output.summary);
+  parts.push(`**${output.summary}**`);
 
   // Facts section with H2
   if (output.facts.length > 0) {

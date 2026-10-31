@@ -491,10 +491,14 @@ export default async function ArticlePage({
                   className="article-summary rounded-2xl border border-blue-500/30 bg-blue-500/10 [html.light_&]:bg-blue-50/80 [html.light_&]:border-blue-200 p-5 my-6 backdrop-blur-md"
                 >
                   <h2 id="article-summary-heading" className="text-xs font-mono uppercase tracking-wider font-bold text-blue-300 [html.light_&]:text-blue-900 mb-2 flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-blue-400 [html.light_&]:bg-blue-600" />
+                    <span aria-hidden="true" className="flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-blue-400 [html.light_&]:text-blue-600">
+                        <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
+                      </svg>
+                    </span>
                     Tóm tắt cốt lõi
                   </h2>
-                  <p className="text-sm md:text-base text-slate-200 [html.light_&]:text-slate-800 leading-relaxed m-0 font-normal">
+                  <p className="text-sm md:text-base text-white [html.light_&]:text-slate-900 leading-relaxed m-0 font-normal whitespace-pre-line">
                     {article.summary}
                   </p>
                 </section>

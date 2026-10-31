@@ -22,7 +22,7 @@ import {
 import type { WriterRequest } from "./types.ts";
 
 const VALID_OUTPUT = JSON.stringify({
-  summary: "Two independent sources support the headline.",
+  summary: "Bản tin này cung cấp bối cảnh đầy đủ về sự kiện và xác minh các thông tin cốt lõi. Sự kiện bắt nguồn từ đầu tuần, gây chú ý lớn trong cộng đồng. Hai nguồn tin độc lập đã xác nhận các diễn biến quan trọng này. Kết quả của sự kiện sẽ tác động trực tiếp đến xu hướng của thị trường trong thời gian tới.",
   facts: [
     {
       text: "The event happened on Monday",
@@ -85,7 +85,7 @@ test("parseEvidenceOutput parses structured output", async () => {
   const output = parseEvidenceOutput(VALID_OUTPUT);
   assert.equal(
     output.summary,
-    "Two independent sources support the headline.",
+    "Bản tin này cung cấp bối cảnh đầy đủ về sự kiện và xác minh các thông tin cốt lõi. Sự kiện bắt nguồn từ đầu tuần, gây chú ý lớn trong cộng đồng. Hai nguồn tin độc lập đã xác nhận các diễn biến quan trọng này. Kết quả của sự kiện sẽ tác động trực tiếp đến xu hướng của thị trường trong thời gian tới.",
   );
   assert.equal(output.facts.length, 1);
   assert.equal(output.facts[0].sourceRefs[0].sourceId, "raw-1");

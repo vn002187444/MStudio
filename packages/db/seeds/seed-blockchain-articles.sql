@@ -21,7 +21,7 @@ INSERT OR IGNORE INTO articles (
   'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
   NULL,
   'Bitcoin vượt ngưỡng tâm lý khi dòng vốn ETF toàn cầu tăng kỷ lục | MStudio Channel',
-  'Dòng vốn từ các quỹ ETF Bitcoin giao ngay ghi nhận mức tăng trưởng kỷ lục, phản ánh sự dịch chuyển dòng tiền từ tài chính truyền thống vào tài sản mã hóa.',
+  'Dòng vốn ròng từ các quỹ ETF Bitcoin giao ngay tại thị trường Hoa Kỳ và châu Á đã liên tục thiết lập kỷ lục mới trong quý này. Sự tham gia tích cực từ các định chế tài chính truyền thống lớn xác nhận dòng vốn đang dịch chuyển mạnh mẽ. Kết quả là, điều này không chỉ củng cố niềm tin vào tài sản mã hóa mà còn tạo động lực lớn để thị trường bước vào chu kỳ tăng trưởng bền vững.',
   'https://mstudio.minds.io.vn/bai-viet/bitcoin-vuot-nguong-tam-ly-khi-dong-von-etf-toan-cau-tang-ky-luc',
   'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
   'blockchain, bitcoin, etf, crypto, tai chinh',
@@ -44,7 +44,7 @@ INSERT OR IGNORE INTO articles (
   'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1200&q=80',
   NULL,
   'Ethereum nâng cấp Layer 2: Phí giao dịch giảm 90% mở đường cho ứng dụng đại chúng',
-  'Các giải pháp mở rộng Layer 2 trên Ethereum chứng kiến khối lượng giao dịch bùng nổ sau đợt tối ưu hóa kiến trúc Blob và Rollups.',
+  'Việc triển khai thành công các bản nâng cấp mở rộng kiến trúc tối ưu trên hệ sinh thái Ethereum đã giúp phí giao dịch giảm xuống mức thấp kỷ lục. Các mạng lưới Layer 2 chứng kiến khối lượng giao dịch bùng nổ và tổng giá trị tài sản khóa (TVL) đạt đỉnh mới trong vòng 18 tháng qua. Diễn biến này mở ra lộ trình phát triển đột phá cho ứng dụng tài chính phi tập trung (DeFi) và thúc đẩy ứng dụng Web3 tiến dần đến thị trường đại chúng.',
   'https://mstudio.minds.io.vn/bai-viet/ethereum-nang-cap-layer-2-phi-giao-dich-giam-90-phan-tram',
   'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1200&q=80',
   'blockchain, ethereum, layer 2, defi, web3',
@@ -78,7 +78,7 @@ INSERT OR IGNORE INTO article_revisions (
 
 Nguồn: CoinDesk / On-Chain Analytics
 Original: https://www.coindesk.com/markets',
-  'Dòng vốn từ các quỹ ETF Bitcoin giao ngay ghi nhận mức tăng trưởng kỷ lục, phản ánh sự dịch chuyển dòng tiền từ tài chính truyền thống vào tài sản mã hóa.',
+  'Dòng vốn ròng từ các quỹ ETF Bitcoin giao ngay tại thị trường Hoa Kỳ và châu Á đã liên tục thiết lập kỷ lục mới trong quý này. Sự tham gia tích cực từ các định chế tài chính truyền thống lớn xác nhận dòng vốn đang dịch chuyển mạnh mẽ. Kết quả là, điều này không chỉ củng cố niềm tin vào tài sản mã hóa mà còn tạo động lực lớn để thị trường bước vào chu kỳ tăng trưởng bền vững.',
   '2026-10-18T10:00:00.000Z'
 ),
 (
@@ -102,6 +102,6 @@ Original: https://www.coindesk.com/markets',
 
 Nguồn: Cointelegraph / L2Beat
 Original: https://cointelegraph.com/ethereum',
-  'Các giải pháp mở rộng Layer 2 trên Ethereum chứng kiến khối lượng giao dịch bùng nổ sau đợt tối ưu hóa kiến trúc Blob và Rollups.',
+  'Việc triển khai thành công các bản nâng cấp mở rộng kiến trúc tối ưu trên hệ sinh thái Ethereum đã giúp phí giao dịch giảm xuống mức thấp kỷ lục. Các mạng lưới Layer 2 chứng kiến khối lượng giao dịch bùng nổ và tổng giá trị tài sản khóa (TVL) đạt đỉnh mới trong vòng 18 tháng qua. Diễn biến này mở ra lộ trình phát triển đột phá cho ứng dụng tài chính phi tập trung (DeFi) và thúc đẩy ứng dụng Web3 tiến dần đến thị trường đại chúng.',
   '2026-10-18T14:30:00.000Z'
 );
