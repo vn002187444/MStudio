@@ -46,3 +46,7 @@
 ## 2024-10-31 - Eliminate layout thrashing in TiltCard
 **Learning:** `getBoundingClientRect()` inside high-frequency mouse events (like `onMouseMove`) causes severe layout thrashing (synchronous layout recalculation). `window.matchMedia` is also expensive to re-evaluate continuously.
 **Action:** Cache these values in a `useRef` on `onMouseEnter` (and lazily on first move), and reset on `onMouseLeave` to prevent continuous recalculations and improve performance during hover states.
+
+## 2024-11-01 - Eliminate layout thrashing in mouse event listeners
+**Learning:** Calling `getBoundingClientRect()` inside high-frequency event listeners like `mousemove` forces synchronous layout recalculation, leading to layout thrashing. Updating the cache inside a `scroll` event listener also causes scroll jank.
+**Action:** Cache the absolute document-relative position (`rect.top + window.scrollY`) on component mount or `mouseenter` (instead of on `scroll`). Use `e.pageX` and `e.pageY` in the `mousemove` handler to calculate the relative position without triggering layout recalculations.

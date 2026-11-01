@@ -45,17 +45,45 @@ export const SpotlightGlow = ({
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    // Cache absolute document-relative position to prevent layout thrashing on mousemove/scroll
+    let cachedX = 0;
+    let cachedY = 0;
+    let hasCached = false;
+
+    const handleMouseEnter = () => {
       const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      cachedX = rect.left + window.scrollX;
+      cachedY = rect.top + window.scrollY;
+      hasCached = true;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!hasCached) {
+        const rect = container.getBoundingClientRect();
+        cachedX = rect.left + window.scrollX;
+        cachedY = rect.top + window.scrollY;
+        hasCached = true;
+      }
+      const x = e.pageX - cachedX;
+      const y = e.pageY - cachedY;
       
       container.style.setProperty("--mouse-x", `${x}px`);
       container.style.setProperty("--mouse-y", `${y}px`);
     };
 
+    const handleMouseLeave = () => {
+      hasCached = false;
+    };
+
+    container.addEventListener("mouseenter", handleMouseEnter);
     container.addEventListener("mousemove", handleMouseMove);
-    return () => container.removeEventListener("mousemove", handleMouseMove);
+    container.addEventListener("mouseleave", handleMouseLeave);
+
+    return () => {
+      container.removeEventListener("mouseenter", handleMouseEnter);
+      container.removeEventListener("mousemove", handleMouseMove);
+      container.removeEventListener("mouseleave", handleMouseLeave);
+    };
   }, []);
 
   return (
