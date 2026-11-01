@@ -545,9 +545,10 @@ export default function EmailMailboxPage() {
         </div>
 
         {/* Action Switcher: Inbox vs Compose */}
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }} role="group" aria-label="Chế độ xem hòm thư">
           <button
             type="button"
+            aria-pressed={viewMode === "inbox"}
             className="btn-primary"
             onClick={() => setViewMode("inbox")}
             style={{
@@ -563,6 +564,7 @@ export default function EmailMailboxPage() {
           </button>
           <button
             type="button"
+            aria-pressed={viewMode === "compose"}
             className="btn-primary"
             onClick={() => {
               setViewMode("compose");

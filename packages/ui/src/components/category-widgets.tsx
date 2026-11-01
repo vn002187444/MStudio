@@ -256,9 +256,10 @@ export function BentoMarketStrip({
         </div>
 
         {/* Filter Tabs */}
-        <div className="inline-flex items-center gap-1 p-1 rounded-full bg-slate-800/90 [html.light_&]:bg-slate-100 border border-white/10 [html.light_&]:border-slate-200 text-xs font-semibold">
+        <div className="inline-flex items-center gap-1 p-1 rounded-full bg-slate-800/90 [html.light_&]:bg-slate-100 border border-white/10 [html.light_&]:border-slate-200 text-xs font-semibold" role="group" aria-label="Lọc thị trường">
           <button
             type="button"
+            aria-pressed={activeTab === "vn30"}
             onClick={() => setActiveTab("vn30")}
             className={`px-3 py-1 rounded-full transition-all duration-200 ${
               activeTab === "vn30"
@@ -270,6 +271,7 @@ export function BentoMarketStrip({
           </button>
           <button
             type="button"
+            aria-pressed={activeTab === "global30"}
             onClick={() => setActiveTab("global30")}
             className={`px-3 py-1 rounded-full transition-all duration-200 ${
               activeTab === "global30"
@@ -281,6 +283,7 @@ export function BentoMarketStrip({
           </button>
           <button
             type="button"
+            aria-pressed={activeTab === "crypto20"}
             onClick={() => setActiveTab("crypto20")}
             className={`px-3 py-1 rounded-full transition-all duration-200 ${
               activeTab === "crypto20"

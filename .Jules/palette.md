@@ -46,3 +46,7 @@
 ## 2024-03-24 - Screen Reader Support for Custom Toggle Buttons
 **Learning:** Custom UI toggle groups (like Checklist vs SERP tabs) are not natively announced by screen readers as selectable toggles. Adding `role="group"` to the container and `aria-pressed` to individual buttons makes the interaction model clear and accessible.
 **Action:** Always wrap custom toggle groups in a `div` with `role="group"` + `aria-label`, and add `aria-pressed` along with `type="button"` to the child elements.
+
+## 2026-11-01 - Missing ARIA attributes for custom toggle groups (tabs/switchers)
+**Learning:** Custom toggle groups (like market filter tabs or inbox/compose switchers) built with standard `div` and `button` elements lack the semantic structure required for assistive technologies to understand their group context and active state.
+**Action:** Always wrap custom UI toggle groups in a container with `role="group"` and an explicit, localized `aria-label`. Individual toggle buttons must include `type="button"` and `aria-pressed={true/false}` (dynamic based on the active state) to accurately communicate the active selection to screen readers.)
