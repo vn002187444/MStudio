@@ -309,8 +309,10 @@ export function RankMathInspector(props: RankMathInspectorProps) {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-white/10 shrink-0">
+      <div className="flex border-b border-white/10 shrink-0" role="group" aria-label="Chế độ xem SEO Scorer">
         <button
+          type="button"
+          aria-pressed={activeTab === "checklist"}
           onClick={() => setActiveTab("checklist")}
           className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${
             activeTab === "checklist" ? "text-blue-400 border-b-2 border-blue-400 bg-blue-400/5" : "text-white/50 hover:text-white hover:bg-white/5"
@@ -319,6 +321,8 @@ export function RankMathInspector(props: RankMathInspectorProps) {
           Checklist
         </button>
         <button
+          type="button"
+          aria-pressed={activeTab === "serp"}
           onClick={() => setActiveTab("serp")}
           className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${
             activeTab === "serp" ? "text-blue-400 border-b-2 border-blue-400 bg-blue-400/5" : "text-white/50 hover:text-white hover:bg-white/5"
@@ -346,7 +350,7 @@ export function RankMathInspector(props: RankMathInspectorProps) {
 
               return (
                 <li key={item.id} className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-start gap-3">
-                  <span className={`w-6 h-6 shrink-0 flex items-center justify-center rounded-full text-xs font-bold border ${iconBg}`}>
+                  <span aria-hidden="true" className={`w-6 h-6 shrink-0 flex items-center justify-center rounded-full text-xs font-bold border ${iconBg}`}>
                     {icon}
                   </span>
                   <div className="flex-1 min-w-0">
@@ -369,8 +373,10 @@ export function RankMathInspector(props: RankMathInspectorProps) {
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center">
               <span className="text-xs font-medium text-white/60">Preview Google Search:</span>
-              <div className="flex bg-white/5 rounded-lg border border-white/10 p-0.5">
+              <div className="flex bg-white/5 rounded-lg border border-white/10 p-0.5" role="group" aria-label="Chế độ xem trước thiết bị">
                 <button
+                  type="button"
+                  aria-pressed={serpMode === "desktop"}
                   onClick={() => setSerpMode("desktop")}
                   className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors ${
                     serpMode === "desktop" ? "bg-blue-500 text-white" : "text-white/50 hover:text-white"
@@ -379,6 +385,8 @@ export function RankMathInspector(props: RankMathInspectorProps) {
                   Desktop
                 </button>
                 <button
+                  type="button"
+                  aria-pressed={serpMode === "mobile"}
                   onClick={() => setSerpMode("mobile")}
                   className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors ${
                     serpMode === "mobile" ? "bg-blue-500 text-white" : "text-white/50 hover:text-white"
