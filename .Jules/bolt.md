@@ -43,3 +43,6 @@
 ## 2024-10-31 - Optimize Hero3D canvas loop and mobile particle density
 **Learning:** Caching DOM queries (like `isLight`) outside `requestAnimationFrame` loops using a `MutationObserver` avoids reading the DOM on every frame, which significantly improves main thread execution time. Additionally, conditionally reducing calculation loads like particle counts based on the viewport size drastically reduces rendering costs on mobile devices.
 **Action:** Always extract static DOM queries from animation loops and use responsive values for computationally expensive rendering operations.
+## 2024-10-31 - Eliminate layout thrashing in TiltCard
+**Learning:** `getBoundingClientRect()` inside high-frequency mouse events (like `onMouseMove`) causes severe layout thrashing (synchronous layout recalculation). `window.matchMedia` is also expensive to re-evaluate continuously.
+**Action:** Cache these values in a `useRef` on `onMouseEnter` (and lazily on first move), and reset on `onMouseLeave` to prevent continuous recalculations and improve performance during hover states.

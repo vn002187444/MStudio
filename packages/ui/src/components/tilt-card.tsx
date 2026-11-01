@@ -17,12 +17,14 @@ export const TiltCard = ({
   ...props
 }: TiltCardProps) => {
   const ref = useRef<HTMLDivElement>(null);
-  
+  const rectRef = useRef<DOMRect | null>(null);
+  const reducedMotionRef = useRef<boolean | null>(null);
+
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
   const springConfig = { damping: 30, stiffness: 200, mass: 1 };
-  
+
   const springX = useSpring(x, springConfig);
   const springY = useSpring(y, springConfig);
 
@@ -32,13 +34,28 @@ export const TiltCard = ({
   const glareX = useTransform(springX, [-0.5, 0.5], ["100%", "0%"]);
   const glareY = useTransform(springY, [-0.5, 0.5], ["100%", "0%"]);
 
+
+  const handleMouseEnter = () => {
+    if (!ref.current) return;
+    rectRef.current = ref.current.getBoundingClientRect();
+    reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  };
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current) return;
-    
-    // Respect reduced motion
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const rect = ref.current.getBoundingClientRect();
+    // Respect reduced motion
+    if (reducedMotionRef.current === null) {
+      reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+    if (reducedMotionRef.current) return;
+
+    let rect = rectRef.current;
+    if (!rect) {
+      rect = ref.current.getBoundingClientRect();
+      rectRef.current = rect;
+    }
+
     const width = rect.width;
     const height = rect.height;
 
@@ -55,11 +72,13 @@ export const TiltCard = ({
   const handleMouseLeave = () => {
     x.set(0);
     y.set(0);
+    rectRef.current = null;
   };
 
   return (
     <motion.div
       ref={ref}
+      onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
