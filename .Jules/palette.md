@@ -43,3 +43,6 @@
 ## 2024-10-29 - Theme Switcher Accessibility
 **Learning:** Icon-only buttons or buttons that hide their text label on smaller viewports (`hidden sm:inline`) lack an accessible name for screen readers on mobile devices.
 **Action:** Always provide an `aria-label` that explicitly describes the button's action (e.g., `aria-label="Giao diện Tối Obsidian"`) if the text label might be visually hidden via responsive CSS classes.
+## 2024-03-24 - Screen Reader Support for Custom Toggle Buttons
+**Learning:** Custom UI toggle groups (like Checklist vs SERP tabs) are not natively announced by screen readers as selectable toggles. Adding `role="group"` to the container and `aria-pressed` to individual buttons makes the interaction model clear and accessible.
+**Action:** Always wrap custom toggle groups in a `div` with `role="group"` + `aria-label`, and add `aria-pressed` along with `type="button"` to the child elements.
