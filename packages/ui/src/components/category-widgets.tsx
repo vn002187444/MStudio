@@ -10,11 +10,7 @@ export interface BenchmarkItem {
   highlight?: boolean;
 }
 
-const DEFAULT_BENCHMARKS: BenchmarkItem[] = [
-  { model: "Claude 3.7 Sonnet (Hybrid)", score: 94.2, tokensPerSec: 135, highlight: true },
-  { model: "GPT-4.5 Ultra", score: 92.8, tokensPerSec: 92 },
-  { model: "Gemini 2.5 Flash Thinking", score: 93.5, tokensPerSec: 185 },
-];
+const DEFAULT_BENCHMARKS: BenchmarkItem[] = [];
 
 export function AIBenchmarkWidget({
   title = "AI Intelligence Index 2026",
@@ -62,7 +58,8 @@ export function AIBenchmarkWidget({
       </div>
 
       <div className="space-y-2.5">
-        {benchmarks.map((item, idx) => (
+        {benchmarks.length > 0 ? (
+          benchmarks.map((item, idx) => (
           <div
             key={idx}
             className={`rounded-xl p-3 transition-all ${
@@ -96,7 +93,13 @@ export function AIBenchmarkWidget({
               />
             </div>
           </div>
-        ))}
+        ))
+        ) : (
+          <div className="py-6 text-center text-xs text-slate-400 [html.light_&]:text-slate-500 flex flex-col items-center justify-center bg-slate-800/20 rounded-xl border border-white/5">
+            <span className="block text-2xl mb-2 opacity-50" aria-hidden="true">📊</span>
+            <span>Hệ thống đang thu thập<br />dữ liệu benchmark mới nhất...</span>
+          </div>
+        )}
       </div>
     </div>
   );

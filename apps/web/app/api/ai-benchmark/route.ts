@@ -7,13 +7,7 @@ export interface BenchmarkItem {
   highlight?: boolean;
 }
 
-const FALLBACK_BENCHMARKS: BenchmarkItem[] = [
-  { model: "Claude 3.7 Sonnet (Hybrid)", score: 94.2, tokensPerSec: 135, highlight: true },
-  { model: "Gemini 2.5 Pro (Ultra Think)", score: 93.8, tokensPerSec: 160 },
-  { model: "GPT-4.5 Ultra / Orion", score: 93.1, tokensPerSec: 98 },
-  { model: "DeepSeek-R1 (Open Reasoning)", score: 92.5, tokensPerSec: 142 },
-  { model: "Llama 3.3 70B Instruct", score: 88.6, tokensPerSec: 190 },
-];
+const FALLBACK_BENCHMARKS: BenchmarkItem[] = [];
 
 export const revalidate = 3600; // Cache for 1 hour
 

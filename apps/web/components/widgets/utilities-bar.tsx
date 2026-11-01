@@ -8,20 +8,17 @@ interface WeatherData {
   city: string;
 }
 
-const TOP_HIGHLIGHTS = [
-  { symbol: "VN-INDEX", val: "1.342,80", chg: "+1.24%", up: true },
-  { symbol: "FPT", val: "142.800₫", chg: "+2.51%", up: true },
-  { symbol: "VCB", val: "94.500₫", chg: "+1.18%", up: true },
-  { symbol: "S&P 500", val: "5.864,20", chg: "+0.45%", up: true },
-  { symbol: "VÀNG SJC", val: "86,5 tr", chg: "-0.23%", up: false },
-  { symbol: "BTC", val: "$81.750", chg: "+2.35%", up: true },
-  { symbol: "ETH", val: "$2.642", chg: "+1.82%", up: true },
-  { symbol: "SOL", val: "$156,80", chg: "+4.21%", up: true },
-];
+interface MarketTicker {
+  symbol: string;
+  name?: string;
+  value: string;
+  change: string;
+  isPositive: boolean;
+}
 
 export function UtilitiesBar() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [btcPrice, setBtcPrice] = useState<string>("81.750");
+  const [tickers, setTickers] = useState<MarketTicker[]>([]);
 
   useEffect(() => {
     // 1. Open-Meteo API
@@ -37,21 +34,19 @@ export function UtilitiesBar() {
       })
       .catch(() => {});
 
-    // 2. Binance Ticker
-    fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT")
-      .then((res) => res.json() as Promise<{ price?: string }>)
+    // 2. Real Live Tickers via /api/market-tickers
+    fetch("/api/market-tickers")
+      .then((res) => res.json() as Promise<{ crypto?: MarketTicker[] }>)
       .then((data) => {
-        if (data.price) {
-          const num = parseFloat(data.price);
-          if (!isNaN(num)) {
-            setBtcPrice(num.toLocaleString("en-US", { maximumFractionDigits: 0 }));
-          }
+        if (data.crypto && data.crypto.length > 0) {
+          setTickers(data.crypto);
         }
       })
       .catch(() => {});
   }, []);
 
-  const marqueeHighlights = [...TOP_HIGHLIGHTS, ...TOP_HIGHLIGHTS];
+  // Double the list for seamless marquee
+  const marqueeHighlights = tickers.length > 0 ? [...tickers, ...tickers] : [];
 
   return (
     <div className="utilities-bar bg-[#07080B]/95 border-b border-white/10 text-xs text-slate-300 py-1.5 px-4 backdrop-blur-md sticky top-0 z-40 transition-colors">
@@ -74,17 +69,19 @@ export function UtilitiesBar() {
 
           {/* 60 FPS Micro Ticker */}
           <div className="relative overflow-hidden flex-1 min-w-[200px] max-w-[560px] hidden md:block">
-            <div className="animate-ticker-60fps flex items-center gap-4 text-[11px] font-mono">
-              {marqueeHighlights.map((m, i) => (
-                <span key={i} className="inline-flex items-center gap-1 shrink-0">
-                  <span className="font-bold text-slate-200">{m.symbol}</span>
-                  <span className="text-slate-400">{m.symbol === "BTC" ? `$${btcPrice}` : m.val}</span>
-                  <span className={`font-semibold ${m.up ? "text-emerald-400" : "text-rose-400"}`}>
-                    {m.chg}
+            {marqueeHighlights.length > 0 && (
+              <div className="animate-ticker-60fps flex items-center gap-4 text-[11px] font-mono">
+                {marqueeHighlights.map((m, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 shrink-0">
+                    <span className="font-bold text-slate-200">{m.symbol}</span>
+                    <span className="text-slate-400">{m.value}</span>
+                    <span className={`font-semibold ${m.isPositive ? "text-emerald-400" : "text-rose-400"}`}>
+                      {m.change}
+                    </span>
                   </span>
-                </span>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

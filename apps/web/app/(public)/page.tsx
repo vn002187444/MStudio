@@ -389,7 +389,7 @@ export default async function PublicHomePage() {
                       <span className="text-[11px] text-emerald-300 font-bold uppercase tracking-widest">
                         Nhịp Đập Kinh Tế
                       </span>
-                      <span className="text-[10px] font-mono text-emerald-400 font-bold">VN-Index +1.2%</span>
+                      
                     </div>
                     <p className="text-xs text-slate-300 leading-relaxed font-normal">
                       Dòng tiền khối ngoại luân chuyển mạnh vào nhóm bán dẫn, hạ tầng số và năng lượng tái tạo chu kỳ mới.
@@ -491,23 +491,7 @@ export default async function PublicHomePage() {
                   </div>
                 </div>
 
-                <hr className="border-white/10" />
 
-                {/* System Specs Status Box */}
-                <div className="system-status-box rounded-2xl p-4 bg-slate-950/60 border border-white/10 text-[11px] font-mono text-slate-400 space-y-2">
-                  <div className="flex justify-between">
-                    <span>Phiên bản:</span>
-                    <span className="text-cyan-400 font-bold">v2.0 Hybrid Glassmorphic</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Độ trễ:</span>
-                    <span className="text-emerald-400 font-bold">&lt; 15ms (Edge)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Kiểm chứng:</span>
-                    <span className="text-white font-bold">100% LLM Automated</span>
-                  </div>
-                </div>
               </div>
             </div>
           </section>
