@@ -498,9 +498,10 @@ export default async function ArticlePage({
                     </span>
                     Tóm tắt cốt lõi
                   </h2>
-                  <p className="text-sm md:text-base text-white [html.light_&]:text-slate-900 leading-relaxed m-0 font-normal whitespace-pre-line">
-                    {article.summary}
-                  </p>
+                  <div 
+                    className="text-sm md:text-base text-white [html.light_&]:text-slate-900 leading-relaxed m-0 font-normal whitespace-pre-line prose prose-sm prose-invert [html.light_&]:prose-slate max-w-none"
+                    dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(article.summary) }} 
+                  />
                 </section>
               )}
 
