@@ -181,6 +181,19 @@ async function fetchRelatedArticles(articleId: string, currentCategory?: string)
   }
 }
 
+function cleanMetaDescription(raw?: string): string {
+  if (!raw) return "";
+  return raw
+    .replace(/\\r\\n/g, " ")
+    .replace(/\\n/g, " ")
+    .replace(/\r?\n/g, " ")
+    .replace(/#{2,4}\s+/g, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -193,7 +206,7 @@ export async function generateMetadata({
   }
 
   const title = article.metaTitle || `${article.title} | MStudio Channel`;
-  const description = article.metaDescription || article.summary || article.title;
+  const description = cleanMetaDescription(article.metaDescription || article.summary || article.title).slice(0, 200);
   const canonical = article.canonicalUrl || `${siteOrigin()}/bai-viet/${article.slug || slug}`;
   const imageUrl = article.ogImageUrl || article.heroImageUrl;
 
@@ -246,6 +259,8 @@ function formatSummaryMarkdown(raw: string): string {
   let text = normalizeArticleText(raw);
   text = text.replace(/^###\s+(.+)$/gm, "<div class='text-sm md:text-base font-bold text-blue-300 [html.light_&]:text-blue-900 mt-4 mb-1.5'>$1</div>");
   text = text.replace(/^##\s+(.+)$/gm, "<div class='text-base md:text-lg font-bold text-blue-200 [html.light_&]:text-blue-950 mt-4 mb-2'>$1</div>");
+  text = text.replace(/\n{2,}/g, "<div class='h-3.5'></div>");
+  text = text.replace(/\n/g, "<br />");
   return formatInlineMarkdown(text);
 }
 
@@ -586,7 +601,7 @@ export default async function ArticlePage({
             newsArticleJsonLd(
               {
                 title: article.title,
-                summary: article.summary,
+                summary: cleanMetaDescription(article.summary || article.title).slice(0, 200),
                 publishedAt: article.createdAt || article.updatedAt || new Date().toISOString(),
                 modifiedAt: article.updatedAt || article.createdAt || new Date().toISOString(),
                 author: article.sources?.[0]?.name || "Ban Biên Tập MStudio",
