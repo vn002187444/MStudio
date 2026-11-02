@@ -47,10 +47,21 @@ export const Hero3D = ({ className }: { className?: string }) => {
     let mouseY = height / 2;
     let isIntersecting = true;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    // Cache absolute document-relative position to prevent layout thrashing on mousemove
+    let cachedX = 0;
+    let cachedY = 0;
+
+    const updateRect = () => {
       const rect = canvas.getBoundingClientRect();
-      mouseX = e.clientX - rect.left;
-      mouseY = e.clientY - rect.top;
+      cachedX = rect.left + window.scrollX;
+      cachedY = rect.top + window.scrollY;
+    };
+
+    updateRect();
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseX = e.pageX - cachedX;
+      mouseY = e.pageY - cachedY;
     };
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -62,6 +73,7 @@ export const Hero3D = ({ className }: { className?: string }) => {
       canvas.width = width;
       canvas.height = height;
       initParticles();
+      updateRect();
     });
     resizeObserver.observe(container);
 
