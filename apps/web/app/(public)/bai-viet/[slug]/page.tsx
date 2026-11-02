@@ -242,6 +242,13 @@ function formatInlineMarkdown(text: string): string {
   return out;
 }
 
+function formatSummaryMarkdown(raw: string): string {
+  let text = normalizeArticleText(raw);
+  text = text.replace(/^###\s+(.+)$/gm, "<div class='text-sm md:text-base font-bold text-blue-300 [html.light_&]:text-blue-900 mt-4 mb-1.5'>$1</div>");
+  text = text.replace(/^##\s+(.+)$/gm, "<div class='text-base md:text-lg font-bold text-blue-200 [html.light_&]:text-blue-950 mt-4 mb-2'>$1</div>");
+  return formatInlineMarkdown(text);
+}
+
 function BodyWithToc({ body }: { body: string }) {
   const cleanBody = normalizeArticleText(body);
   const headings = extractHeadings(cleanBody);
@@ -500,7 +507,7 @@ export default async function ArticlePage({
                   </h2>
                   <div 
                     className="text-sm md:text-base text-white [html.light_&]:text-slate-900 leading-relaxed m-0 font-normal whitespace-pre-line prose prose-sm prose-invert [html.light_&]:prose-slate max-w-none"
-                    dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(article.summary) }} 
+                    dangerouslySetInnerHTML={{ __html: formatSummaryMarkdown(article.summary) }} 
                   />
                 </section>
               )}
