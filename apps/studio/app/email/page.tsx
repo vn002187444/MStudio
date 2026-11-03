@@ -611,6 +611,7 @@ export default function EmailMailboxPage() {
               gap: 4,
             }}
             className={mobileView === "folders" ? "email-col-folders" : "email-col-hidden"}
+            role="group" aria-label="Danh sách thư mục"
           >
             <div
               style={{
@@ -638,6 +639,7 @@ export default function EmailMailboxPage() {
                 <button
                   key={folder.id}
                   type="button"
+                  aria-pressed={isActive}
                   onClick={() => {
                     setActiveFolder(folder.id as MailFolder);
                     setMobileView("master");
@@ -753,11 +755,12 @@ export default function EmailMailboxPage() {
               />
 
               {/* Category Filter Pills */}
-              <div style={{ display: "flex", gap: 6, marginTop: 8, overflowX: "auto", paddingBottom: 2 }}>
+              <div role="group" aria-label="Lọc thư theo chủ đề" style={{ display: "flex", gap: 6, marginTop: 8, overflowX: "auto", paddingBottom: 2 }}>
                 {["all", "Đính chính", "Đóng góp bài", "Phản hồi"].map((cat) => (
                   <button
                     key={cat}
                     type="button"
+                    aria-pressed={categoryFilter === cat}
                     onClick={() => setCategoryFilter(cat)}
                     style={{
                       border: "none",
@@ -839,7 +842,7 @@ export default function EmailMailboxPage() {
                           <span style={{ fontSize: 11, color: "#9ca3af" }}>{mail.timestamp}</span>
                           <button
                             type="button"
-                            aria-label={mail.starred ? "Unstar" : "Star"}
+                            aria-label={mail.starred ? "Bỏ đánh dấu sao" : "Đánh dấu sao"}
                             onClick={(e) => handleToggleStar(mail.id, e)}
                             style={{
                               background: "none",
@@ -1054,7 +1057,7 @@ export default function EmailMailboxPage() {
                       </button>
                       <button
                         type="button"
-                        aria-label={selectedMail.starred ? "Unstar" : "Star"}
+                        aria-label={selectedMail.starred ? "Bỏ đánh dấu sao" : "Đánh dấu sao"}
                         onClick={() => handleToggleStar(selectedMail.id)}
                         style={{
                           background: "#f3f4f6",

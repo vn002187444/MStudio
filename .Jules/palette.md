@@ -50,3 +50,7 @@
 ## 2026-11-01 - Missing ARIA attributes for custom toggle groups (tabs/switchers)
 **Learning:** Custom toggle groups (like market filter tabs or inbox/compose switchers) built with standard `div` and `button` elements lack the semantic structure required for assistive technologies to understand their group context and active state.
 **Action:** Always wrap custom UI toggle groups in a container with `role="group"` and an explicit, localized `aria-label`. Individual toggle buttons must include `type="button"` and `aria-pressed={true/false}` (dynamic based on the active state) to accurately communicate the active selection to screen readers.)
+
+## 2026-11-03 - [Decorative Icons & Toggle Group ARIA Semantics]
+**Learning:** Decorative icons without `aria-hidden="true"` (like 🌤️ or ★) can cause screen readers to announce confusing extraneous information. Also, custom toggle groups (like folder/category switchers) built with standard elements lack the semantic structure required for assistive technologies to understand their group context and active state without `role="group"`, `aria-label`, and `aria-pressed`.
+**Action:** Always add `aria-hidden="true"` to purely decorative SVGs, spans, or icons. Always wrap custom UI toggle groups in a container with `role="group"` and an explicit `aria-label`. Individual toggle buttons must include `aria-pressed={isActive}` to accurately communicate the active selection.
