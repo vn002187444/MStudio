@@ -91,6 +91,21 @@ test("parseEvidenceOutput parses structured output", async () => {
   assert.equal(output.facts[0].sourceRefs[0].sourceId, "raw-1");
   assert.equal(output.claims.length, 1);
   assert.equal(output.claims[0].confidence, 0.7);
+  assert.equal(output.body, undefined);
+});
+
+test("parseEvidenceOutput parses detailed body and headline", async () => {
+  const payload = JSON.stringify({
+    headline: "Thị trường công nghệ bứt phá",
+    summary: "Tóm tắt ngắn gọn 3 câu về sự kiện bứt phá công nghệ.",
+    body: "## Bối cảnh và diễn biến\n\nĐây là nội dung phân tích chi tiết chuyên sâu 500-1000 từ.",
+    facts: [],
+    claims: [],
+  });
+  const output = parseEvidenceOutput(payload);
+  assert.equal(output.headline, "Thị trường công nghệ bứt phá");
+  assert.equal(output.summary, "Tóm tắt ngắn gọn 3 câu về sự kiện bứt phá công nghệ.");
+  assert.equal(output.body, "## Bối cảnh và diễn biến\n\nĐây là nội dung phân tích chi tiết chuyên sâu 500-1000 từ.");
 });
 
 test("parseEvidenceOutput rejects malformed JSON", async () => {

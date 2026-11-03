@@ -352,7 +352,25 @@ function BodyWithToc({ body }: { body: string }) {
 }
 
 function ArticleBody({ body, summary }: { body?: string; summary?: string }) {
-  const cleanBody = normalizeArticleText(body || "");
+  let cleanBody = normalizeArticleText(body || "");
+
+  // Deduplication guard: Loại bỏ phần mở đầu trùng lặp với summary (kể cả bọc trong **)
+  // để độc giả không bị đọc lặp lại nội dung đã có trong box Tóm tắt cốt lõi phía trên
+  if (cleanBody && summary) {
+    const trimmedSummary = summary.trim();
+    const unboldSummary = trimmedSummary.replace(/^\*\*([^*]+)\*\*$/s, "$1").trim();
+
+    if (cleanBody.startsWith(`**${unboldSummary}**`)) {
+      cleanBody = cleanBody.slice(`**${unboldSummary}**`.length).trim();
+    } else if (cleanBody.startsWith(unboldSummary)) {
+      cleanBody = cleanBody.slice(unboldSummary.length).trim();
+    } else if (cleanBody.startsWith(`**${trimmedSummary}**`)) {
+      cleanBody = cleanBody.slice(`**${trimmedSummary}**`.length).trim();
+    } else if (cleanBody.startsWith(trimmedSummary)) {
+      cleanBody = cleanBody.slice(trimmedSummary.length).trim();
+    }
+  }
+
   if (!cleanBody) {
     return (
       <section aria-labelledby="article-body-heading" className="article-body-content my-6">
@@ -360,11 +378,7 @@ function ArticleBody({ body, summary }: { body?: string; summary?: string }) {
           Nội dung bài viết
         </h2>
         <div className="p-6 rounded-2xl bg-slate-800/50 [html.light_&]:bg-slate-50 border border-white/10 [html.light_&]:border-slate-200 text-slate-300 [html.light_&]:text-slate-700 text-base leading-relaxed">
-          {summary ? (
-            <p className="m-0 italic">{summary}</p>
-          ) : (
-            <p className="m-0 italic">Nội dung chi tiết của bài viết đang được đội ngũ biên tập cập nhật.</p>
-          )}
+          <p className="m-0 italic">Nội dung chi tiết của bài viết đang được đội ngũ biên tập cập nhật và hoàn thiện.</p>
         </div>
       </section>
     );

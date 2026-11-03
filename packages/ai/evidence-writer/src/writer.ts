@@ -35,10 +35,11 @@ const SYSTEM_PROMPT = [
   "You are an evidence verification and news synthesis writer for a professional Vietnamese newsroom.",
   "Given a headline and the evidence text collected for that story,",
   "produce a structured verification as strict JSON with this shape:",
-  '{"headline": string, "summary": string, "facts": [{"text": string, "sourceRefs": [{"sourceId": string}]}],',
+  '{"headline": string, "summary": string, "body": string, "facts": [{"text": string, "sourceRefs": [{"sourceId": string}]}],',
   ' "claims": [{"text": string, "sourceRefs": [{"sourceId": string}], "confidence"?: number}]}.',
-  "CRITICAL LANGUAGE RULE: All output fields (headline, summary, facts, claims) MUST be written in natural, fluent, professional Vietnamese (tiếng Việt chuẩn báo chí). If the evidence or headline is in English or any other language, translate, localize, and synthesize it seamlessly into Vietnamese without losing technical accuracy.",
-  "CRITICAL SUMMARY RULE: The 'summary' MUST be an in-depth Executive Summary (Sapo) with a length between 500 and 1000 words. It MUST have a clear, coherent layout with logical paragraphs, naturally incorporating relevant keywords, entities, and industry terms. You may use markdown bold for keywords, bullet points, or short sections. The content MUST deeply cover 3 core pillars: (1) Context & Origin: In-depth analysis of the root causes and conditions leading to the event. (2) Verified Facts & Core Developments: Detailed data, milestones, and official statements confirmed by cited sources. (3) Impact, Trends & Key Takeaways: Assessment of direct and long-term consequences, and lessons for the market/society.",
+  "CRITICAL LANGUAGE RULE: All output fields (headline, summary, body, facts, claims) MUST be written in natural, fluent, professional Vietnamese (tiếng Việt chuẩn báo chí). If the evidence or headline is in English or any other language, translate, localize, and synthesize it seamlessly into Vietnamese without losing technical accuracy.",
+  "CRITICAL SHORT SUMMARY (SAPO) RULE: The 'summary' field is the concise Executive Summary (Sapo) for fast reading, metadata, and highlight cards. It MUST be between 3 and 5 complete sentences (~120 to 250 words) synthesizing: (1) Context & Origin: Root cause and conditions triggering the event. (2) Core Verified Developments: Key verified data points or statements. (3) Impact & Meaning: Direct consequences and takeaways for the market/society. It must be clear, punchy, and professional.",
+  "CRITICAL LONG ARTICLE BODY RULE: The 'body' field is the comprehensive, in-depth article body with a length between 500 and 1000 words. It MUST NOT repeat the 'summary' text verbatim. Instead, it must expand deeply into the subject with rich journalistic analysis, organized into clear markdown sections using H2 headings ('## ...'), logical paragraphs, and bullet points where appropriate. It should cover: in-depth context and root triggers, chronological or topical developments, detailed data and quotes from verified sources, and multidimensional analysis of consequences and future outlook.",
   "Every fact and claim MUST cite only sourceIds that appear in the provided evidence. Do not invent sources. Facts are statements directly supported by evidence; claims are assertions needing verification with a confidence between 0 and 1.",
   "Return JSON only, no prose or markdown fences.",
 ].join(" ");
@@ -138,9 +139,10 @@ export function parseEvidenceOutput(
     throw new WriterValidationError("output.claims must be an array");
   }
   const headline = typeof parsed.headline === "string" && parsed.headline.trim().length > 0 ? parsed.headline.trim() : undefined;
+  const body = typeof parsed.body === "string" && parsed.body.trim().length > 0 ? parsed.body.trim() : undefined;
   const parsedFacts: StructuredFact[] = facts.map(parseStructuredFact);
   const parsedClaims: StructuredClaim[] = claims.map(parseStructuredClaim);
-  return { headline, summary, facts: parsedFacts, claims: parsedClaims };
+  return { headline, summary, body, facts: parsedFacts, claims: parsedClaims };
 }
 
 export function validateSourceRefs(

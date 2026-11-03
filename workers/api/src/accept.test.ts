@@ -535,6 +535,40 @@ test("acceptRawItem uses AI draft when gateway is provided", async () => {
   }
 });
 
+test("acceptRawItem integrates AI long body without repeating summary in article body", async () => {
+  const { db, close } = await openMigratedTestDb();
+  try {
+    const rawItem = await seedRawItem(db);
+    const aiWithBody = JSON.stringify({
+      headline: "Headline AI",
+      summary: "Tóm tắt ngắn gọn 3 câu không bị trùng lặp.",
+      body: "## Bối cảnh và diễn biến chi tiết\n\nNội dung bài viết dài 500-1000 từ phân tích sâu sắc.",
+      facts: [{ text: "Dữ liệu kiểm chứng", sourceRefs: [{ sourceId: "source-1" }] }],
+      claims: [],
+    });
+    const { gateway } = mockGateway([{ kind: "text", text: aiWithBody }]);
+    const result = await acceptRawItem(
+      {
+        db,
+        gateway,
+        actor: "editor-1",
+        now: NOW,
+        logger: createLogger({ environment: "test", logLevel: "error" }),
+      },
+      rawItem,
+    );
+    const revision = await getRevision(db, result.revisionId);
+    assert.equal(revision?.summary, "Tóm tắt ngắn gọn 3 câu không bị trùng lặp.");
+    assert.equal(revision?.body?.includes("## Bối cảnh và diễn biến chi tiết"), true);
+    assert.equal(revision?.body?.includes("Nội dung bài viết dài 500-1000 từ phân tích sâu sắc."), true);
+    assert.equal(revision?.body?.includes("Dữ liệu kiểm chứng"), true);
+    // Xác minh không bị dán đúp summary vào đầu body
+    assert.equal(revision?.body?.startsWith("**Tóm tắt ngắn gọn"), false);
+  } finally {
+    close();
+  }
+});
+
 test("acceptRawItem falls back to raw draft when the model fails", async () => {
   const { db, close } = await openMigratedTestDb();
   try {

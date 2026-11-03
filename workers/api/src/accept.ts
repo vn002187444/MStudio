@@ -332,8 +332,11 @@ function composeAiDraft(
   const title = output.headline?.trim() || fallbackTitle(rawItem, source);
   const parts: string[] = [];
 
-  // Sapo lead paragraph
-  parts.push(`**${output.summary}**`);
+  // Bài viết nội dung dài chuyên sâu (500-1000 từ):
+  // Tuyệt đối không lặp lại output.summary ở đây để tránh trùng lặp với Box Tóm tắt cốt lõi trên UI
+  if (output.body && output.body.trim().length > 0) {
+    parts.push(output.body.trim());
+  }
 
   // Facts section with H2
   if (output.facts.length > 0) {
