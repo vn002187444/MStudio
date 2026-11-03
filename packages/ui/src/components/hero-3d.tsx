@@ -77,13 +77,20 @@ export const Hero3D = ({ className }: { className?: string }) => {
     });
     resizeObserver.observe(container);
 
-    const intersectionObserver = new IntersectionObserver((entries) => {
-      isIntersecting = entries[0].isIntersecting;
-    });
-    intersectionObserver.observe(container);
-
     let animationFrameId: number;
     let time = 0;
+    let isDrawing = false;
+
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      isIntersecting = entries[0].isIntersecting;
+      if (isIntersecting && !isDrawing) {
+        isDrawing = true;
+        animationFrameId = requestAnimationFrame(draw);
+      } else if (!isIntersecting) {
+        isDrawing = false;
+      }
+    });
+    intersectionObserver.observe(container);
 
 
     let isLight =
@@ -107,9 +114,10 @@ export const Hero3D = ({ className }: { className?: string }) => {
     const draw = () => {
 
       if (!isIntersecting) {
-        animationFrameId = requestAnimationFrame(draw);
+        isDrawing = false;
         return;
       }
+      isDrawing = true;
 
       time += 0.01;
 
@@ -119,50 +127,53 @@ export const Hero3D = ({ className }: { className?: string }) => {
       ctx.fillStyle = isLight ? "#F1F5F9" : "#09090D";
       ctx.fillRect(0, 0, width, height);
 
-      // Draw grid lines
+      // Draw grid lines (batched)
       ctx.strokeStyle = isLight ? "rgba(15, 23, 42, 0.06)" : "rgba(255, 255, 255, 0.03)";
       ctx.lineWidth = 1;
-
-      // Horizontal lines
       ctx.beginPath();
       for (let y = 0; y < height; y += spacing) {
         ctx.moveTo(0, y);
         ctx.lineTo(width, y);
       }
-      ctx.stroke();
-
-      // Vertical lines
-      ctx.beginPath();
       for (let x = 0; x < width; x += spacing) {
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
       }
       ctx.stroke();
 
+      // Batch distant particles that share the same base color
+      const baseAlpha = isLight ? 0.15 : 0.1;
+      ctx.fillStyle = isLight ? `rgba(37, 99, 235, ${baseAlpha})` : `rgba(6, 182, 212, ${baseAlpha})`;
+      ctx.beginPath();
+
       particles.forEach((p) => {
         const dx = mouseX - p.baseX;
         const dy = mouseY - p.baseY;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Wave effect
         const wave = Math.sin(p.baseX * 0.01 + time) * Math.cos(p.baseY * 0.01 + time) * 10;
-
-        // Mouse repulsion
         const force = Math.max(0, 150 - distance) / 150;
-        const pushX = dx * force * 0.1;
-        const pushY = dy * force * 0.1;
 
-        p.x = p.baseX - pushX;
-        p.y = p.baseY - pushY + wave;
+        p.x = p.baseX - dx * force * 0.1;
+        p.y = p.baseY - dy * force * 0.1 + wave;
 
-        // Draw particle with theme-aware accent
-        ctx.fillStyle = isLight
-          ? `rgba(37, 99, 235, ${Math.max(0.15, 0.85 - distance / 350)})`
-          : `rgba(6, 182, 212, ${Math.max(0.1, 1 - distance / 300)})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        if (distance > 300) {
+          ctx.moveTo(p.x, p.y);
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        } else {
+          // Dynamic particles draw immediately
+          const activeAlpha = isLight ? Math.max(baseAlpha, 0.85 - distance / 350) : Math.max(baseAlpha, 1 - distance / 300);
+          const currentFill = ctx.fillStyle;
+          ctx.fillStyle = isLight ? `rgba(37, 99, 235, ${activeAlpha})` : `rgba(6, 182, 212, ${activeAlpha})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+          // Restore batch state
+          ctx.fillStyle = currentFill;
+          ctx.beginPath();
+        }
       });
+      ctx.fill();
 
       animationFrameId = requestAnimationFrame(draw);
     };
