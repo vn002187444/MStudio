@@ -1,17 +1,17 @@
 /**
  * API base URL duy nhất cho apps/web (mọi fetch server-side).
- * Dùng custom domain https://api.mstudio.minds.io.vn làm primary URL
- * vì Cloudflare cấm worker -> worker subrequest qua *.workers.dev (lỗi Error Code 1042 / HTTP 404).
+ * Primary: https://api-mstudio.minds.io.vn (BKNS Backend SQLite SSD, zero-latency)
+ * Fallback: https://api.mstudio.minds.io.vn (Cloudflare Worker + D1 backup)
  */
 export function apiBaseUrl(): string {
   if (process.env.MSTUDIO_API_URL) {
     return process.env.MSTUDIO_API_URL;
   }
-  return "https://api.mstudio.minds.io.vn";
+  return "https://api-mstudio.minds.io.vn";
 }
 
 export function apiFallbackUrl(): string {
-  return "https://mstudio-api.vn002187444.workers.dev";
+  return "https://api.mstudio.minds.io.vn";
 }
 
 /**

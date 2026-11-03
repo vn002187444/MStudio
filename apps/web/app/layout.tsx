@@ -22,6 +22,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
 
         {/* Preconnect & DNS-Prefetch for Core Origins */}
+        <link rel="preconnect" href="https://api-mstudio.minds.io.vn" />
+        <link rel="dns-prefetch" href="https://api-mstudio.minds.io.vn" />
         <link rel="preconnect" href="https://api.mstudio.minds.io.vn" />
         <link rel="dns-prefetch" href="https://api.mstudio.minds.io.vn" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
