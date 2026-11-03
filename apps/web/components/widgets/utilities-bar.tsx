@@ -63,7 +63,7 @@ export function UtilitiesBar() {
 
           {weather && (
             <span className="hidden sm:inline-flex items-center gap-1.5 text-slate-300 shrink-0">
-              🌤️ {weather.city}: <strong className="text-slate-100 font-bold">{weather.temp}°C</strong>
+              <span aria-hidden="true">🌤️</span> {weather.city}: <strong className="text-slate-100 font-bold">{weather.temp}°C</strong>
             </span>
           )}
 
@@ -88,7 +88,7 @@ export function UtilitiesBar() {
         {/* Right side: Live Pulse & Theme Switcher */}
         <div className="flex items-center gap-3 shrink-0">
           <span className="text-cyan-400 font-semibold hidden lg:flex items-center gap-1.5 text-[11px]">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span aria-hidden="true" className="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             Trực tiếp 24/7
           </span>
           <ThemeSwitcher />

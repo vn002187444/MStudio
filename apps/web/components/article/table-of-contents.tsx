@@ -45,7 +45,7 @@ export function TableOfContents({
       <div className="rounded-3xl border border-white/10 bg-slate-900/90 [html.light_&]:bg-white/95 [html.light_&]:border-slate-200/80 [html.light_&]:shadow-lg p-5 backdrop-blur-xl shadow-xl">
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10 [html.light_&]:border-slate-200">
           <div className="flex items-center gap-2">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-cyan-400 [html.light_&]:bg-cyan-600" />
+            <span aria-hidden="true" className="flex h-2.5 w-2.5 rounded-full bg-cyan-400 [html.light_&]:bg-cyan-600" />
             <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300 [html.light_&]:text-cyan-700">
               Mục lục nội dung
             </h4>

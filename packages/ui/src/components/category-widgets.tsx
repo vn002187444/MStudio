@@ -380,6 +380,7 @@ export function CrisisTimeline({
         {events.map((ev, idx) => (
           <div key={idx} className="relative group">
             <span
+              aria-hidden="true"
               className={`absolute -left-[11px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-slate-950 [html.light_&]:border-white ${
                 ev.urgency === "critical"
                   ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"
