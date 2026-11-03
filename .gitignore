@@ -14,3 +14,6 @@ qa-audit-report.json
 *_dump.sql
 *.sql.dump
 *.dump
+deploy/bkns-api/data/*.db*
+deploy/bkns-api/tmp/
+
