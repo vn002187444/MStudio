@@ -231,6 +231,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
+              aria-busy={loading}
               className="btn-primary"
               style={{
                 width: "100%",
@@ -240,7 +241,7 @@ export default function LoginPage() {
                 fontWeight: 700,
               }}
             >
-              {loading ? "Đang xác thực…" : "Vào Studio Ngay ➔"}
+              {loading ? "Đang xác thực…" : <>Vào Studio Ngay <span aria-hidden="true">➔</span></>}
             </button>
           </form>
         ) : (
@@ -298,6 +299,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
+              aria-busy={loading}
               className="btn-primary"
               style={{
                 width: "100%",

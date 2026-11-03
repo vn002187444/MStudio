@@ -54,3 +54,7 @@
 ## 2026-11-03 - [Decorative Icons & Toggle Group ARIA Semantics]
 **Learning:** Decorative icons without `aria-hidden="true"` (like 🌤️ or ★) can cause screen readers to announce confusing extraneous information. Also, custom toggle groups (like folder/category switchers) built with standard elements lack the semantic structure required for assistive technologies to understand their group context and active state without `role="group"`, `aria-label`, and `aria-pressed`.
 **Action:** Always add `aria-hidden="true"` to purely decorative SVGs, spans, or icons. Always wrap custom UI toggle groups in a container with `role="group"` and an explicit `aria-label`. Individual toggle buttons must include `aria-pressed={isActive}` to accurately communicate the active selection.
+
+## 2026-11-04 - Improve Loading Button Accessibility in CMS
+**Learning:** Found that some buttons in `apps/studio` lack `aria-busy` while loading, and decorative icons (✓, ✕, →, ⚡, ➔) inside these buttons are missing `aria-hidden="true"`, causing screen readers to read these characters without context or incorrectly handle the loading state.
+**Action:** Added `aria-busy={busy/loading}` to indicate loading state and wrapped decorative symbols with `<span aria-hidden="true">`. Always apply this pattern to loading buttons with text symbols to ensure correct screen reader behavior.

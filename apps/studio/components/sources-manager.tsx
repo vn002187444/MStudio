@@ -252,6 +252,7 @@ export function SourcesManager() {
             type="button"
             onClick={() => void loadData()}
             disabled={loading}
+            aria-busy={loading}
             style={{
               padding: "8px 14px",
               background: "var(--white)",
