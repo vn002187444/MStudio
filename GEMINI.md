@@ -91,3 +91,18 @@ Mọi sản phẩm giao diện do **OpenCode CLI** thực hiện BẮT BUỘC ph
    - Khi một tác vụ hoặc nhánh PR do Jules Cloud thực hiện cần sửa đổi, tinh chỉnh theo kết quả review hoặc sửa lỗi kiểm thử: BẮT BUỘC tiếp tục gửi yêu cầu follow-up trực tiếp trên chính Session ID hiện tại của Jules bằng `jules_send_message`.
    - TUYỆT ĐỐI KHÔNG tự ý tạo phiên mới (`jules_create_session` hay `jules_quick_session`) cho cùng một nhánh đang xử lý, nhằm bảo toàn ngữ cảnh làm việc liên tục, tránh phân mảnh PR trên GitHub và giữ trọn vẹn lịch sử đối thoại của Jules Agent.
 
+
+
+15. **Quy tắc Vận Hành Database & Danh Mục DB Hiện Hữu trên BKNS (BKNS Database Matrix Protocol - BẮT BUỘC):**
+   - **Danh mục Cơ sở Dữ liệu Đang Hoạt Động (Production DB Registry):**
+     * **PostgreSQL:** `mindsiov_autoseo` (User: `mindsiov_admin`, port `5432`) $\rightarrow$ Phục vụ backend **AutoSEO** (`api.autoseo.minds.io.vn`). **TUYỆT ĐỐI KHÔNG XÓA**.
+     * **MySQL:** `mindsiov_bloodwar` (User: `mindsiov_rxsg`, port `3306`, ~84.3 MB) $\rightarrow$ Phục vụ **Webgame Tam Quốc** (`rxsg.minds.io.vn`, `tamquoc.minds.io.vn`). **TUYỆT ĐỐI KHÔNG XÓA**.
+     * **MySQL:** `mindsiov_bkwp` (User: `mindsiov_bkwpu`, ~656 KB) $\rightarrow$ Phục vụ **WordPress Bách Khoa** (`bk.minds.io.vn`).
+     * **Native SQLite SSD:** `deploy/bkns-api/data/mstudio.db` (~18.5 MB, 3,081 bài viết) $\rightarrow$ Phục vụ **MStudio Channel Backend** (`api-mstudio.minds.io.vn`). Chạy qua Node 24 `node:sqlite` (`DatabaseSync`), latency < 1ms, zero network hop.
+     * **Native SQLite SSD:** `data/zaloagents.db` $\rightarrow$ Phục vụ **ZaloAgent** (`zaloagent.minds.io.vn`).
+   - **Khuyến nghị Kiến trúc Backend Node.js mới:**
+     * Ưu tiên số 1: Dùng **Native SQLite trên SSD** (`DatabaseSync` của Node 24 tại `/opt/alt/alt-nodejs24/root/usr/bin/node`). Vừa tiết kiệm 100% RAM nuôi daemon DBMS vừa triệt tiêu nghẽn connection pool.
+     * **Bắt buộc bảo toàn DB khi Deploy:** Khai báo thư mục database vào `shared_dirs` trên VibeCode Deploy (ví dụ: `deploy/bkns-api/data`) để tự động giữ nguyên vẹn file `.db` qua mọi đợt deploy/rollback.
+   - **Quy tắc An Toàn Xóa DB (Zero-Accidental-Loss):**
+     * Máy chủ BKNS chỉ duy trì các DB hợp lệ nêu trên. Các DB rác cũ (`mindsiov_aaa`, `mindsiov_mindsiov_`, `mindsiov_db`) đã được dọn sạch.
+     * Nghiêm cấm tự ý chạy lệnh drop database nếu chưa quét toàn diện `.autodeploy/config.json`, file `.env` và mã nguồn trong `public_html`. Bắt buộc xin xác nhận từ User trước khi xóa.
