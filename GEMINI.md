@@ -106,3 +106,18 @@ Mọi sản phẩm giao diện do **OpenCode CLI** thực hiện BẮT BUỘC ph
    - **Quy tắc An Toàn Xóa DB (Zero-Accidental-Loss):**
      * Máy chủ BKNS chỉ duy trì các DB hợp lệ nêu trên. Các DB rác cũ (`mindsiov_aaa`, `mindsiov_mindsiov_`, `mindsiov_db`) đã được dọn sạch.
      * Nghiêm cấm tự ý chạy lệnh drop database nếu chưa quét toàn diện `.autodeploy/config.json`, file `.env` và mã nguồn trong `public_html`. Bắt buộc xin xác nhận từ User trước khi xóa.
+
+16. **Quy tắc Bảo Vệ Quota Cloudflare D1 & Kiến Trúc Lai (Hybrid Edge + Host Architecture):**
+   - Free tier Cloudflare D1 chỉ có 100,000 write rows/ngày. Tuyệt đối không để background cron jobs cào tin (ingest/normalize) chạy liên tục trên Cloudflare ghi trực tiếp vào D1.
+   - BẮT BUỘC cấu hình `"crons": []` trong toàn bộ `workers/*/wrangler.jsonc` để CI/CD không vô tình bật lại cron trên Cloudflare Workers khi deploy.
+   - Luồng cào tin RSS nặng chuyển hoàn toàn sang BKNS Native SQLite SSD (`deploy/bkns-api/ingest.js` chạy Node 24 `node:sqlite`). Cloudflare D1 đóng vai trò Hot Standby (Disaster Recovery).
+   - Cloudflare Edge Worker (`mstudio`) phụ trách phân phối toàn cầu, SSR và Edge Caching (TTL 60s - 300s).
+
+17. **Quy tắc Đồng Bộ Delta Định Kỳ D1 (Daily D1 Delta Synchronization Protocol):**
+   - Đồng bộ dữ liệu mới từ BKNS sang Cloudflare D1 duy nhất 1 lần/ngày vào lúc 02:00 AM VN (`0 19 * * *`) qua GitHub Actions (`daily-d1-sync.yml`) hoặc script `scripts/sync-bkns-to-d1.mjs`.
+   - Script so sánh `MAX(created_at)` trên D1 với delta trên BKNS (`/api/admin/delta`), chỉ ghi các bản ghi mới theo batch 30 câu lệnh. Nếu không có thay đổi, tiêu tốn đúng 0 write rows (`status: UP_TO_DATE`).
+
+18. **Quy tắc Phân Loại Bot Thông Minh & Chặn Scraper 0.01ms (AI SEO vs Anti-Scraper Gatekeeper):**
+   - Mọi ứng dụng web/API phải phân loại bot tại Edge Middleware (`apps/web/middleware.ts`) và cổng Backend (`deploy/bkns-api/app.js`):
+     * **Mở cửa 200 OK:** Cho phép 100% các bot AI tìm kiếm chính thống (`GPTBot`, `OAI-SearchBot`, `ClaudeBot`, `PerplexityBot`, `Applebot`, `Googlebot`, `Bingbot`), gắn kèm header `X-AI-Bot-Status: allowed-indexer` để đón đầu traffic AI Search / GEO.
+     * **Chặn đứng 403 Forbidden:** Chặn ngay lập tức trong 0.01ms CPU các bot càn quét quá khích (`Reflectionbot`, `Bytespider`, `PetalBot`, `Amazonbot`), không cho request đi vào SSR hay query database.
