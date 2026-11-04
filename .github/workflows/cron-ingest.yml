@@ -1,0 +1,22 @@
+name: Scheduled Ingest Pipeline
+
+on:
+  schedule:
+    # Run every 2 hours at minute 15 (e.g. 0:15, 2:15, 4:15...)
+    - cron: '15 */2 * * *'
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Ingest Pipeline on BKNS Backend
+        run: |
+          echo "Triggering BKNS Ingest API..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" "https://api-mstudio.minds.io.vn/api/admin/ingest?token=mstudio_ingest_secret_2026&maxFeeds=30")
+          echo "$RESPONSE"
+          STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d':' -f2)
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Failed with HTTP $STATUS"
+            exit 1
+          fi
