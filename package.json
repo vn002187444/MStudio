@@ -10,7 +10,8 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "deploy": "pnpm --filter web run deploy"
+    "deploy": "pnpm --filter web run deploy",
+    "sync:d1": "node scripts/sync-bkns-to-d1.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.148.0"

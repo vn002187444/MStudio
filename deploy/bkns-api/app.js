@@ -48,6 +48,52 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // Admin Delta Endpoint for daily D1 sync
+    if (url.pathname === "/api/admin/delta" && method === "GET") {
+      const authHeader = req.headers.authorization || url.searchParams.get("token") || "";
+      const expectedToken = process.env.ADMIN_TOKEN || "mstudio_ingest_secret_2026";
+      const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
+
+      if (token !== expectedToken) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "UNAUTHORIZED", message: "Invalid or missing Bearer token" }));
+        return;
+      }
+
+      const since = url.searchParams.get("since") || "1970-01-01T00:00:00.000Z";
+      const limit = Math.min(Number(url.searchParams.get("limit")) || 300, 1000);
+
+      const articles = sqlite.prepare(
+        "SELECT * FROM articles WHERE created_at > ? ORDER BY created_at ASC LIMIT ?"
+      ).all(since, limit);
+
+      const articleIds = articles.map((a) => a.id);
+      const storyIds = [...new Set(articles.map((a) => a.story_id).filter(Boolean))];
+
+      let stories = [];
+      if (storyIds.length > 0) {
+        const placeholders = storyIds.map(() => "?").join(",");
+        stories = sqlite.prepare(`SELECT * FROM stories WHERE id IN (${placeholders})`).all(...storyIds);
+      }
+
+      let revisions = [];
+      if (articleIds.length > 0) {
+        const placeholders = articleIds.map(() => "?").join(",");
+        revisions = sqlite.prepare(`SELECT * FROM article_revisions WHERE article_id IN (${placeholders})`).all(...articleIds);
+      }
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        ok: true,
+        since,
+        count: articles.length,
+        articles,
+        stories,
+        revisions
+      }));
+      return;
+    }
+
     const headers = new Headers();
     for (const [k, v] of Object.entries(req.headers)) {
       if (Array.isArray(v)) {
