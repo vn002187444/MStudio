@@ -296,6 +296,7 @@ export function AcceptRejectButtons({ rawItemId }: { rawItemId: string }) {
     <span style={{ display: "inline-flex", gap: "6px", alignItems: "center" }}>
       <button
         disabled={busy}
+        aria-busy={busy}
         onClick={() => void decide("accept")}
         type="button"
         style={{
@@ -311,10 +312,11 @@ export function AcceptRejectButtons({ rawItemId }: { rawItemId: string }) {
           boxShadow: "0 1px 2px rgba(37,99,235,0.2)",
         }}
       >
-        ✓ Duyệt bài
+        <span aria-hidden="true">✓</span> Duyệt bài
       </button>
       <button
         disabled={busy}
+        aria-busy={busy}
         onClick={() => void decide("reject")}
         type="button"
         style={{
@@ -329,7 +331,7 @@ export function AcceptRejectButtons({ rawItemId }: { rawItemId: string }) {
           minHeight: "32px",
         }}
       >
-        ✕ Bỏ qua
+        <span aria-hidden="true">✕</span> Bỏ qua
       </button>
       <ActionMessage message={message} />
     </span>
@@ -406,6 +408,7 @@ export function TransitionPublishButtons({
           <button
             key={to}
             disabled={busy}
+            aria-busy={busy}
             onClick={() => void transition(to)}
             type="button"
             style={{
@@ -420,12 +423,13 @@ export function TransitionPublishButtons({
               minHeight: "32px",
             }}
           >
-            → {to}
+            <span aria-hidden="true">→</span> {to}
           </button>
         ))}
       {status === "scheduled" || status === "auto_eligible" || status === "human_review" ? (
         <button
           disabled={busy}
+          aria-busy={busy}
           onClick={() => void publish()}
           type="button"
           style={{
@@ -441,7 +445,7 @@ export function TransitionPublishButtons({
             boxShadow: "0 1px 3px rgba(22,163,74,0.3)",
           }}
         >
-          ⚡ Xuất bản ngay
+          <span aria-hidden="true">⚡</span> Xuất bản ngay
         </button>
       ) : null}
       <ActionMessage message={message} />
