@@ -56,25 +56,30 @@ Trích 8 ý mới (không trùng `PLAN.md`) từ proposal của Jules, đã đ�
 
 # Báo cáo Kiểm toán Hàng ngày & Điều phối Jules Cloud (04-11-2026)
 
-## 1. Kiểm toán Sức khỏe Hệ thống & Edge Workers (Cloudflare Production)
-- **API Worker (`/healthz`):** Status `200 OK` (Environment: `production`).
-- **Studio CMS Worker (`/login`):** Status `200 OK`.
-- **Web Reader Homepage (`/`):** Status `200 OK`, Edge Latency: `1,527ms`.
+## 1. Kiểm toán Hạ tầng Backend & Sức khỏe Dịch vụ (Dual-Hosting Strategy)
+- **Primary API Backend (BKNS Hosting SSD):** `https://api-mstudio.minds.io.vn/healthz` $\rightarrow$ **Status 200 OK** (Hạ tầng Node.js 22 + SQLite D1 Adapter chạy trực tiếp trên SSD, zero subrequest limits, không phụ thuộc Cloudflare Free Tier quota).
+- **Fallback API Worker (Cloudflare D1):** `https://api.mstudio.minds.io.vn/healthz` $\rightarrow$ **Status 200 OK** (`environment: production` - Cơ chế dự phòng an toàn).
+- **Studio CMS Worker:** `https://studio.vn002187444.workers.dev/login` $\rightarrow$ **Status 200 OK**.
+- **Web Reader Edge:** `https://mstudio.vn002187444.workers.dev/` $\rightarrow$ **Status 200 OK**, Edge Latency: `1,527ms`.
 - **Thống kê Tin tức & Bài viết (24h):**
   - Tổng số bài viết đã xuất bản: `50` bài.
   - Số bài mới xuất bản trong 24h qua: `50` bài.
   - Bài viết mới nhất: *"EVNCPC dồn toàn lực hoàn thành các mục tiêu chiến lược năm 2026"* (Publish time: `2026-11-04T01:00:44.580Z`).
 
-## 2. Đo kiểm Hiệu năng & Core Web Vitals (Lighthouse Audit)
+## 2. Đo kiểm Hiệu năng & Kế hoạch Hạ TBT (Lighthouse Audit)
 - **SEO Score:** `100 / 100` ⭐
 - **Accessibility Score:** `96 / 100` ⭐
 - **Performance Score:** `56 / 100`
 - **Core Web Vitals:**
-  - `FCP`: 2.4s
-  - `LCP`: 2.4s
+  - `FCP`: 2.4s | `LCP`: 2.4s
   - `CLS`: 0.083 (Rất tốt, đạt chuẩn Google Green < 0.1)
   - `TTFB`: 630ms
-  - `TBT`: 3,400ms (Đang giao việc cho Jules Bolt xử lý tối ưu hóa client render và memoization).
+  - `TBT (Total Blocking Time)`: 3,400ms $\rightarrow$ **Điểm nghẽn cốt lõi cần giải quyết ở Client-side**.
+- **Kế hoạch Hành động Hạ TBT & Tăng Điểm Performance (Target: ≥ 85/100):**
+  1. **Trì hoãn Canvas Hero3D (`Hero3D Deferral`):** Tách `Hero3D` ra khỏi luồng hydration chính, chỉ kích hoạt animation loop sau khi browser rảnh (`requestIdleCallback`) hoặc khi component trượt vào viewport.
+  2. **Tối ưu hóa Thẻ Tin tức (`NewsCard Memoization`):** Bọc `React.memo` cho `LeadStoryCard`, `CompactNewsCard`, `FeaturedCard` trong `news-card.tsx`; bổ sung `decoding="async"` trên toàn bộ thẻ `<img>`.
+  3. **Tải trễ Widget Nặng Dưới Nếp Gấp (`Lazy Below-the-fold Widgets`):** Ứng dụng `dynamic(..., { ssr: false })` hoặc CSS `content-visibility: auto` cho `AIBenchmarkWidget`, `BentoMarketStrip`, `CrisisTimeline` để giảm tải render ban đầu.
+  4. **Tối ưu Kích thước Bundle Client:** Phân tách vendor chunks (`framework`, `react`, `vinext`) để giảm parse/compile time của JavaScript.
 
 ## 3. Kiểm định Chức năng Tự động (Remote QC/QA Automated Suite)
 - **Tổng số bài test đã chạy:** `107` checks.
@@ -91,8 +96,11 @@ Trích 8 ý mới (không trùng `PLAN.md`) từ proposal của Jules, đã đ�
 ## 5. Tình trạng Điều phối Jules Cloud Agent
 - **PR #60 (Palette - `apps/studio` Accessibility):**
   - Đã audit diff, verify tính tương thích qua `pnpm typecheck` và `pnpm test`.
-  - Đã chuyển từ Draft sang Ready for review và tiến hành **Squash & Merge** thành công vào nhánh `main` trên GitHub.
-  - Đã pull và đồng bộ hóa nhánh `main` xuống git local và git mirror (`D:\MStudio-remote.git`).
+  - **Squash & Merge** thành công vào nhánh `main`.
+- **PR #61 (Palette - `apps/studio` Email Compose ARIA Grouping):**
+  - Đã audit diff, verify tính tương thích.
+  - **Squash & Merge** thành công vào nhánh `main`.
 - **Jules Session `13962887518216700195` (Bolt - Performance Agent):**
-  - Đã phản hồi chỉ đạo kiến trúc trực tiếp qua `jules_send_message` (tuân thủ Rule 6 - tái sử dụng session hiện hữu).
-  - Chỉ thị rõ ràng: Giữ nguyên `Promise.all` categories để tránh category starvation, tập trung tối ưu hóa D1 batching hoặc áp dụng `React.memo` / tối ưu image attributes (`loading="lazy"`, `decoding="async"`) cho `NewsCard` trong `apps/web` nhằm hạ TBT.
+  - Đã tái sử dụng session hiện hữu (tuân thủ Rule 6).
+  - **Điều chỉnh trọng tâm kiến trúc:** Vì backend đã vận hành trên máy chủ BKNS Hosting (không còn lo ngại hạn mức 50 subrequests của Cloudflare D1 Free Tier), nhiệm vụ tiếp theo của Bolt được định hướng tập trung vào **Client-side Performance & TBT reduction** trên `apps/web`.
+  - Bolt đã hoàn thành bước tối ưu hóa ban đầu, test pass và đang tiến hành mở PR.
