@@ -58,3 +58,7 @@
 ## 2026-11-04 - Improve Loading Button Accessibility in CMS
 **Learning:** Found that some buttons in `apps/studio` lack `aria-busy` while loading, and decorative icons (✓, ✕, →, ⚡, ➔) inside these buttons are missing `aria-hidden="true"`, causing screen readers to read these characters without context or incorrectly handle the loading state.
 **Action:** Added `aria-busy={busy/loading}` to indicate loading state and wrapped decorative symbols with `<span aria-hidden="true">`. Always apply this pattern to loading buttons with text symbols to ensure correct screen reader behavior.
+
+## 2026-11-05 - Enhance ARIA Semantics on Custom Form Toggle Groups
+**Learning:** Custom toggle groups used inside forms (such as "Loại thư phát hành" and "Mẫu Email soạn sẵn" in the email compose view) that function like radio groups lack semantic meaning if implemented purely with `<button>` elements. Screen readers won't recognize them as related choices.
+**Action:** Always wrap these custom toggle buttons in a parent `<div role="group" aria-label="...">` and add `aria-pressed={isActive}` on the active `<button>` to communicate the selection clearly to assistive technologies.

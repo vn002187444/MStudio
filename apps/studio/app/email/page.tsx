@@ -662,7 +662,7 @@ export default function EmailMailboxPage() {
                   }}
                 >
                   <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span>{folder.icon}</span>
+                    <span aria-hidden="true">{folder.icon}</span>
                     <span>{folder.label}</span>
                   </span>
                   {typeof folder.count === "number" && (
@@ -1283,7 +1283,7 @@ export default function EmailMailboxPage() {
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, textTransform: "uppercase", marginBottom: 6, color: "#374151" }}>
               Loại thư phát hành:
             </label>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div role="group" aria-label="Loại thư phát hành" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               {[
                 { id: "newsletter", label: "📢 Bản tin Newsletter tuần", desc: "48,250 subscribers" },
                 { id: "article_alert", label: "⚡ Thông báo xuất bản bài mới", desc: "Breaking / Chuyên mục" },
@@ -1292,6 +1292,7 @@ export default function EmailMailboxPage() {
                 <button
                   key={t.id}
                   type="button"
+                  aria-pressed={composeType === t.id}
                   onClick={() => setComposeType(t.id as typeof composeType)}
                   style={{
                     flex: 1,
@@ -1318,9 +1319,10 @@ export default function EmailMailboxPage() {
             <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#64748b" }}>
               Chọn mẫu Email soạn sẵn (Templates):
             </span>
-            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+            <div role="group" aria-label="Chọn mẫu Email soạn sẵn" style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
               <button
                 type="button"
+                aria-pressed={composeTemplate === "briefing"}
                 onClick={() => handleSelectTemplate("briefing")}
                 style={{
                   padding: "5px 12px",
@@ -1337,6 +1339,7 @@ export default function EmailMailboxPage() {
               </button>
               <button
                 type="button"
+                aria-pressed={composeTemplate === "breaking"}
                 onClick={() => handleSelectTemplate("breaking")}
                 style={{
                   padding: "5px 12px",
@@ -1353,6 +1356,7 @@ export default function EmailMailboxPage() {
               </button>
               <button
                 type="button"
+                aria-pressed={composeTemplate === "submission_accept"}
                 onClick={() => handleSelectTemplate("submission_accept")}
                 style={{
                   padding: "5px 12px",
@@ -1500,6 +1504,7 @@ export default function EmailMailboxPage() {
                 className="btn-primary"
                 onClick={handleSendCompose}
                 disabled={composeStatus === "sending"}
+                aria-busy={composeStatus === "sending"}
                 style={{
                   padding: "10px 24px",
                   fontSize: 14,
@@ -1508,7 +1513,7 @@ export default function EmailMailboxPage() {
                   boxShadow: "0 2px 10px rgba(37, 99, 235, 0.3)",
                 }}
               >
-                {composeStatus === "sending" ? "Đang phát hành…" : "🚀 Phát hành Email ngay"}
+                {composeStatus === "sending" ? "Đang phát hành…" : <><span aria-hidden="true">🚀</span> Phát hành Email ngay</>}
               </button>
             </div>
           </div>
