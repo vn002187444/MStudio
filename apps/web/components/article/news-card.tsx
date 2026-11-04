@@ -1,3 +1,4 @@
+import React, { memo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import type { PublishedArticleRecord } from "../../lib/contracts";
@@ -65,7 +66,7 @@ export function getArticleImageUrl(article: PublishedArticleRecord): string {
   return CATEGORY_FALLBACK_IMAGES[category] ?? CATEGORY_FALLBACK_IMAGES["thoi-su"];
 }
 
-export function LeadStoryCard({
+export const LeadStoryCard = memo(function LeadStoryCard({
   article,
   layout = "auto",
   className = "",
@@ -175,9 +176,9 @@ export function LeadStoryCard({
       </div>
     </TiltCard>
   );
-}
+});
 
-export function CompactNewsCard({ article, showThumbnail = true }: { article: PublishedArticleRecord; showThumbnail?: boolean }) {
+export const CompactNewsCard = memo(function CompactNewsCard({ article, showThumbnail = true }: { article: PublishedArticleRecord; showThumbnail?: boolean }) {
   const url = `/bai-viet/${article.slug || article.id}`;
   const categoryLabel = (article.categorySlug && CATEGORY_NAMES[article.categorySlug]) || "Tin tức";
 
@@ -220,15 +221,16 @@ export function CompactNewsCard({ article, showThumbnail = true }: { article: Pu
             src={getArticleImageUrl(article)}
             alt=""
             loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </a>
       )}
     </article>
   );
-}
+});
 
-export function FeaturedCard({ article }: { article: PublishedArticleRecord }) {
+export const FeaturedCard = memo(function FeaturedCard({ article }: { article: PublishedArticleRecord }) {
   const url = `/bai-viet/${article.slug || article.id}`;
   const categoryLabel = (article.categorySlug && CATEGORY_NAMES[article.categorySlug]) || "Tin tức";
 
@@ -240,6 +242,7 @@ export function FeaturedCard({ article }: { article: PublishedArticleRecord }) {
           src={getArticleImageUrl(article)}
           alt=""
           loading="lazy"
+            decoding="async"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90 group-hover:opacity-100"
         />
         {article.isBreaking && (
@@ -273,7 +276,7 @@ export function FeaturedCard({ article }: { article: PublishedArticleRecord }) {
       </div>
     </TiltCard>
   );
-}
+});
 
 export function getCategoryBadgeClass(slug?: string) {
   return "bg-cyan-950/70 text-cyan-300 border-cyan-500/40";
