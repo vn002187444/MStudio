@@ -51,3 +51,48 @@ Trích 8 ý mới (không trùng `PLAN.md`) từ proposal của Jules, đã đ�
 - **G-03 Backlog thiếu Auth/RBAC + category expansion**: QC phát hiện từ trước, `PLAN.md` đã yêu cầu RBAC (mục Security) nhưng chưa có task thực thi. → FU-10, FU-11.
 - **G-04 Scheduler concurrency treo quyết định**: 2 biến thể (`Promise.all` / `allSettled`) đổi hành vi ingest hot path + quota burst risk, chưa merge. Bench file đã lấy vào main. → FU-12.
 - **G-05 Deploy kẹt**: cần CF credentials + `wrangler queue create mstudio-events` + deploy api/analytics + D1 migrations 0001–0006. Chưa có deploy runbook chuẩn. → FU-13, FU-14.
+
+---
+
+# Báo cáo Kiểm toán Hàng ngày & Điều phối Jules Cloud (04-11-2026)
+
+## 1. Kiểm toán Sức khỏe Hệ thống & Edge Workers (Cloudflare Production)
+- **API Worker (`/healthz`):** Status `200 OK` (Environment: `production`).
+- **Studio CMS Worker (`/login`):** Status `200 OK`.
+- **Web Reader Homepage (`/`):** Status `200 OK`, Edge Latency: `1,527ms`.
+- **Thống kê Tin tức & Bài viết (24h):**
+  - Tổng số bài viết đã xuất bản: `50` bài.
+  - Số bài mới xuất bản trong 24h qua: `50` bài.
+  - Bài viết mới nhất: *"EVNCPC dồn toàn lực hoàn thành các mục tiêu chiến lược năm 2026"* (Publish time: `2026-11-04T01:00:44.580Z`).
+
+## 2. Đo kiểm Hiệu năng & Core Web Vitals (Lighthouse Audit)
+- **SEO Score:** `100 / 100` ⭐
+- **Accessibility Score:** `96 / 100` ⭐
+- **Performance Score:** `56 / 100`
+- **Core Web Vitals:**
+  - `FCP`: 2.4s
+  - `LCP`: 2.4s
+  - `CLS`: 0.083 (Rất tốt, đạt chuẩn Google Green < 0.1)
+  - `TTFB`: 630ms
+  - `TBT`: 3,400ms (Đang giao việc cho Jules Bolt xử lý tối ưu hóa client render và memoization).
+
+## 3. Kiểm định Chức năng Tự động (Remote QC/QA Automated Suite)
+- **Tổng số bài test đã chạy:** `107` checks.
+- **Kết quả:** `107 / 107 Passed` (**100% Pass Rate**, 0 Failed, 0 Warnings).
+- **Phạm vi kiểm định:**
+  - 17 Core Routes, Taxonomies & Sitemaps (`/thoi-su`, `/kinh-te`, `/cong-nghe`, `/khoa-hoc`, `/the-thao`, `/the-gioi`, `/doi-song`, `/giai-tri`, `/ai-channel`, `feed.xml`, `robots.txt`, sitemaps).
+  - CMS Redirects (`/cms`, `/admin`, `/studio` -> `302` chuyển hướng bảo mật sang `/login`).
+  - Kiểm định sâu bài viết: Loại bỏ hoàn toàn ký tự thoát thô `\n\n`, chuyển đổi Markdown Heading sang semantic `<h2/h3>`, Table of Contents tự động, Schema `NewsArticle` JSON-LD, thẻ Canonical, OpenGraph và chuẩn WCAG `lang="vi"`.
+
+## 4. Kiểm toán Toàn vẹn Mã nguồn Monorepo
+- **Typecheck (`pnpm -r typecheck`):** Pass 100% (0 lỗi trên toàn bộ 18 workspaces).
+- **Unit & Integration Test Suite (`pnpm -r test`):** Pass 100% (Toàn bộ test suites `contracts`, `db`, `workers/api`, `workers/normalize`, `workers/ingest`, `workers/publish`, `quota-guard`, `model-gateway` đều pass).
+
+## 5. Tình trạng Điều phối Jules Cloud Agent
+- **PR #60 (Palette - `apps/studio` Accessibility):**
+  - Đã audit diff, verify tính tương thích qua `pnpm typecheck` và `pnpm test`.
+  - Đã chuyển từ Draft sang Ready for review và tiến hành **Squash & Merge** thành công vào nhánh `main` trên GitHub.
+  - Đã pull và đồng bộ hóa nhánh `main` xuống git local và git mirror (`D:\MStudio-remote.git`).
+- **Jules Session `13962887518216700195` (Bolt - Performance Agent):**
+  - Đã phản hồi chỉ đạo kiến trúc trực tiếp qua `jules_send_message` (tuân thủ Rule 6 - tái sử dụng session hiện hữu).
+  - Chỉ thị rõ ràng: Giữ nguyên `Promise.all` categories để tránh category starvation, tập trung tối ưu hóa D1 batching hoặc áp dụng `React.memo` / tối ưu image attributes (`loading="lazy"`, `decoding="async"`) cho `NewsCard` trong `apps/web` nhằm hạ TBT.
