@@ -23,8 +23,26 @@ const env = {
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || "",
 };
 
+// 🛑 Abusive scraper bots to block instantly (0.01ms CPU)
+const BLOCKED_BOT_REGEX = /Reflectionbot|Bytespider|PetalBot|Amazonbot/i;
+// 🟢 Legitimate AI Search & SEO Indexers to welcome
+const ALLOWED_AI_SEARCH_BOT_REGEX = /GPTBot|OAI-SearchBot|ClaudeBot|PerplexityBot|Applebot|Googlebot|Bingbot/i;
+
 const server = http.createServer(async (req, res) => {
   try {
+    const userAgent = req.headers["user-agent"] || "";
+
+    // 🛑 Chặn đứng abusive scrapers ngay từ cổng HTTP server (0.01ms CPU, trước SQLite/Worker)
+    if (BLOCKED_BOT_REGEX.test(userAgent)) {
+      res.writeHead(403, {
+        "Content-Type": "text/plain; charset=utf-8",
+        "X-Robots-Tag": "noindex, nofollow",
+        "Connection": "close",
+      });
+      res.end("Access Forbidden: Aggressive scraper bot blocked.");
+      return;
+    }
+
     const host = req.headers.host || "api-mstudio.minds.io.vn";
     const url = new URL(req.url, `https://${host}`);
     const method = req.method;
@@ -114,6 +132,9 @@ const server = http.createServer(async (req, res) => {
     const webRes = await worker.fetch(webReq, env, { waitUntil: () => {} });
 
     const resHeaders = Object.fromEntries(webRes.headers.entries());
+    if (ALLOWED_AI_SEARCH_BOT_REGEX.test(userAgent)) {
+      resHeaders["x-ai-bot-status"] = "allowed-indexer";
+    }
     res.writeHead(webRes.status, resHeaders);
     const resBuffer = await webRes.arrayBuffer();
     res.end(Buffer.from(resBuffer));
