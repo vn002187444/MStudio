@@ -141,10 +141,12 @@ export const Hero3D = ({ className }: { className?: string }) => {
       }
       ctx.stroke();
 
-      // Batch distant particles that share the same base color
+      // Group particles by distance/alpha to minimize draw calls and string allocations
       const baseAlpha = isLight ? 0.15 : 0.1;
-      ctx.fillStyle = isLight ? `rgba(37, 99, 235, ${baseAlpha})` : `rgba(6, 182, 212, ${baseAlpha})`;
-      ctx.beginPath();
+
+      const batches: Record<number, typeof particles> = { 0: [] };
+      // Pre-quantize dynamic alpha levels (0.2 to 0.9 in 0.1 steps)
+      for (let i = 2; i <= 9; i++) batches[i] = [];
 
       particles.forEach((p) => {
         const dx = mouseX - p.baseX;
@@ -158,22 +160,35 @@ export const Hero3D = ({ className }: { className?: string }) => {
         p.y = p.baseY - dy * force * 0.1 + wave;
 
         if (distance > 300) {
-          ctx.moveTo(p.x, p.y);
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          batches[0].push(p);
         } else {
-          // Dynamic particles draw immediately
-          const activeAlpha = isLight ? Math.max(baseAlpha, 0.85 - distance / 350) : Math.max(baseAlpha, 1 - distance / 300);
-          const currentFill = ctx.fillStyle;
-          ctx.fillStyle = isLight ? `rgba(37, 99, 235, ${activeAlpha})` : `rgba(6, 182, 212, ${activeAlpha})`;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fill();
-          // Restore batch state
-          ctx.fillStyle = currentFill;
-          ctx.beginPath();
+          const rawAlpha = isLight ? Math.max(baseAlpha, 0.85 - distance / 350) : Math.max(baseAlpha, 1 - distance / 300);
+          const activeAlphaIndex = Math.min(9, Math.max(2, Math.round(rawAlpha * 10)));
+          batches[activeAlphaIndex].push(p);
         }
       });
+
+      // Draw base batch
+      ctx.fillStyle = isLight ? `rgba(37, 99, 235, ${baseAlpha})` : `rgba(6, 182, 212, ${baseAlpha})`;
+      ctx.beginPath();
+      batches[0].forEach(p => {
+        ctx.moveTo(p.x, p.y);
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      });
       ctx.fill();
+
+      // Draw active batches
+      for (let i = 2; i <= 9; i++) {
+        if (batches[i].length === 0) continue;
+        const alpha = i / 10;
+        ctx.fillStyle = isLight ? `rgba(37, 99, 235, ${alpha})` : `rgba(6, 182, 212, ${alpha})`;
+        ctx.beginPath();
+        batches[i].forEach(p => {
+          ctx.moveTo(p.x, p.y);
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        });
+        ctx.fill();
+      }
 
       animationFrameId = requestAnimationFrame(draw);
     };
