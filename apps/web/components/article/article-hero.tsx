@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { GlassCard, GlassBadge, AmbientGlow } from "@mstudio/ui";
 

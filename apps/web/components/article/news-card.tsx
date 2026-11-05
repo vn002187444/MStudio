@@ -1,3 +1,5 @@
+"use client";
+
 import React, { memo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
