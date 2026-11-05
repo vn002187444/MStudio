@@ -121,3 +121,26 @@ Mọi sản phẩm giao diện do **OpenCode CLI** thực hiện BẮT BUỘC ph
    - Mọi ứng dụng web/API phải phân loại bot tại Edge Middleware (`apps/web/middleware.ts`) và cổng Backend (`deploy/bkns-api/app.js`):
      * **Mở cửa 200 OK:** Cho phép 100% các bot AI tìm kiếm chính thống (`GPTBot`, `OAI-SearchBot`, `ClaudeBot`, `PerplexityBot`, `Applebot`, `Googlebot`, `Bingbot`), gắn kèm header `X-AI-Bot-Status: allowed-indexer` để đón đầu traffic AI Search / GEO.
      * **Chặn đứng 403 Forbidden:** Chặn ngay lập tức trong 0.01ms CPU các bot càn quét quá khích (`Reflectionbot`, `Bytespider`, `PetalBot`, `Amazonbot`), không cho request đi vào SSR hay query database.
+
+19. **Quy tắc React 19 RSC Boundary & Cô Lập Hàm Tiện Ích (RSC Client Boundary Isolation Protocol):**
+   - **Tuyệt đối không import hàm tiện ích / hằng số từ file `"use client"` vào Server Component**: Trong cơ chế bundling của Next.js / `vinext` / Rolldown, mọi export từ file có chỉ thị `"use client"` đều bị compiler chuyển hóa thành *Client Reference Proxy Object* (hoặc ID tham chiếu module). Khi Server Component (RSC) import và gọi hàm thường (ví dụ: `formatRelativeTime(date)` hay `CATEGORY_NAMES[...]`), nó sẽ quăng lỗi ngoại lệ `TypeError: ... is not a function` hoặc làm crash toàn bộ Server Component render gây HTTP 500 (`This page couldn't load`).
+   - **Cô lập tầng tiện ích (Shared Pure Utils)**: Toàn bộ hàm format thời gian, chuẩn hóa chuỗi, từ điển category, và logic fallback ảnh BẮT BUỘC phải đặt trong các file thuần túy không có directive `"use client"` (ví dụ: `apps/web/lib/format.ts`). File Client Component có thể import từ file này hoặc re-export, nhưng Server Component CHỈ ĐƯỢC import từ file thuần túy.
+   - **Bảo vệ toàn diện event handlers**: Mọi JSX component có chứa event handler (`onError`, `onClick`, `onChange`) hoặc React hooks (`useState`, `useEffect`, `useRef`) BẮT BUỘC phải có `"use client";` ở dòng đầu tiên.
+
+20. **Quy tắc Trải Nghiệm Tải Trang & Nút Làm Mới Trực Tiếp (Loading & Error Recovery Protocol):**
+   - Khi ứng dụng web phụ thuộc vào luồng dữ liệu thời gian thực hoặc các subrequests bất đồng bộ, BẮT BUỘC phải triển khai cặp file `loading.tsx` và `error.tsx` ở cấp route group (ví dụ: `app/(public)/loading.tsx` và `app/(public)/error.tsx`).
+   - **Bổ sung nút Tải lại (Reload CTA)**: Trong trạng thái chờ (`loading.tsx`), phải luôn có thanh trạng thái hiển thị thời gian kết nối kèm nút bấm "↻ Tải lại" (cho phép người dùng chủ động refresh `window.location.reload()` thay vì bị động chờ đợi). Trong `error.tsx`, phải cung cấp cả 2 lựa chọn: "Tải lại trang" và "Thử lại (reset boundary)", kèm các đường dẫn nhanh đến các chuyên mục hoạt động bình thường, triệt tiêu hoàn toàn màn hình lỗi 500 mặc định thô kệch.
+
+21. **Quy tắc Xử Lý Ảnh Đa Nguồn & Giải Mã Entity URL Query CDN (CDN Image Sanitization Protocol):**
+   - Nhiều nguồn cấp tin tức (RSS/Atom như Tuổi Trẻ, VNExpress) mã hóa URL query params thành `&amp;` (ví dụ `img.jpg?w=600&amp;token=...`). Nếu render trực tiếp vào `src` của thẻ `<img>`, CDN của nhà cung cấp sẽ coi đó là query sai chữ ký số và trả về lỗi 401/403 khiến ảnh bị vỡ.
+   - BẮT BUỘC phải qua hàm chuẩn hóa `getArticleImageUrl`:
+     * Tự động replace `/&amp;/g` thành `&`.
+     * Tích hợp `onError` tự động fallback về kho ảnh độ phân giải cao theo từng danh mục (`CATEGORY_FALLBACK_IMAGES`), không bao giờ để hiển thị khung ảnh vỡ hoặc ảnh rỗng.
+
+22. **Quy tắc Container Responsive & Bố Cục PC Siêu Rộng (PC Responsive Container Standard):**
+   - Không được hardcode giới hạn chiều rộng nội dung quá nhỏ trên desktop (như `max-w-3xl` / 768px trên các trang feed / danh sách).
+   - Thiết lập CSS Tokens `--container` theo chuẩn PC hiện đại: từ 1480px (1024px) đến 1880px (1920px), tránh double padding (không lồng `px-8`/`px-10` bên trong container đã có `var(--gutter)`), đảm bảo các cột Bento Grid (3-6-3, 4-4-4, 8-4) luôn có không gian thở và tận dụng tối đa bề ngang màn hình PC mà không gây khoảng trắng thừa 2 bên.
+
+23. **Quy tắc Độc Lập Timeout Signal Khi Gọi API Fallback (Resilient API Fetch Protocol):**
+   - Khi cấu hình kiến trúc API có primary và fallback (Edge Worker API vs Host Backend SQLite): TUYỆT ĐỐI KHÔNG tái sử dụng cùng một `AbortSignal` hoặc `init` object cho cả 2 lượt gọi. Khi primary bị timeout sau $N$ ms, signal đã ở trạng thái `aborted`, nếu mang sang fallback sẽ khiến fallback bị ngắt ngay lập tức với `AbortError`.
+   - Mỗi lượt gọi fetch BẮT BUỘC tạo `AbortSignal.timeout(...)` độc lập hoàn toàn, và lớp cuối cùng phải luôn trả về payload JSON mặc định hợp lệ (`{ rows: [], ... }`) với `status: 200` để các Server Components không bao giờ bị crash dây chuyền.
