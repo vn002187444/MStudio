@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { siteOrigin } from "../../../lib/seo";
 import { primaryNav } from "../../../components/navigation/taxonomy";
-import { CATEGORY_FALLBACK_IMAGES, CATEGORY_NAMES, formatRelativeTime } from "../../../components/article/news-card";
+import { CATEGORY_FALLBACK_IMAGES, CATEGORY_NAMES, formatRelativeTime } from "../../../lib/format";
 import { fetchApi } from "../../../lib/api";
 import {
   fetchArticleById,

@@ -4,9 +4,12 @@ import {
   CompactNewsCard,
   FeaturedCard,
   LeadStoryCard,
-  formatRelativeTime,
-  CATEGORY_NAMES,
 } from "../../components/article/news-card";
+import {
+  CATEGORY_NAMES,
+  formatRelativeTime,
+  stripHtml,
+} from "../../lib/format";
 import { StoriesRail } from "../../components/navigation/stories-rail";
 import {
   Hero3D,
@@ -56,21 +59,22 @@ async function fetchCategory(category: string, limit = 4): Promise<PublishedArti
 }
 
 export default async function PublicHomePage() {
-  const [latestData, techArticles, darkArticles, bizArticles] = await Promise.all([
-    fetchLatest(24),
-    fetchCategory("cong-nghe", 4),
-    fetchCategory("goc-toi", 4),
-    fetchCategory("kinh-doanh", 4),
-  ]);
+  try {
+    const [latestData, techArticles, darkArticles, bizArticles] = await Promise.all([
+      fetchLatest(24),
+      fetchCategory("cong-nghe", 4),
+      fetchCategory("goc-toi", 4),
+      fetchCategory("kinh-doanh", 4),
+    ]);
 
-  const articles = latestData.rows;
-  const heroArticle = articles[0];
-  const centerSubArticles = articles.slice(1, 3);
-  const fastStreamArticles = articles.slice(3, 7);
-  const editorialArticles = articles.slice(7, 10);
-  const featuredStrip = articles.slice(10, 14);
-  const mainStream = articles.slice(14);
-  const breakingArticle = articles.find((a) => a.isBreaking);
+    const articles = Array.isArray(latestData?.rows) ? latestData.rows : [];
+    const heroArticle = articles[0];
+    const centerSubArticles = articles.slice(1, 3);
+    const fastStreamArticles = articles.slice(3, 7);
+    const editorialArticles = articles.slice(7, 10);
+    const featuredStrip = articles.slice(10, 14);
+    const mainStream = articles.slice(14);
+    const breakingArticle = articles.find((a) => a?.isBreaking);
 
   return (
     <main className="home-main min-h-screen bg-[#07080B] text-slate-100" id="main-content">
@@ -500,4 +504,46 @@ export default async function PublicHomePage() {
       </div>
     </main>
   );
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error("[PublicHomePage Error]", errorMsg);
+    return (
+      <main className="home-main min-h-screen bg-[#07080B] text-slate-100 flex items-center justify-center p-6" id="main-content">
+        <div className="max-w-lg w-full rounded-3xl border border-white/10 bg-slate-900/90 backdrop-blur-xl p-8 text-center shadow-2xl">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 mb-5">
+            <span className="text-2xl animate-spin">⟳</span>
+          </div>
+          <h1 className="text-2xl font-black text-white mb-2">Đang nạp dữ liệu MStudio Channel</h1>
+          <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+            Hệ thống đang đồng bộ dữ liệu đa nguồn. Nhấn nút bên dưới để tải lại trang.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="/"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all shadow-lg shadow-cyan-500/25 cursor-pointer"
+            >
+              <span>Tải lại trang</span>
+              <span>↻</span>
+            </a>
+            <a
+              href="/dang-nong"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+            >
+              <span>Xem Tin Đang Nóng</span>
+              <span>→</span>
+            </a>
+          </div>
+          <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap justify-center gap-2 text-xs">
+            <a href="/cong-nghe" className="text-slate-400 hover:text-cyan-400">#CôngNghệ</a>
+            <span className="text-slate-600">•</span>
+            <a href="/ai-channel" className="text-slate-400 hover:text-cyan-400">#AIChannel</a>
+            <span className="text-slate-600">•</span>
+            <a href="/kinh-doanh" className="text-slate-400 hover:text-cyan-400">#KinhDoanh</a>
+            <span className="text-slate-600">•</span>
+            <a href="/the-gioi" className="text-slate-400 hover:text-cyan-400">#ThếGiới</a>
+          </div>
+        </div>
+      </main>
+    );
+  }
 }
