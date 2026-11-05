@@ -56,3 +56,6 @@
 ## 2025-10-31 - Frontend TBT Optimization in NewsCard
 **Learning:** React Server Components (like NewsCard) executing frequently on the client due to re-renders or layout shifts cause significant Total Blocking Time (TBT). While React Server Components inherently render on the server, some interactive patterns or client boundaries can cause them to re-evaluate. Additionally, large, unoptimized images block the main thread parsing.
 **Action:** Always memoize reused card components using `React.memo` (converting to client components or using carefully at the boundaries) and apply `decoding="async"` alongside `loading="lazy"` for below-the-fold or non-LCP images to defer image decoding off the main thread.
+## 2026-10-31 - Pre-quantize Canvas Render Strings
+**Learning:** Creating string template literals (`rgba(...)`) inside a high-frequency `requestAnimationFrame` loop creates severe garbage collection pauses and spikes Total Blocking Time (TBT).
+**Action:** Pre-quantize or cache color strings into arrays, or restructure `ctx.beginPath()` / `ctx.fill()` logic so you group particles by alpha level and iterate them instead of recreating `rgba` strings dynamically every frame.
