@@ -6,7 +6,7 @@ export default function ArticleLoading() {
     <main
       aria-busy="true"
       aria-label="Đang tải bài viết"
-      className="min-h-screen bg-[#07080B] text-slate-100 max-w-4xl mx-auto px-4 py-12"
+      className="min-h-screen bg-[#07080B] text-slate-100 max-w-[var(--container)] mx-auto px-4 py-12"
     >
       <div className="h-6 w-32 bg-slate-800/80 rounded-full animate-pulse mb-6" />
       <div className="h-12 w-full bg-slate-800/60 rounded-xl animate-pulse mb-4" />

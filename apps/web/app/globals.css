@@ -804,8 +804,8 @@ h3 {
 
 .article-main {
   margin: 0 auto;
-  max-width: 720px;
-  padding: 24px 16px 48px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .article-hero-slot {
