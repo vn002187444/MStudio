@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { siteOrigin } from "../../../lib/seo";
 import { fetchTrendingArticles } from "../../../lib/content/articles";
 import { CompactNewsCard, LeadStoryCard } from "../../../components/article/news-card";
+import { BentoGrid, BentoCard, AmbientGlow } from "@mstudio/ui";
 
 /**
  * Đang nóng (PLAN public route /dang-nong/) — ranking theo reader events
@@ -14,96 +15,126 @@ export const metadata: Metadata = {
 };
 
 export default async function TrendingPage() {
-  const articles = await fetchTrendingArticles(8);
+  const articles = await fetchTrendingArticles(12);
   const [topArticle, ...restArticles] = articles;
 
   return (
     <main
-      className="home-main min-h-screen bg-[#07080B] text-slate-100 max-w-7xl mx-auto px-4 pt-6 pb-20"
+      className="home-main relative min-h-screen bg-[#07080B] text-slate-100 pt-6 pb-28 overflow-hidden"
       id="main-content"
     >
-      {/* Page Header */}
-      <header className="border-b border-white/10 pb-6 mb-8">
-        <div className="flex items-center gap-2 mb-2">
-          <a href="/" className="text-slate-400 hover:text-white text-xs transition-colors">Trang chủ</a>
-          <span className="text-slate-600 text-xs">/</span>
-          <span className="text-cyan-400 text-xs font-semibold">Đang nóng</span>
-        </div>
-        <h1 className="text-3xl md:text-5xl font-black text-white m-0 mb-3 flex items-center gap-3">
-          Tin tức đang nóng 🔥
-        </h1>
-        <p className="text-slate-300 text-sm md:text-base m-0 max-w-2xl bg-slate-900/90 py-2.5 px-4 rounded-xl border border-white/10 inline-block font-normal">
-          Xếp hạng dựa trên tín hiệu tương tác và lượt đọc thực tế của độc giả — minh bạch và không dùng số liệu mô phỏng.
-        </p>
-      </header>
+      <AmbientGlow color="rgba(244,63,94,0.18)" size={500} className="-top-40 -left-20 pointer-events-none" />
 
-      {articles.length > 0 ? (
-        <div className="grid grid-cols-12 gap-8">
-          {/* Main Content Area */}
-          <div className="col-span-12 max-w-3xl mx-auto w-full">
-            
-            {/* #1 Top Article */}
-            {topArticle ? (
-              <section aria-labelledby="top-1-heading" className="relative mb-10">
-                <h2 id="top-1-heading" className="visually-hidden">Bài viết Top 1</h2>
-                <div
-                  className="absolute -top-3 -left-3 w-12 h-12 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white flex items-center justify-center text-2xl font-black z-20 shadow-xl border-2 border-white/30"
-                  aria-hidden="true"
-                >
-                  1
-                </div>
-                <LeadStoryCard article={topArticle} />
-              </section>
-            ) : null}
-
-            {/* #2 - #8 Articles */}
-            {restArticles.length > 0 ? (
-              <section aria-labelledby="trending-rest-heading">
-                <h2 id="trending-rest-heading" className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-3">
-                  Top được đọc nhiều tiếp theo
-                </h2>
-                <ol className="list-none m-0 p-0 flex flex-col gap-4">
-                  {restArticles.map((article, index) => {
-                    const rank = index + 2;
-                    return (
-                      <li 
-                        key={article.id} 
-                        className="relative bg-slate-900/90 rounded-2xl border border-white/10 p-4 pl-16 shadow-lg hover:border-cyan-500/40 transition-colors"
-                      >
-                        <div
-                          className={`absolute top-1/2 -translate-y-1/2 left-4 w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow ${
-                            rank <= 3
-                              ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-extrabold border border-cyan-400/50 shadow-cyan-500/30"
-                              : "bg-slate-800 text-slate-300 border border-slate-700"
-                          }`}
-                          aria-hidden="true"
-                        >
-                          {rank}
-                        </div>
-                        <CompactNewsCard article={article} />
-                      </li>
-                    );
-                  })}
-                </ol>
-              </section>
-            ) : null}
-
+      <div className="container-content max-w-[var(--container)] mx-auto px-4 relative z-10">
+        {/* Page Header */}
+        <header className="mb-10 rounded-3xl border border-white/10 bg-slate-900/80 p-6 md:p-8 backdrop-blur-2xl shadow-2xl">
+          <div className="flex items-center gap-2 mb-3 text-xs text-slate-400">
+            <a href="/" className="hover:text-white transition-colors">Trang chủ</a>
+            <span>/</span>
+            <span className="text-rose-400 font-bold">Đang nóng</span>
           </div>
-        </div>
-      ) : (
-        <section aria-labelledby="empty-state-heading" className="text-center py-16 px-6 bg-slate-900/90 rounded-2xl border border-white/10 shadow-xl">
-          <h2 id="empty-state-heading" className="visually-hidden">Chưa có bài viết</h2>
-          <p className="text-slate-400 m-0 mb-4 text-base">
-            Chưa đủ tín hiệu đọc để xếp hạng.
+
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <h1 className="text-3xl md:text-5xl font-black text-white m-0 flex items-center gap-3">
+              Tin tức đang nóng 🔥
+            </h1>
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold bg-rose-950/80 border border-rose-500/40 text-rose-300">
+              <span className="h-2 w-2 rounded-full bg-rose-400 animate-pulse" />
+              Tương tác thực tế
+            </span>
+          </div>
+
+          <p className="mt-3 text-sm md:text-base text-slate-300 max-w-2xl leading-relaxed m-0 font-normal">
+            Xếp hạng dựa trên tín hiệu tương tác và lượt đọc thực tế của độc giả — minh bạch và không dùng số liệu mô phỏng.
           </p>
-          <a
-            href="/moi-nhat"
-            className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all"
-          >
-            Xem tin mới nhất
-          </a>
-        </section>
-      )}
+        </header>
+
+        {articles.length > 0 ? (
+          <BentoGrid>
+            {/* Main Column (8 cols): Top Article + List */}
+            <BentoCard colSpan={8} className="p-0 border-none bg-transparent">
+              {/* #1 Top Article */}
+              {topArticle && (
+                <section aria-labelledby="top-1-heading" className="relative mb-8">
+                  <h2 id="top-1-heading" className="visually-hidden">Bài viết Top 1</h2>
+                  <div
+                    className="absolute -top-3 -left-3 w-12 h-12 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white flex items-center justify-center text-2xl font-black z-20 shadow-xl border-2 border-white/30"
+                    aria-hidden="true"
+                  >
+                    1
+                  </div>
+                  <LeadStoryCard article={topArticle} />
+                </section>
+              )}
+
+              {/* Next Articles List */}
+              {restArticles.length > 0 && (
+                <section aria-labelledby="trending-rest-heading" className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 md:p-6 backdrop-blur-xl shadow-xl">
+                  <h2 id="trending-rest-heading" className="text-lg md:text-xl font-bold text-white mb-5 border-b border-white/10 pb-3 flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
+                    Top được đọc nhiều tiếp theo
+                  </h2>
+                  <div className="flex flex-col gap-4">
+                    {restArticles.map((article, index) => {
+                      const rank = index + 2;
+                      return (
+                        <div key={article.id} className="relative pl-6">
+                          <span
+                            aria-hidden="true"
+                            className="absolute left-0 top-4 font-mono font-black text-sm text-slate-500"
+                          >
+                            #{rank}
+                          </span>
+                          <CompactNewsCard article={article} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+            </BentoCard>
+
+            {/* Sidebar Column (4 cols) */}
+            <BentoCard colSpan={4} className="p-0 border-none bg-transparent">
+              <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-6 backdrop-blur-xl shadow-xl space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider mb-2 text-rose-400 flex items-center gap-2">
+                    <span>📊</span> Thuật toán minh bạch
+                  </h3>
+                  <p className="text-xs text-slate-300 leading-relaxed font-normal">
+                    Danh sách xu hướng hoàn toàn không bị thao túng bởi nhà tài trợ. Điểm số bài viết tự động tính toán dựa trên thời gian đọc thực tế và tỷ lệ chia sẻ.
+                  </p>
+                </div>
+                <hr className="border-white/10" />
+                <div>
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 mb-3">
+                    Chuyên mục nóng
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {["/ai-channel", "/cong-nghe", "/kinh-doanh", "/goc-toi"].map((path) => (
+                      <a
+                        key={path}
+                        href={path}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-800 border border-slate-700 text-slate-200 hover:text-white hover:bg-slate-700 transition-colors"
+                      >
+                        {path.replace("/", "#")}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </BentoCard>
+          </BentoGrid>
+        ) : (
+          <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-12 text-center shadow-xl">
+            <div className="text-4xl mb-3">⚡</div>
+            <h3 className="text-base font-bold text-white mb-2">Chưa có đủ tín hiệu xu hướng</h3>
+            <p className="text-xs text-slate-400 max-w-md mx-auto m-0">
+              Hệ thống đang tích lũy số liệu đọc thật trong 24 giờ qua. Bạn có thể xem tin mới tại trang chủ.
+            </p>
+          </div>
+        )}
+      </div>
     </main>
   );
 }

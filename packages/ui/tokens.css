@@ -162,23 +162,23 @@
 /* ── Desktop & Ultra-wide screen expansion (>= 1024px, 1280px, 1536px, 1920px) ── */
 @media (min-width: 1024px) {
   :root {
-    --container: min(100% - 48px, 1440px);
-    --max-content-width: min(100% - 48px, 1440px);
+    --container: min(100% - 32px, 1480px);
+    --max-content-width: min(100% - 32px, 1480px);
   }
 }
 
 @media (min-width: 1280px) {
   :root {
-    --container: min(100% - 64px, 1600px);
-    --max-content-width: min(100% - 64px, 1600px);
+    --container: min(100% - 48px, 1640px);
+    --max-content-width: min(100% - 48px, 1640px);
   }
 }
 
 @media (min-width: 1536px) {
   :root {
-    --container: min(100% - 64px, 1740px);
-    --max-content-width: min(100% - 64px, 1740px);
-    --gutter: 32px;
+    --container: min(100% - 48px, 1780px);
+    --max-content-width: min(100% - 48px, 1780px);
+    --gutter: 28px;
     --bento-padding: 24px;
     --bento-radius-outer: 28px;
     --bento-radius-inner: calc(var(--bento-radius-outer) - var(--bento-padding));
@@ -189,9 +189,9 @@
 
 @media (min-width: 1920px) {
   :root {
-    --container: min(100% - 80px, 1840px);
-    --max-content-width: min(100% - 80px, 1840px);
-    --gutter: 40px;
+    --container: min(100% - 64px, 1880px);
+    --max-content-width: min(100% - 64px, 1880px);
+    --gutter: 32px;
     --bento-padding: 28px;
     --bento-radius-outer: 32px;
     --bento-radius-inner: calc(var(--bento-radius-outer) - var(--bento-padding));

@@ -116,7 +116,7 @@ export default async function PublicHomePage() {
 
       {/* ── 2. Stories Rail 24h for Fast Glance ── */}
       <div className="border-b border-white/10 bg-slate-950/90 backdrop-blur-md">
-        <div className="container-content max-w-[var(--container)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+        <div className="container-content max-w-[var(--container)] mx-auto">
           <StoriesRail articles={articles} />
         </div>
       </div>
@@ -128,7 +128,7 @@ export default async function PublicHomePage() {
         <AmbientGlow color="rgba(6,182,212,0.12)" size={500} className="top-1/3 -right-40 pointer-events-none" />
         <AmbientGlow color="rgba(168,85,247,0.12)" size={550} className="top-2/3 -left-40 pointer-events-none" />
 
-        <div className="container-content w-full max-w-[var(--container)] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10 space-y-12">
+        <div className="container-content w-full relative z-10 space-y-12">
           
           {/* Live Market Ticker Strip (VN30, Global 30, Top 20 Crypto) */}
           <div className="w-full">
