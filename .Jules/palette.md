@@ -62,3 +62,7 @@
 ## 2026-11-05 - Enhance ARIA Semantics on Custom Form Toggle Groups
 **Learning:** Custom toggle groups used inside forms (such as "Loại thư phát hành" and "Mẫu Email soạn sẵn" in the email compose view) that function like radio groups lack semantic meaning if implemented purely with `<button>` elements. Screen readers won't recognize them as related choices.
 **Action:** Always wrap these custom toggle buttons in a parent `<div role="group" aria-label="...">` and add `aria-pressed={isActive}` on the active `<button>` to communicate the selection clearly to assistive technologies.
+
+## 2026-11-06 - Missing Keyboard Focus States on Custom Buttons
+**Learning:** Found that several interactive elements (like the Article Share Bar buttons and Load More button) lacked `focus-visible` styling. Without these classes, users navigating via keyboard (tabbing) get no visual feedback indicating which element currently has focus.
+**Action:** Always add explicit `focus-visible` utility classes (e.g., `focus-visible:ring-2 focus-visible:ring-offset-2`) to custom buttons and links to ensure keyboard accessibility.

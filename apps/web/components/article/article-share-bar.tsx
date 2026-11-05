@@ -29,7 +29,7 @@ export function ArticleShareBar({
           type="button"
           onClick={handleCopy}
           aria-live="polite"
-          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-white [html.light_&]:bg-slate-100 [html.light_&]:hover:bg-slate-200 [html.light_&]:border-slate-300 [html.light_&]:text-slate-800 transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-white [html.light_&]:bg-slate-100 [html.light_&]:hover:bg-slate-200 [html.light_&]:border-slate-300 [html.light_&]:text-slate-800 transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 [html.light_&]:focus-visible:ring-offset-white"
         >
           <span aria-hidden="true" className="text-cyan-400 [html.light_&]:text-blue-600 font-bold">{copied ? "✓" : "🔗"}</span>
           <span>{copied ? "Đã sao chép đường dẫn" : "Sao chép đường dẫn bài viết"}</span>
@@ -39,7 +39,7 @@ export function ArticleShareBar({
           target="_blank"
           rel="noreferrer"
           aria-label="Chia sẻ bài viết lên X (Twitter)"
-          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-white [html.light_&]:bg-slate-100 [html.light_&]:hover:bg-slate-200 [html.light_&]:border-slate-300 [html.light_&]:text-slate-800 transition-all shadow-md active:scale-95 cursor-pointer text-center"
+          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-white [html.light_&]:bg-slate-100 [html.light_&]:hover:bg-slate-200 [html.light_&]:border-slate-300 [html.light_&]:text-slate-800 transition-all shadow-md active:scale-95 cursor-pointer text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 [html.light_&]:focus-visible:ring-offset-white"
         >
           Post X
         </a>
