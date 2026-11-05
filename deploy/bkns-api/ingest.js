@@ -78,17 +78,50 @@ function extractTag(xml, tag) {
   return normalMatch ? normalMatch[1].trim() : null;
 }
 
+const CATEGORY_FALLBACK_IMAGES = {
+  "thoi-su": "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80",
+  "the-gioi": "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=1200&q=80",
+  "kinh-doanh": "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1200&q=80",
+  "kinh-te": "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1200&q=80",
+  "cong-nghe": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+  "ai-channel": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80",
+  "khoa-hoc": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",
+  "kham-pha": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",
+  "giai-tri": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
+  "the-thao": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1200&q=80",
+  "giao-duc": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80",
+  "suc-khoe": "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=1200&q=80",
+  "doi-song": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80",
+  "xe": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80",
+  "goc-toi": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80",
+  "blockchain": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1200&q=80",
+};
+
 function extractImageUrl(block, content) {
+  const sanitize = (raw) => {
+    if (!raw) return null;
+    const clean = decodeEntities(raw).replace(/&amp;/g, "&").trim();
+    return clean.startsWith("http") ? clean : null;
+  };
+
+  const thumbMatch = /<media:thumbnail\b[^>]*url=["']([^"']+)["']/i.exec(block);
+  if (thumbMatch) return sanitize(thumbMatch[1]);
+
   const encMatch = /<enclosure\b[^>]*url=["']([^"']+)["'][^>]*type=["']image\/[^"']+["']/i.exec(block) ||
                    /<enclosure\b[^>]*url=["']([^"']+)["']/i.exec(block);
-  if (encMatch && encMatch[1].startsWith("http")) return encMatch[1];
+  if (encMatch) return sanitize(encMatch[1]);
 
   const mediaMatch = /<media:content\b[^>]*url=["']([^"']+)["']/i.exec(block);
-  if (mediaMatch && mediaMatch[1].startsWith("http")) return mediaMatch[1];
+  if (mediaMatch) return sanitize(mediaMatch[1]);
 
   const imgMatch = /<img\b[^>]*src=["']([^"']+)["']/i.exec(content || "") ||
                    /<img\b[^>]*src=["']([^"']+)["']/i.exec(block);
-  if (imgMatch && imgMatch[1].startsWith("http")) return imgMatch[1];
+  if (imgMatch) return sanitize(imgMatch[1]);
+
+  // Check escaped HTML image
+  const escapedImgMatch = /&lt;img\b[^&]*src=[&"']{1,2}([^&"'\s>]+)/i.exec(content || "") ||
+                          /&lt;img\b[^&]*src=[&"']{1,2}([^&"'\s>]+)/i.exec(block);
+  if (escapedImgMatch) return sanitize(escapedImgMatch[1]);
 
   return null;
 }
@@ -244,7 +277,8 @@ export async function runIngest(options = {}) {
         const revisionId = crypto.randomUUID();
         const publishKey = `${articleId}:${revisionId}`;
         const canonicalUrl = `https://mstudio.minds.io.vn/bai-viet/${slug}`;
-        const heroImage = item.imageUrl || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80";
+        const fallbackImg = CATEGORY_FALLBACK_IMAGES[categorySlug] || CATEGORY_FALLBACK_IMAGES["thoi-su"];
+        const heroImage = item.imageUrl || fallbackImg;
         const bodyContent = `${item.title}\n\n${item.summary}\n\nNguồn: ${feed.source_name} (${item.url})`;
 
         insertStoryStmt.run(storyId, item.title, item.summary, nowIso, nowIso);

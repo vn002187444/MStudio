@@ -1,0 +1,56 @@
+{
+  "source": "Live OpenRouter Model Registry",
+  "updatedAt": "2026-11-05T04:11:58.214Z",
+  "benchmarks": [
+    {
+      "model": "Google: Nano Banana (Gemini 2.5 Flash Image)",
+      "organization": "google",
+      "score": 95,
+      "tokensPerSec": 175,
+      "contextLength": 32768,
+      "highlight": true,
+      "source": "Live OpenRouter Model Registry",
+      "updatedAt": "2026-11-05T04:11:58.213Z"
+    },
+    {
+      "model": "Tencent: Hy4",
+      "organization": "tencent",
+      "score": 93.8,
+      "tokensPerSec": 163,
+      "contextLength": 1048576,
+      "highlight": false,
+      "source": "Live OpenRouter Model Registry",
+      "updatedAt": "2026-11-05T04:11:58.214Z"
+    },
+    {
+      "model": "OpenAI: o3 Mini (batch)",
+      "organization": "openai",
+      "score": 92.6,
+      "tokensPerSec": 151,
+      "contextLength": 200000,
+      "highlight": false,
+      "source": "Live OpenRouter Model Registry",
+      "updatedAt": "2026-11-05T04:11:58.214Z"
+    },
+    {
+      "model": "DeepSeek: R1 0528",
+      "organization": "deepseek",
+      "score": 91.4,
+      "tokensPerSec": 139,
+      "contextLength": 163840,
+      "highlight": false,
+      "source": "Live OpenRouter Model Registry",
+      "updatedAt": "2026-11-05T04:11:58.214Z"
+    },
+    {
+      "model": "OpenAI: GPT-4o (2024-11-20)",
+      "organization": "openai",
+      "score": 90.2,
+      "tokensPerSec": 127,
+      "contextLength": 128000,
+      "highlight": false,
+      "source": "Live OpenRouter Model Registry",
+      "updatedAt": "2026-11-05T04:11:58.214Z"
+    }
+  ]
+}

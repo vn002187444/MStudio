@@ -10,7 +10,13 @@ export interface BenchmarkItem {
   highlight?: boolean;
 }
 
-const DEFAULT_BENCHMARKS: BenchmarkItem[] = [];
+const DEFAULT_BENCHMARKS: BenchmarkItem[] = [
+  { model: "Gemini 2.5 Pro", score: 95.8, tokensPerSec: 145, highlight: true },
+  { model: "Claude 3.7 Sonnet", score: 94.6, tokensPerSec: 120, highlight: false },
+  { model: "OpenAI o3-mini", score: 93.4, tokensPerSec: 168, highlight: false },
+  { model: "DeepSeek R1", score: 92.7, tokensPerSec: 105, highlight: false },
+  { model: "GPT-4o (Omni)", score: 91.2, tokensPerSec: 138, highlight: false },
+];
 
 export function AIBenchmarkWidget({
   title = "AI Intelligence Index 2026",
