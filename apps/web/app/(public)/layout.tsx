@@ -12,8 +12,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <a className="skip-link" href="#main-content">
         Bỏ qua tới nội dung chính
       </a>
-      <SiteHeader />
       <UtilitiesBar />
+      <SiteHeader />
       {children}
       <EditorialFooter />
       <MobileTabBar />

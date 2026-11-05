@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { GlassCard, GlassBadge, AmbientGlow } from "@mstudio/ui";
 
 /**
@@ -28,20 +29,28 @@ function toneIndex(seed: string): number {
 }
 
 export function ArticleHero({ imageUrl, credit, alt, seed }: ArticleHeroProps) {
+  const [hasError, setHasError] = useState(false);
   const gradient = PLACEHOLDER_TONES[toneIndex(seed ?? "mstudio")];
+
+  const sanitizedUrl = imageUrl
+    ? imageUrl.replace(/&amp;/g, "&").trim()
+    : undefined;
+
+  const showImage = Boolean(sanitizedUrl && !hasError);
 
   return (
     <figure className="relative w-full mb-8 rounded-[var(--bento-radius-lg-outer)] overflow-hidden group">
       {/* Background Container */}
       <div className="relative aspect-[16/9] md:aspect-[2/1] w-full overflow-hidden bg-[var(--void-deep)]">
-        {imageUrl ? (
+        {showImage ? (
           <>
             <AmbientGlow color="rgba(255,255,255,0.15)" className="z-10 opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={imageUrl}
+              src={sanitizedUrl}
               alt={alt ?? ""}
               loading="lazy"
+              onError={() => setHasError(true)}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
             />
             {/* Subtle bottom gradient for overlay text visibility if needed */}

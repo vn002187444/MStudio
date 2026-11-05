@@ -140,7 +140,7 @@ export default async function PublicHomePage() {
             <div className="bento-grid-363 items-stretch">
               
               {/* ── Cột 1 (Trái: 3 cols / 25%): Tin nhanh 24/7, AI Benchmark mini ── */}
-              <div className="bento-col-3 bg-slate-900/90 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-xl flex flex-col justify-between space-y-5">
+              <div className="bento-col-3 bg-slate-900/90 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-xl flex flex-col justify-start space-y-6">
                 <div className="space-y-4">
                   {/* Realtime Fast News Stream Header */}
                   <div>
@@ -214,7 +214,7 @@ export default async function PublicHomePage() {
               </div>
 
               {/* ── Cột 3 (Phải: 3 cols / 25%): Tiêu điểm biên tập, Quick tags, Crisis Timeline ── */}
-              <div className="bento-col-3 bg-slate-900/90 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-xl flex flex-col justify-between space-y-5">
+              <div className="bento-col-3 bg-slate-900/90 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-xl flex flex-col justify-start space-y-6">
                 <div>
                   <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
                     <div className="flex items-center gap-2">

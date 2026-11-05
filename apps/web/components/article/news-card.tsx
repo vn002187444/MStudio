@@ -58,12 +58,17 @@ export const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
   blockchain: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1200&q=80",
 };
 
+export function getFallbackImageUrl(categorySlug?: string): string {
+  const category = categorySlug || "thoi-su";
+  return CATEGORY_FALLBACK_IMAGES[category] ?? CATEGORY_FALLBACK_IMAGES["thoi-su"];
+}
+
 export function getArticleImageUrl(article: PublishedArticleRecord): string {
   if (article.heroImageUrl && article.heroImageUrl.trim() !== "") {
-    return article.heroImageUrl;
+    const sanitized = article.heroImageUrl.replace(/&amp;/g, "&").trim();
+    if (sanitized.startsWith("http")) return sanitized;
   }
-  const category = article.categorySlug || "thoi-su";
-  return CATEGORY_FALLBACK_IMAGES[category] ?? CATEGORY_FALLBACK_IMAGES["thoi-su"];
+  return getFallbackImageUrl(article.categorySlug);
 }
 
 export const LeadStoryCard = memo(function LeadStoryCard({
@@ -105,6 +110,12 @@ export const LeadStoryCard = memo(function LeadStoryCard({
           alt=""
           className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-all duration-700 group-hover:scale-105"
           fetchPriority="high"
+          onError={(e) => {
+            const fallback = getFallbackImageUrl(article.categorySlug);
+            if (e.currentTarget.src !== fallback) {
+              e.currentTarget.src = fallback;
+            }
+          }}
         />
 
         {/* Top Badges */}
@@ -178,7 +189,13 @@ export const LeadStoryCard = memo(function LeadStoryCard({
   );
 });
 
-export const CompactNewsCard = memo(function CompactNewsCard({ article, showThumbnail = true }: { article: PublishedArticleRecord; showThumbnail?: boolean }) {
+export const CompactNewsCard = memo(function CompactNewsCard({
+  article,
+  showThumbnail = true,
+}: {
+  article: PublishedArticleRecord;
+  showThumbnail?: boolean;
+}) {
   const url = `/bai-viet/${article.slug || article.id}`;
   const categoryLabel = (article.categorySlug && CATEGORY_NAMES[article.categorySlug]) || "Tin tức";
 
@@ -223,6 +240,12 @@ export const CompactNewsCard = memo(function CompactNewsCard({ article, showThum
             loading="lazy"
             decoding="async"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => {
+              const fallback = getFallbackImageUrl(article.categorySlug);
+              if (e.currentTarget.src !== fallback) {
+                e.currentTarget.src = fallback;
+              }
+            }}
           />
         </a>
       )}
@@ -242,8 +265,14 @@ export const FeaturedCard = memo(function FeaturedCard({ article }: { article: P
           src={getArticleImageUrl(article)}
           alt=""
           loading="lazy"
-            decoding="async"
+          decoding="async"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+          onError={(e) => {
+            const fallback = getFallbackImageUrl(article.categorySlug);
+            if (e.currentTarget.src !== fallback) {
+              e.currentTarget.src = fallback;
+            }
+          }}
         />
         {article.isBreaking && (
           <div className="absolute top-3 left-3">
