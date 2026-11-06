@@ -22,7 +22,7 @@ export const Hero3D = ({ className }: { className?: string }) => {
     canvas.width = width;
     canvas.height = height;
 
-    let particles: { x: number; y: number; baseX: number; baseY: number; size: number }[] = [];
+    let particles: { x: number; y: number; baseX: number; baseY: number; phaseX: number; phaseY: number; size: number }[] = [];
     let spacing = 40;
 
     const initParticles = () => {
@@ -35,6 +35,8 @@ export const Hero3D = ({ className }: { className?: string }) => {
             y,
             baseX: x,
             baseY: y,
+            phaseX: x * 0.01,
+            phaseY: y * 0.01,
             size: Math.random() * 1.5 + 0.5,
           });
         }
@@ -151,17 +153,21 @@ export const Hero3D = ({ className }: { className?: string }) => {
       particles.forEach((p) => {
         const dx = mouseX - p.baseX;
         const dy = mouseY - p.baseY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        const distSq = dx * dx + dy * dy;
 
-        const wave = Math.sin(p.baseX * 0.01 + time) * Math.cos(p.baseY * 0.01 + time) * 10;
-        const force = Math.max(0, 150 - distance) / 150;
+        const wave = Math.sin(p.phaseX + time) * Math.cos(p.phaseY + time) * 10;
 
-        p.x = p.baseX - dx * force * 0.1;
-        p.y = p.baseY - dy * force * 0.1 + wave;
-
-        if (distance > 300) {
+        if (distSq > 90000) {
+          p.x = p.baseX;
+          p.y = p.baseY + wave;
           batches[0].push(p);
         } else {
+          const distance = Math.sqrt(distSq);
+          const force = Math.max(0, 150 - distance) / 150;
+
+          p.x = p.baseX - dx * force * 0.1;
+          p.y = p.baseY - dy * force * 0.1 + wave;
+
           const rawAlpha = isLight ? Math.max(baseAlpha, 0.85 - distance / 350) : Math.max(baseAlpha, 1 - distance / 300);
           const activeAlphaIndex = Math.min(9, Math.max(2, Math.round(rawAlpha * 10)));
           batches[activeAlphaIndex].push(p);

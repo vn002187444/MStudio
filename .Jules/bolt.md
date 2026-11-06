@@ -59,3 +59,7 @@
 ## 2026-10-31 - Pre-quantize Canvas Render Strings
 **Learning:** Creating string template literals (`rgba(...)`) inside a high-frequency `requestAnimationFrame` loop creates severe garbage collection pauses and spikes Total Blocking Time (TBT).
 **Action:** Pre-quantize or cache color strings into arrays, or restructure `ctx.beginPath()` / `ctx.fill()` logic so you group particles by alpha level and iterate them instead of recreating `rgba` strings dynamically every frame.
+
+## 2024-11-02 - Avoid Math.sqrt() in high-frequency animation loops
+**Learning:** Calculating Math.sqrt() for every element in a requestAnimationFrame loop is expensive, especially when most elements are outside the interaction radius and don't require precise distance calculations.
+**Action:** Use squared distance (distSq) to skip Math.sqrt() and complex physics calculations for elements outside the interaction radius.
