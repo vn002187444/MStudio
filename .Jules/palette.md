@@ -67,6 +67,6 @@
 **Learning:** Found that several interactive elements (like the Article Share Bar buttons and Load More button) lacked `focus-visible` styling. Without these classes, users navigating via keyboard (tabbing) get no visual feedback indicating which element currently has focus.
 **Action:** Always add explicit `focus-visible` utility classes (e.g., `focus-visible:ring-2 focus-visible:ring-offset-2`) to custom buttons and links to ensure keyboard accessibility.
 
-## 2024-11-06 - Hidden Decorative Icons in Login
+## 2026-11-06 - Hidden Decorative Icons in Login
 **Learning:** Found that decorative text-based icons (✦) in login pages lacked proper `aria-hidden="true"`, causing screen readers to either ignore them or read out distracting textual approximations without clear context.
 **Action:** Always add `aria-hidden="true"` attributes to these icon-only buttons to clearly state their purpose and wrap the emoji/character symbols in `<span aria-hidden="true">` or just add `aria-hidden="true"` to prevent distracting interruptions for screen reader users. Always apply this pattern to icon-only buttons to ensure they remain accessible without extra visual clutter.
