@@ -108,6 +108,7 @@ export default function LoginPage() {
               fontSize: "24px",
               marginBottom: "12px",
             }}
+            aria-hidden="true"
           >
             ✦
           </div>
@@ -121,6 +122,8 @@ export default function LoginPage() {
 
         {/* Tab selection */}
         <div
+          role="group"
+          aria-label="Login method"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
@@ -137,6 +140,7 @@ export default function LoginPage() {
               setTab("pin");
               setError(null);
             }}
+            aria-pressed={tab === "pin"}
             style={{
               border: "none",
               borderRadius: "8px",
@@ -158,6 +162,7 @@ export default function LoginPage() {
               setTab("email");
               setError(null);
             }}
+            aria-pressed={tab === "email"}
             style={{
               border: "none",
               borderRadius: "8px",
