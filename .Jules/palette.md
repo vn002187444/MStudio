@@ -66,3 +66,7 @@
 ## 2026-11-06 - Missing Keyboard Focus States on Custom Buttons
 **Learning:** Found that several interactive elements (like the Article Share Bar buttons and Load More button) lacked `focus-visible` styling. Without these classes, users navigating via keyboard (tabbing) get no visual feedback indicating which element currently has focus.
 **Action:** Always add explicit `focus-visible` utility classes (e.g., `focus-visible:ring-2 focus-visible:ring-offset-2`) to custom buttons and links to ensure keyboard accessibility.
+
+## 2026-11-07 - Missing Keyboard Focus States on Form Action Buttons
+**Learning:** Found that primary form action buttons (like Submit Search, or Send Contact Message) lacked `focus-visible` styling. Without these classes, users navigating via keyboard (tabbing) get no visual feedback indicating which element currently has focus.
+**Action:** Always add explicit `focus-visible` utility classes (e.g., `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2`) to critical form action buttons to ensure keyboard accessibility and WCAG AA compliance.
