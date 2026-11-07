@@ -26,7 +26,7 @@ export default function PublicError({
     >
       <div className="max-w-md w-full rounded-3xl border border-white/10 bg-slate-900/95 backdrop-blur-2xl p-8 text-center shadow-2xl">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 mb-5">
-          <span className="text-2xl animate-spin">⟳</span>
+          <span className="text-2xl animate-spin" aria-hidden="true">⟳</span>
         </div>
         <h1 className="text-2xl font-black text-white mb-2">Đang nạp dữ liệu MStudio</h1>
         <p className="text-sm text-slate-300 mb-6 leading-relaxed">
@@ -37,15 +37,15 @@ export default function PublicError({
           <button
             type="button"
             onClick={handleReload}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all shadow-lg shadow-cyan-500/25 cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all shadow-lg shadow-cyan-500/25 cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           >
             <span>Tải lại trang</span>
-            <span>↻</span>
+            <span aria-hidden="true">↻</span>
           </button>
           <button
             type="button"
             onClick={() => reset()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           >
             <span>Thử lại</span>
           </button>
