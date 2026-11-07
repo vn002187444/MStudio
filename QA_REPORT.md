@@ -155,3 +155,52 @@ Trích 8 ý mới (không trùng `PLAN.md`) từ proposal của Jules, đã đ�
   - Đã khởi tạo Jules Session `222441582693439308` (`Palette: Micro-UX and Accessibility Improvement Agent`).
   - URL: `https://jules.google.com/session/222441582693439308`.
   - Mục tiêu: Tiếp tục rà soát và nâng cấp các chi tiết Micro-UX / WCAG AA trong `apps/web` và `apps/studio` dưới dạng PR nhỏ gọn (< 50 dòng).
+
+---
+
+# Báo cáo Kiểm toán Hàng ngày & Điều phối Jules Cloud (07-11-2026)
+
+## 1. Kiểm toán Hạ tầng Backend & Sức khỏe Dịch vụ (Dual-Hosting Strategy)
+- **Primary API Backend (BKNS Hosting SSD):** `https://api-mstudio.minds.io.vn/healthz` $\rightarrow$ **Status 200 OK** (Hạ tầng Node.js 24 + SQLite SSD Adapter, zero network hop, latency < 1ms, zero subrequest limits).
+- **Fallback API Worker (Cloudflare D1):** `https://api.mstudio.minds.io.vn/healthz` $\rightarrow$ **Status 200 OK** (`environment: production` - Cơ chế dự phòng an toàn).
+- **Studio CMS Worker:** `https://studio.vn002187444.workers.dev/login` $\rightarrow$ **Status 200 OK**.
+- **Web Reader Edge:** `https://mstudio.vn002187444.workers.dev/` $\rightarrow$ **Status 200 OK**, Edge Latency: `813ms`.
+- **Thống kê Tin tức & Bài viết:**
+  - Tổng số bài viết đang phục vụ: `50` bài trên Worker Edge; `4,648` bài trong Cloudflare D1 Hot Standby; `3,081` bài trên BKNS SQLite SSD.
+  - Bài viết mới nhất: *"Bé gái 3 tuổi tử vong do uống nhầm thuốc diệt chuột"* (`2026-11-04T06:39:28.227Z`).
+
+## 2. Đo kiểm Hiệu năng & Chỉ số Core Web Vitals (Lighthouse Audit)
+- **SEO Score:** `100 / 100` ⭐
+- **Accessibility Score:** `96 / 100` ⭐
+- **Performance Score:** `42 / 100`
+- **Core Web Vitals:**
+  - `FCP`: 1.7s (Đạt chuẩn Google Green < 1.8s, cải thiện từ 1.8s)
+  - `LCP`: 7.5s
+  - `CLS`: 0.082 (Rất tốt, đạt chuẩn Google Green < 0.1)
+  - `TTFB`: 100ms (Cực nhanh, cải thiện từ 520ms xuống 100ms)
+  - `TBT (Total Blocking Time)`: 1,730ms $\rightarrow$ Tiếp tục giảm từ 2,060ms xuống 1,730ms (-16.0% trong ngày, giảm 49.1% so với mốc 3,400ms ban đầu).
+
+## 3. Kiểm định Chức năng Tự động (Remote QC/QA Automated Suite)
+- **Tổng số bài test đã chạy:** `102` checks.
+- **Kết quả:** `102 / 102 Passed` (**100% Pass Rate**, 0 Failed, 5 Warnings do ảnh ngoài CDN VNEcdn trả 401 khi scan máy chủ nhưng client fallback xử lý hoàn hảo).
+- **Phạm vi kiểm định:**
+  - 17 Core Routes, Taxonomies & Sitemaps (`/thoi-su`, `/kinh-te`, `/cong-nghe`, `/khoa-hoc`, `/the-thao`, `/the-gioi`, `/doi-song`, `/giai-tri`, `/ai-channel`, `feed.xml`, `robots.txt`, sitemaps).
+  - CMS Redirects (`/cms`, `/admin`, `/studio` -> `302` chuyển hướng bảo mật sang `/login`).
+  - Toàn vẹn nội dung bài viết: Không chứa `\n\n` thô, không rò rỉ cú pháp `###` trong `<p>`, sinh chuẩn semantic `<h2/h3>`, Table of Contents hoạt động, schema `NewsArticle` JSON-LD, thẻ Canonical, OpenGraph và chuẩn WCAG `lang="vi"`.
+
+## 4. Kiểm toán Toàn vẹn Mã nguồn Monorepo
+- **Typecheck (`pnpm -r typecheck`):** Pass 100% (0 lỗi trên toàn bộ 18 workspaces).
+- **Unit & Integration Test Suite (`pnpm -r test`):** Pass 100% (Toàn bộ 17 workspaces có tests đều pass, trong đó `workers/api` pass 97/97 tests, `packages/contracts` pass 20/20 tests).
+- **AI Ground Truth Sync:** Cập nhật thành công bộ số liệu benchmark trực tiếp 100 mô hình từ LMSYS Chatbot Arena vào `packages/ui/src/data/ai-benchmarks.json`.
+
+## 5. Tình trạng Điều phối Jules Cloud Agent
+- **PR #66 (Palette - `apps/studio` Login Accessibility & ARIA):**
+  - Bổ sung `aria-hidden` cho biểu tượng ngôi sao trang trí, bao bọc nhóm phương thức đăng nhập bằng `role="group"` và thể hiện trạng thái `aria-pressed`.
+  - Đã audit diff, verify tính tương thích qua `pnpm typecheck` và `pnpm test`.
+  - **Squash & Merge** thành công vào nhánh `main`.
+- **Tái sử dụng & Điều phối Jules Session theo Rule 6:**
+  - **Session `14755915426455063149` (Bolt - Performance Optimizer):**
+    - Đã xác nhận PR #65 (Hero3D squared distance optimization) đã được merge vào `main`.
+    - Giao nhiệm vụ tối ưu Client-Side Performance trên `apps/web`: tập trung vào giảm main thread blocking và TBT thông qua memoization, lazy loading và decoding async trên các news card / widgets.
+  - **Session `222441582693439308` (Palette - Micro-UX & Accessibility):**
+    - Đã phê duyệt kế hoạch: bổ sung trạng thái `focus-visible` styling cho các nút tìm kiếm và form liên hệ trong `apps/web/app/(public)/search/page.tsx` và `apps/web/app/(public)/lien-he/contact-form.tsx` để bảo đảm chuẩn WCAG AA khi điều hướng bàn phím.
