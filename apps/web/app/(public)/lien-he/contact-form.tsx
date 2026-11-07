@@ -54,7 +54,7 @@ export function ContactForm() {
             setFormData({ name: "", email: "", phone: "", subject: "Góp ý nội dung", message: "" });
             setStatus("idle");
           }}
-          className="px-6 py-2.5 rounded-xl text-sm font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors"
+          className="px-6 py-2.5 rounded-xl text-sm font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
         >
           Gửi thông điệp khác
         </button>
@@ -168,7 +168,7 @@ export function ContactForm() {
         type="submit"
         disabled={status === "submitting"}
         aria-busy={status === "submitting"}
-        className="inline-flex items-center gap-1.5 px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-lg shadow-blue-500/25 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed self-start"
+        className="inline-flex items-center gap-1.5 px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-lg shadow-blue-500/25 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed self-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
       >
         {status === "submitting" ? "Đang gửi thông điệp..." : <>Gửi thông điệp ngay <span aria-hidden="true">→</span></>}
       </button>
