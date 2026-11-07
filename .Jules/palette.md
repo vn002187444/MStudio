@@ -70,3 +70,6 @@
 ## 2026-11-06 - Hidden Decorative Icons in Login
 **Learning:** Found that decorative text-based icons (✦) in login pages lacked proper `aria-hidden="true"`, causing screen readers to either ignore them or read out distracting textual approximations without clear context.
 **Action:** Always add `aria-hidden="true"` attributes to these icon-only buttons to clearly state their purpose and wrap the emoji/character symbols in `<span aria-hidden="true">` or just add `aria-hidden="true"` to prevent distracting interruptions for screen reader users. Always apply this pattern to icon-only buttons to ensure they remain accessible without extra visual clutter.
+## 2026-10-18 - Decorative symbols and button accessibility
+**Learning:** Decorative symbols like '⟳' and '↻' in error/loading states are announced inconsistently by screen readers. Buttons often lack explicit keyboard focus indicators (`focus-visible`).
+**Action:** Always wrap decorative symbols in `<span aria-hidden="true">` and add `focus-visible:outline-none focus-visible:ring-2 ...` classes to all interactive buttons.
