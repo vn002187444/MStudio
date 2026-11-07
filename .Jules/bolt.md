@@ -63,3 +63,7 @@
 ## 2026-11-05 - Avoid Math.sqrt() in high-frequency animation loops
 **Learning:** Calculating Math.sqrt() for every element in a requestAnimationFrame loop is expensive, especially when most elements are outside the interaction radius and don't require precise distance calculations.
 **Action:** Use squared distance (distSq) to skip Math.sqrt() and complex physics calculations for elements outside the interaction radius.
+
+## 2026-11-06 - Image Decoding Performance Optimization
+**Learning:** High priority, LCP images parsed on the main thread block execution and increase Total Blocking Time (TBT), especially on slower connections or devices.
+**Action:** Consistently apply `decoding="async"` even to high priority (`fetchPriority="high"`) LCP images to allow browsers to decode them off the main thread, lowering TBT while preserving fetch prioritization.

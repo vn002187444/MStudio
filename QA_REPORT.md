@@ -104,3 +104,54 @@ Trích 8 ý mới (không trùng `PLAN.md`) từ proposal của Jules, đã đ�
   - Đã tái sử dụng session hiện hữu (tuân thủ Rule 6).
   - **Điều chỉnh trọng tâm kiến trúc:** Vì backend đã vận hành trên máy chủ BKNS Hosting (không còn lo ngại hạn mức 50 subrequests của Cloudflare D1 Free Tier), nhiệm vụ tiếp theo của Bolt được định hướng tập trung vào **Client-side Performance & TBT reduction** trên `apps/web`.
   - Bolt đã hoàn thành bước tối ưu hóa ban đầu, test pass và đang tiến hành mở PR.
+
+---
+
+# Báo cáo Kiểm toán Hàng ngày & Điều phối Jules Cloud (06-11-2026)
+
+## 1. Kiểm toán Hạ tầng Backend & Sức khỏe Dịch vụ (Dual-Hosting Strategy)
+- **Primary API Backend (BKNS Hosting SSD):** `https://api-mstudio.minds.io.vn/healthz` $\rightarrow$ **Status 200 OK** (Hạ tầng Node.js 24 + SQLite SSD Adapter, zero network hop, latency < 1ms, zero subrequest limits).
+- **Fallback API Worker (Cloudflare D1):** `https://api.mstudio.minds.io.vn/healthz` $\rightarrow$ **Status 200 OK** (`environment: production` - Cơ chế dự phòng an toàn).
+- **Studio CMS Worker:** `https://studio.vn002187444.workers.dev/login` $\rightarrow$ **Status 200 OK**.
+- **Web Reader Edge:** `https://mstudio.vn002187444.workers.dev/` $\rightarrow$ **Status 200 OK**, Edge Latency: `1,246ms`.
+- **Thống kê Tin tức & Bài viết:**
+  - Tổng số bài viết đang phục vụ: `50` bài trên Worker Edge; `4,648` bài trong Cloudflare D1 Hot Standby; `3,081` bài trên BKNS SQLite SSD.
+  - Bài viết mới nhất: *"Airports gear up for the intelligent aviation era"* (`2026-11-04T06:29:55.729Z`).
+  - Daily D1 Delta Backup Sync: GitHub Actions run `42132639822` hoàn thành thành công trong 37s, đồng bộ 500 bài mới nhất sang D1.
+
+## 2. Đo kiểm Hiệu năng & Chỉ số Core Web Vitals (Lighthouse Audit)
+- **SEO Score:** `100 / 100` ⭐
+- **Accessibility Score:** `96 / 100` ⭐
+- **Performance Score:** `42 / 100`
+- **Core Web Vitals:**
+  - `FCP`: 1.8s (Đạt chuẩn Google)
+  - `LCP`: 5.6s
+  - `CLS`: 0.086 (Rất tốt, đạt chuẩn Google Green < 0.1)
+  - `TTFB`: 520ms
+  - `TBT (Total Blocking Time)`: 2,060ms $\rightarrow$ Giảm mạnh từ 3,400ms xuống 2,060ms (-39.4%) nhờ tối ưu hóa batching hạt và pre-quantized colors trong Hero3D.
+
+## 3. Kiểm định Chức năng Tự động (Remote QC/QA Automated Suite)
+- **Tổng số bài test đã chạy:** `104` checks.
+- **Kết quả:** `104 / 104 Passed` (**100% Pass Rate**, 0 Failed, 3 Warnings do ảnh ngoài CDN VNEcdn trả 401 khi scan máy chủ nhưng client fallback xử lý hoàn hảo).
+- **Phạm vi kiểm định:**
+  - 17 Core Routes, Taxonomies & Sitemaps (`/thoi-su`, `/kinh-te`, `/cong-nghe`, `/khoa-hoc`, `/the-thao`, `/the-gioi`, `/doi-song`, `/giai-tri`, `/ai-channel`, `feed.xml`, `robots.txt`, sitemaps).
+  - CMS Redirects (`/cms`, `/admin`, `/studio` -> `302` chuyển hướng bảo mật sang `/login`).
+  - Toàn vẹn nội dung bài viết: Không chứa `\n\n` thô, không rò rỉ cú pháp `###` trong `<p>`, sinh chuẩn semantic `<h2/h3>`, Table of Contents hoạt động, schema `NewsArticle` JSON-LD, thẻ Canonical, OpenGraph và chuẩn WCAG `lang="vi"`.
+
+## 4. Kiểm toán Toàn vẹn Mã nguồn Monorepo
+- **Typecheck (`pnpm -r typecheck`):** Pass 100% (0 lỗi trên toàn bộ 18 workspaces).
+- **Unit & Integration Test Suite (`pnpm -r test`):** Pass 100% (Toàn bộ 17 workspaces có tests đều pass, trong đó `workers/api` pass 97/97 tests).
+- **AI Ground Truth Sync:** Cập nhật thành công bộ số liệu benchmark trực tiếp từ LMSYS Chatbot Arena vào `packages/ui/src/data/ai-benchmarks.json`.
+
+## 5. Tình trạng Điều phối Jules Cloud Agent
+- **PR #64 (Palette - `apps/web` Focus-Visible Accessibility):**
+  - Đã audit diff, verify tính tương thích.
+  - **Squash & Merge** thành công vào nhánh `main`.
+- **PR #65 (Bolt - `packages/ui` Hero3D Squared Distance & Phase Optimization):**
+  - Thay thế `Math.sqrt()` tốn kém bằng `distSq > 90000` (interaction radius), cache `phaseX/phaseY` từ lúc khởi tạo particle.
+  - Đã audit diff, xác thực `typecheck` và `test` pass 100%.
+  - **Squash & Merge** thành công vào nhánh `main`.
+- **Phiên Điều phối Jules Mới (06-11-2026):**
+  - Đã khởi tạo Jules Session `222441582693439308` (`Palette: Micro-UX and Accessibility Improvement Agent`).
+  - URL: `https://jules.google.com/session/222441582693439308`.
+  - Mục tiêu: Tiếp tục rà soát và nâng cấp các chi tiết Micro-UX / WCAG AA trong `apps/web` và `apps/studio` dưới dạng PR nhỏ gọn (< 50 dòng).

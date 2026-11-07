@@ -60,6 +60,7 @@ export const LeadStoryCard = memo(function LeadStoryCard({
           alt=""
           className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-all duration-700 group-hover:scale-105"
           fetchPriority="high"
+          decoding="async"
           onError={(e) => {
             const fallback = getFallbackImageUrl(article.categorySlug);
             if (e.currentTarget.src !== fallback) {
