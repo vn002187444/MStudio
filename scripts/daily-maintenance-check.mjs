@@ -10,23 +10,35 @@
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 
-const API_BASE = 'https://api.mstudio.minds.io.vn';
+const BKNS_API_BASE = 'https://api-mstudio.minds.io.vn';
+const EDGE_API_BASE = 'https://api.mstudio.minds.io.vn';
 const WEB_BASE = 'https://mstudio.vn002187444.workers.dev';
 const STUDIO_BASE = 'https://studio.vn002187444.workers.dev';
 
 async function auditWorkers() {
-  console.log('\n--- 1. AUDITING CLOUDFLARE WORKERS & HEALTH ---');
+  console.log('\n--- 1. AUDITING BACKEND, EDGE WORKERS & HEALTH ---');
   const results = {};
 
-  // Check API healthz
+  // Check BKNS Primary API healthz
   try {
-    const res = await fetch(`${API_BASE}/healthz`, { signal: AbortSignal.timeout(10000) });
+    const res = await fetch(`${BKNS_API_BASE}/healthz`, { signal: AbortSignal.timeout(10000) });
     const data = await res.json();
-    results.apiHealth = { status: res.status, ok: data.ok, env: data.environment };
-    console.log(`✅ [WORKER: API] /healthz -> Status: ${res.status}, Env: ${data.environment}`);
+    results.bknsApiHealth = { status: res.status, ok: data.ok, env: data.environment };
+    console.log(`✅ [PRIMARY: BKNS HOST] /healthz -> Status: ${res.status}, Env: ${data.environment}`);
   } catch (err) {
-    results.apiHealth = { ok: false, error: err.message };
-    console.log(`❌ [WORKER: API] /healthz Failed -> ${err.message}`);
+    results.bknsApiHealth = { ok: false, error: err.message };
+    console.log(`❌ [PRIMARY: BKNS HOST] /healthz Failed -> ${err.message}`);
+  }
+
+  // Check Cloudflare Edge API healthz
+  try {
+    const res = await fetch(`${EDGE_API_BASE}/healthz`, { signal: AbortSignal.timeout(10000) });
+    const data = await res.json();
+    results.edgeApiHealth = { status: res.status, ok: data.ok, env: data.environment };
+    console.log(`✅ [FALLBACK: EDGE WORKER] /healthz -> Status: ${res.status}, Env: ${data.environment}`);
+  } catch (err) {
+    results.edgeApiHealth = { ok: false, error: err.message };
+    console.log(`❌ [FALLBACK: EDGE WORKER] /healthz Failed -> ${err.message}`);
   }
 
   // Check Studio CMS Redirect
@@ -57,14 +69,14 @@ async function auditWorkers() {
 async function auditArticles() {
   console.log('\n--- 2. AUDITING ARTICLES STATS (24H) ---');
   try {
-    const res = await fetch(`${API_BASE}/articles`, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(`${BKNS_API_BASE}/articles`, { signal: AbortSignal.timeout(8000) });
     const data = await res.json();
     const rows = data.rows || [];
     const now = new Date();
     const past24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const recent = rows.filter(a => new Date(a.createdAt || a.updatedAt) >= past24h);
     
-    console.log(`📊 Total Published Articles: ${rows.length}`);
+    console.log(`📊 Total Published Articles (BKNS SSD): ${rows.length}`);
     console.log(`📊 Published in last 24h: ${recent.length}`);
     if (rows.length > 0) {
       console.log(`📰 Latest Article: "${rows[0].title}" (${rows[0].updatedAt || rows[0].createdAt})`);
@@ -120,7 +132,31 @@ async function main() {
 
   const workerStatus = await auditWorkers();
   const articleStats = await auditArticles();
-  const lighthouseStats = await runLighthouseAudit();
+  // If report exists and is recent (< 10 mins), use cached to save CPU/time
+  let lighthouseStats = null;
+  if (fs.existsSync('./lighthouse-daily-report.json')) {
+    const stat = fs.statSync('./lighthouse-daily-report.json');
+    if (Date.now() - stat.mtimeMs < 10 * 60 * 1000) {
+      console.log('\n--- 3. REUSING RECENT LIGHTHOUSE AUDIT REPORT ---');
+      const r = JSON.parse(fs.readFileSync('./lighthouse-daily-report.json', 'utf8'));
+      lighthouseStats = {
+        performance: Math.round(r.categories.performance?.score * 100 || 0),
+        accessibility: Math.round(r.categories.accessibility?.score * 100 || 0),
+        bestPractices: Math.round(r.categories['best-practices']?.score * 100 || 0),
+        seo: Math.round(r.categories.seo?.score * 100 || 0),
+        fcp: r.audits['first-contentful-paint']?.displayValue,
+        lcp: r.audits['largest-contentful-paint']?.displayValue,
+        tbt: r.audits['total-blocking-time']?.displayValue,
+        cls: r.audits['cumulative-layout-shift']?.displayValue,
+        ttfb: r.audits['server-response-time']?.displayValue
+      };
+      console.log(`⭐ Performance: ${lighthouseStats.performance}/100 | Accessibility: ${lighthouseStats.accessibility}/100 | SEO: ${lighthouseStats.seo}/100`);
+      console.log(`⚡ Core Web Vitals: FCP=${lighthouseStats.fcp}, LCP=${lighthouseStats.lcp}, TBT=${lighthouseStats.tbt}, CLS=${lighthouseStats.cls}, TTFB=${lighthouseStats.ttfb}`);
+    }
+  }
+  if (!lighthouseStats) {
+    lighthouseStats = await runLighthouseAudit();
+  }
 
   console.log('\n=================================================');
   console.log('📋 DAILY AUDIT SUMMARY COMPLETE');

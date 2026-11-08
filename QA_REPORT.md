@@ -204,3 +204,54 @@ Trích 8 ý mới (không trùng `PLAN.md`) từ proposal của Jules, đã đ�
     - Giao nhiệm vụ tối ưu Client-Side Performance trên `apps/web`: tập trung vào giảm main thread blocking và TBT thông qua memoization, lazy loading và decoding async trên các news card / widgets.
   - **Session `222441582693439308` (Palette - Micro-UX & Accessibility):**
     - Đã phê duyệt kế hoạch: bổ sung trạng thái `focus-visible` styling cho các nút tìm kiếm và form liên hệ trong `apps/web/app/(public)/search/page.tsx` và `apps/web/app/(public)/lien-he/contact-form.tsx` để bảo đảm chuẩn WCAG AA khi điều hướng bàn phím.
+
+
+---
+
+# Báo cáo Kiểm toán Hàng ngày & Điều phối Jules Cloud (08-11-2026)
+
+## 1. Kiểm toán Hạ tầng Backend & Sức khỏe Dịch vụ (Dual-Hosting Strategy)
+- **Primary API Backend (BKNS Hosting SSD):** `https://api-mstudio.minds.io.vn/healthz` $\rightarrow$ **Status 200 OK** (Hạ tầng Node.js 24 + SQLite SSD Adapter, zero network hop, latency < 1ms, zero subrequest limits).
+- **Fallback API Worker (Cloudflare D1):** `https://api.mstudio.minds.io.vn/healthz` $\rightarrow$ **Status 200 OK** (`environment: production` - Cơ chế dự phòng an toàn).
+- **Studio CMS Worker:** `https://studio.vn002187444.workers.dev/login` $\rightarrow$ **Status 200 OK**.
+- **Web Reader Edge:** `https://mstudio.vn002187444.workers.dev/` $\rightarrow$ **Status 200 OK**, Edge Latency: `507ms` (Tăng tốc đáng kể từ 813ms xuống 507ms).
+- **Thống kê Tin tức & Bài viết (24h Live Feeds):**
+  - Tổng số bài viết đang phục vụ (BKNS SSD): `50` bài.
+  - Số bài mới xuất bản trong 24h qua: `50` bài (Luồng Ingest RSS tự động trên BKNS hoạt động liên tục, cập nhật bài mới theo thời gian thực).
+  - Bài viết mới nhất: *"Dung nhan đời thường của tân Hoa hậu Việt Nam"* (`2026-11-08T01:06:42.494Z`).
+
+## 2. Đo kiểm Hiệu năng & Chỉ số Core Web Vitals (Lighthouse Audit)
+- **SEO Score:** `100 / 100` ⭐
+- **Accessibility Score:** `96 / 100` ⭐
+- **Performance Score:** `53 / 100` (Tăng mạnh từ 42 lên 53 điểm)
+- **Core Web Vitals:**
+  - `FCP`: 1.5s (Đạt chuẩn Google Green < 1.8s, tiếp tục cải thiện từ 1.7s)
+  - `LCP`: 5.2s (Cải thiện từ 7.5s xuống 5.2s)
+  - `CLS`: 0.012 (Xuất sắc, nằm sâu trong vùng Google Green < 0.1)
+  - `TTFB`: 430ms
+  - `TBT (Total Blocking Time)`: 1,020ms $\rightarrow$ Giảm mạnh 41.0% trong ngày (từ 1,730ms xuống 1,020ms) và giảm tổng cộng **70.0%** so với mốc ban đầu (3,400ms) nhờ chuỗi tối ưu của Jules Bolt (async image decoding và document-relative position caching trong TiltCard).
+
+## 3. Kiểm định Chức năng Tự động (Remote QC/QA Automated Suite)
+- **Tổng số bài test đã chạy:** `107` checks.
+- **Kết quả:** `107 / 107 Passed` (**100% Pass Rate**, 0 Failed, 0 Warnings).
+- **Phạm vi kiểm định:**
+  - 17 Core Routes, Taxonomies & Sitemaps (`/thoi-su`, `/kinh-te`, `/cong-nghe`, `/khoa-hoc`, `/the-thao`, `/the-gioi`, `/doi-song`, `/giai-tri`, `/ai-channel`, `feed.xml`, `robots.txt`, sitemaps).
+  - CMS Redirects (`/cms`, `/admin`, `/studio` -> `302` chuyển hướng bảo mật sang `/login`).
+  - Toàn vẹn nội dung bài viết: Không chứa `\n\n` thô, không rò rỉ cú pháp `###` trong `<p>`, sinh chuẩn semantic `<h2/h3>`, Table of Contents hoạt động, schema `NewsArticle` JSON-LD, thẻ Canonical, OpenGraph và chuẩn WCAG `lang="vi"`.
+
+## 4. Kiểm toán Toàn vẹn Mã nguồn Monorepo
+- **Typecheck (`pnpm -r typecheck`):** Pass 100% (0 lỗi trên toàn bộ 18 workspaces).
+- **Unit & Integration Test Suite (`pnpm -r test`):** Pass 100% (Toàn bộ 17 workspaces có tests đều pass, trong đó `workers/api` pass 97/97 tests, `packages/contracts` pass 20/20 tests, `workers/ingest` pass 10/10 tests).
+
+## 5. Tình trạng Điều phối Jules Cloud Agent
+- **PR #68 (Palette - Error Page Keyboard Focus & ARIA):**
+  - Đã audit diff, verify tính tương thích qua `pnpm typecheck` và `pnpm test`.
+  - **Squash & Merge** thành công vào nhánh `main`.
+- **PR #69 (Palette - Search & Contact Form Focus-Visible):**
+  - Cải thiện focus state cho các nút bấm form tìm kiếm và liên hệ.
+  - **Squash & Merge** thành công vào nhánh `main`.
+- **PR #70 (Bolt - Cache Document-Relative Position in TiltCard):**
+  - Caching `left/top` tọa độ tuyệt đối theo trang (`rect.left + window.scrollX`) và sử dụng `e.pageX/e.pageY` trong `onMouseMove`, loại bỏ hoàn toàn layout thrashing (synchronous layout recalculation) khi di chuột.
+  - Đã audit diff, kiểm định không có xung đột (merge-tree sạch), chạy test và typecheck 100% pass.
+  - Đã chuyển từ Draft sang Ready for Review và **Squash & Merge** thành công vào `github/main` (commit `91811a8`).
+  - Đã pull về máy trạm cục bộ và đồng bộ sang remote `origin`.
