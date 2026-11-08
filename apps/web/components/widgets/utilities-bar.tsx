@@ -27,28 +27,32 @@ export function UtilitiesBar() {
       new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
     );
 
-    // 1. Open-Meteo API
-    fetch("https://api.open-meteo.com/v1/forecast?latitude=21.0285&longitude=105.8542&current_weather=true")
-      .then((res) => res.json() as Promise<{ current_weather?: { temperature: number } }>)
-      .then((data) => {
-        if (data.current_weather) {
-          setWeather({
-            city: "Hà Nội",
-            temp: Math.round(data.current_weather.temperature),
-          });
-        }
-      })
-      .catch(() => {});
+        const timer = setTimeout(() => {
+      // 1. Open-Meteo API
+      fetch("https://api.open-meteo.com/v1/forecast?latitude=21.0285&longitude=105.8542&current_weather=true")
+        .then((res) => res.json() as Promise<{ current_weather?: { temperature: number } }>)
+        .then((data) => {
+          if (data.current_weather) {
+            setWeather({
+              city: "Hà Nội",
+              temp: Math.round(data.current_weather.temperature),
+            });
+          }
+        })
+        .catch(() => {});
 
-    // 2. Real Live Tickers via /api/market-tickers
-    fetch("/api/market-tickers")
-      .then((res) => res.json() as Promise<{ crypto?: MarketTicker[] }>)
-      .then((data) => {
-        if (data.crypto && data.crypto.length > 0) {
-          setTickers(data.crypto);
-        }
-      })
-      .catch(() => {});
+      // 2. Real Live Tickers via /api/market-tickers
+      fetch("/api/market-tickers")
+        .then((res) => res.json() as Promise<{ crypto?: MarketTicker[] }>)
+        .then((data) => {
+          if (data.crypto && data.crypto.length > 0) {
+            setTickers(data.crypto);
+          }
+        })
+        .catch(() => {});
+    }, 1200);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleRefresh = useCallback(() => {

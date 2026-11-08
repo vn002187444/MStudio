@@ -32,17 +32,20 @@ export function AIBenchmarkWidget({
 
   React.useEffect(() => {
     let isMounted = true;
-    fetch("/api/ai-benchmark")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (isMounted && data?.benchmarks?.length) {
-          setBenchmarks(data.benchmarks);
-          if (data.source) setSourceLabel(data.source);
-        }
-      })
-      .catch(() => {});
+    const timer = setTimeout(() => {
+      fetch("/api/ai-benchmark")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (isMounted && data?.benchmarks?.length) {
+            setBenchmarks(data.benchmarks);
+            if (data.source) setSourceLabel(data.source);
+          }
+        })
+        .catch(() => {});
+    }, 1500);
     return () => {
       isMounted = false;
+      clearTimeout(timer);
     };
   }, []);
 
@@ -223,16 +226,19 @@ export function BentoMarketStrip({
 
   React.useEffect(() => {
     let isMounted = true;
-    fetch("/api/market-tickers")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (isMounted && data?.crypto?.length) {
-          setCryptoList(data.crypto);
-        }
-      })
-      .catch(() => {});
+    const timer = setTimeout(() => {
+      fetch("/api/market-tickers")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (isMounted && data?.crypto?.length) {
+            setCryptoList(data.crypto);
+          }
+        })
+        .catch(() => {});
+    }, 1500);
     return () => {
       isMounted = false;
+      clearTimeout(timer);
     };
   }, []);
 

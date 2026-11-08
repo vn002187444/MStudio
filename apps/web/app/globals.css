@@ -1674,8 +1674,3 @@ html.light .editorial-footer .footer-bottom {
 }
 
 
-/* ── High-Performance Viewport Containment (Sub-50ms Layout) ── */
-.cv-auto {
-  content-visibility: auto;
-  contain-intrinsic-size: 1px 700px;
-}
