@@ -3,7 +3,7 @@ import { bindings, defineConfig, defineWorker } from "cf/config";
 export default defineConfig({
   worker: defineWorker({
     name: process.env.CLOUDFLARE_WORKER_NAME || process.env.WORKER_NAME || "mstudio",
-    entrypoint: "vinext/server/fetch-handler",
+    entrypoint: "./entry.ts",
     // Pinned below generator default (today): bundled workerd supports max 2026-10-07.
     compatibilityDate: "2026-10-07",
     compatibilityFlags: ["nodejs_compat"],
