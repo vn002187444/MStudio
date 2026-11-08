@@ -14,11 +14,15 @@ export const Hero3D = ({ className }: { className?: string }) => {
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+    let width = container.clientWidth;
+    let height = container.clientHeight;
+
+    // Mobile / Touch devices: keep instant CSS gradient and eliminate canvas main-thread blocking
+    if (width < 768 || window.matchMedia("(pointer: coarse)").matches) return;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let width = container.clientWidth;
-    let height = container.clientHeight;
     canvas.width = width;
     canvas.height = height;
 

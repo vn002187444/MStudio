@@ -1673,3 +1673,9 @@ html.light .editorial-footer .footer-bottom {
   .bento-col-12 { grid-column: span 12 / span 12 !important; }
 }
 
+
+/* ── High-Performance Viewport Containment (Sub-50ms Layout) ── */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 700px;
+}

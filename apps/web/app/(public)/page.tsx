@@ -22,7 +22,7 @@ import {
 } from "@mstudio/ui";
 import { HomeStreamClient } from "../../components/widgets/home-stream";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface ArticlesResponse {
   rows: PublishedArticleRecord[];
@@ -32,7 +32,7 @@ interface ArticlesResponse {
 async function fetchLatest(limit = 24): Promise<{ rows: PublishedArticleRecord[]; nextCursor?: { createdAt: string; id: string } }> {
   try {
     const response = await fetchApi(`/articles?limit=${limit}`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
     if (!response.ok) return { rows: [] };
     const payload = (await response.json()) as ArticlesResponse;
@@ -48,7 +48,7 @@ async function fetchLatest(limit = 24): Promise<{ rows: PublishedArticleRecord[]
 async function fetchCategory(category: string, limit = 4): Promise<PublishedArticleRecord[]> {
   try {
     const response = await fetchApi(`/articles?category=${encodeURIComponent(category)}&limit=${limit}`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
     if (!response.ok) return [];
     const payload = (await response.json()) as ArticlesResponse;
@@ -135,12 +135,12 @@ export default async function PublicHomePage() {
         <div className="container-content w-full relative z-10 space-y-12">
           
           {/* Live Market Ticker Strip (VN30, Global 30, Top 20 Crypto) */}
-          <div className="w-full">
+          <div className="w-full cv-auto">
             <BentoMarketStrip />
           </div>
 
           {/* ── 4. Master 3-Column Bento Grid Trên PC (Bố Cục 3 Cột Chuẩn: 3 - 6 - 3 cols) ── */}
-          <section aria-label="Khu vực tin chính">
+          <section aria-label="Khu vực tin chính" className="cv-auto">
             <div className="bento-grid-363 items-stretch">
               
               {/* ── Cột 1 (Trái: 3 cols / 25%): Tin nhanh 24/7, AI Benchmark mini ── */}
@@ -280,7 +280,7 @@ export default async function PublicHomePage() {
           </section>
 
           {/* ── 5. Spotlight Hub: 3 Cột Chuyên Đề Cân Đối (4 - 4 - 4 cols) ── */}
-          <section className="mt-14" aria-label="Chuyên đề tiêu điểm">
+          <section className="mt-14 cv-auto" aria-label="Chuyên đề tiêu điểm">
             <div className="flex items-center justify-between mb-6 px-1">
               <div>
                 <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-3">
@@ -419,7 +419,7 @@ export default async function PublicHomePage() {
 
           {/* ── 6. Featured Bento Strip: Tin Nổi Bật Tuyển Chọn (4 Cột) ── */}
           {featuredStrip.length > 0 && (
-            <section className="mt-14" aria-label="Tin nổi bật">
+            <section className="mt-14 cv-auto" aria-label="Tin nổi bật">
               <div className="flex items-center justify-between mb-6 px-1">
                 <div>
                   <h2 className="text-2xl font-black tracking-tight text-white">Tin nổi bật</h2>
@@ -442,7 +442,7 @@ export default async function PublicHomePage() {
           )}
 
           {/* ── 7. Deep Catalog Stream with Infinite Load More (8 - 4 cols) ── */}
-          <section className="mt-14" aria-label="Dòng thời sự trực tiếp">
+          <section className="mt-14 cv-auto" aria-label="Dòng thời sự trực tiếp">
             <div className="flex items-center justify-between mb-6 px-1">
               <div>
                 <h2 className="text-2xl font-black tracking-tight text-white">Dòng thời sự trực tiếp</h2>

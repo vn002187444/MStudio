@@ -32,8 +32,22 @@ export function middleware(request: NextRequest) {
     response.headers.set("X-AI-Bot-Status", "allowed-indexer");
   }
 
-  // Cloudflare Edge Cache-Control for public article routes
-  if (request.nextUrl.pathname.startsWith("/bai-viet/")) {
+  // Cloudflare Edge Cache-Control for public reader routes
+  const pathname = request.nextUrl.pathname;
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/bai-viet/") ||
+    pathname.startsWith("/chuyen-muc/") ||
+    pathname.startsWith("/thoi-su") ||
+    pathname.startsWith("/cong-nghe") ||
+    pathname.startsWith("/kinh-te") ||
+    pathname.startsWith("/khoa-hoc") ||
+    pathname.startsWith("/the-thao") ||
+    pathname.startsWith("/the-gioi") ||
+    pathname.startsWith("/doi-song") ||
+    pathname.startsWith("/giai-tri") ||
+    pathname.startsWith("/ai-channel")
+  ) {
     response.headers.set(
       "Cache-Control",
       "public, max-age=0, s-maxage=60, stale-while-revalidate=300"
