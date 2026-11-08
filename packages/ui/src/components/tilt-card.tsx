@@ -17,7 +17,7 @@ export const TiltCard = ({
   ...props
 }: TiltCardProps) => {
   const ref = useRef<HTMLDivElement>(null);
-  const rectRef = useRef<DOMRect | null>(null);
+  const rectRef = useRef<{ width: number; height: number; left: number; top: number } | null>(null);
   const reducedMotionRef = useRef<boolean | null>(null);
 
   const x = useMotionValue(0);
@@ -37,7 +37,13 @@ export const TiltCard = ({
 
   const handleMouseEnter = () => {
     if (!ref.current) return;
-    rectRef.current = ref.current.getBoundingClientRect();
+    const rect = ref.current.getBoundingClientRect();
+    rectRef.current = {
+      width: rect.width,
+      height: rect.height,
+      left: rect.left + window.scrollX,
+      top: rect.top + window.scrollY,
+    };
     reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   };
 
@@ -52,15 +58,21 @@ export const TiltCard = ({
 
     let rect = rectRef.current;
     if (!rect) {
-      rect = ref.current.getBoundingClientRect();
+      const rawRect = ref.current.getBoundingClientRect();
+      rect = {
+        width: rawRect.width,
+        height: rawRect.height,
+        left: rawRect.left + window.scrollX,
+        top: rawRect.top + window.scrollY,
+      };
       rectRef.current = rect;
     }
 
     const width = rect.width;
     const height = rect.height;
 
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const mouseX = e.pageX - rect.left;
+    const mouseY = e.pageY - rect.top;
 
     const xPct = mouseX / width - 0.5;
     const yPct = mouseY / height - 0.5;
