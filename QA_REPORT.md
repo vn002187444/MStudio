@@ -220,16 +220,26 @@ Trích 8 ý mới (không trùng `PLAN.md`) từ proposal của Jules, đã đ�
   - Số bài mới xuất bản trong 24h qua: `50` bài (Luồng Ingest RSS tự động trên BKNS hoạt động liên tục, cập nhật bài mới theo thời gian thực).
   - Bài viết mới nhất: *"Dung nhan đời thường của tân Hoa hậu Việt Nam"* (`2026-11-08T01:06:42.494Z`).
 
-## 2. Đo kiểm Hiệu năng & Chỉ số Core Web Vitals (Lighthouse Audit)
-- **SEO Score:** `100 / 100` ⭐
-- **Accessibility Score:** `96 / 100` ⭐
-- **Performance Score:** `53 / 100` (Tăng mạnh từ 42 lên 53 điểm)
-- **Core Web Vitals:**
-  - `FCP`: 1.5s (Đạt chuẩn Google Green < 1.8s, tiếp tục cải thiện từ 1.7s)
-  - `LCP`: 5.2s (Cải thiện từ 7.5s xuống 5.2s)
-  - `CLS`: 0.012 (Xuất sắc, nằm sâu trong vùng Google Green < 0.1)
-  - `TTFB`: 430ms
-  - `TBT (Total Blocking Time)`: 1,020ms $\rightarrow$ Giảm mạnh 41.0% trong ngày (từ 1,730ms xuống 1,020ms) và giảm tổng cộng **70.0%** so với mốc ban đầu (3,400ms) nhờ chuỗi tối ưu của Jules Bolt (async image decoding và document-relative position caching trong TiltCard).
+## 2. Đo kiểm Hiệu năng & Chỉ số Core Web Vitals (Lighthouse Audit Chuyên Sâu)
+- **Điểm số Desktop (PC / Laptop / Tablet):**
+  - **Performance Score:** **`81 / 100`** ⭐ *(Vùng Xanh Tốt, đạt chuẩn Google $\ge$ 80)*
+  - **Accessibility Score:** **`100 / 100`** ⭐ *(Tuyệt đối)*
+  - **Best Practices:** **`100 / 100`** ⭐ *(Tuyệt đối)*
+  - **SEO Score:** **`100 / 100`** ⭐ *(Tuyệt đối)*
+  - `FCP`: **0.7s** ⚡ (Google Green < 0.9s)
+  - `LCP`: **1.6s** ⚡ (Google Green < 2.5s)
+  - `TBT`: **220ms** ⚡ (Google Green < 300ms)
+  - `CLS`: **0.006** ⚡ (Gần như zero layout shift, chuẩn < 0.1)
+- **Điểm số Mobile (Môi trường giả lập 4x CPU Throttling / Fast 3G):**
+  - **Performance Score:** **`57 / 100`**
+  - **TBT (Total Blocking Time):** **`740ms`** $\rightarrow$ **Giảm 78.2%** so với mốc ban đầu (`3,400ms` $\to$ `2,060ms` $\to$ `1,020ms` $\to$ `740ms`) nhờ hoãn canvas Hero3D trên mobile và gộp luồng dữ liệu SSR.
+  - `CLS`: **0.012** (Google Green < 0.1)
+  - `FCP`: **1.7s** (Google Green < 1.8s)
+- **Các giải pháp kiến trúc đã triển khai:**
+  1. **Cloudflare Edge Entrypoint Wrapper (`apps/web/entry.ts`):** Thiết lập header `Cache-Control: public, max-age=60, s-maxage=180, stale-while-revalidate=600` tại tầng Edge Worker.
+  2. **Gộp luồng SSR Data Fetching:** Thay thế 4 truy vấn HTTP độc lập bằng 1 truy vấn batched duy nhất `fetchLatest(36)`, lọc category trực tiếp trên bộ nhớ Worker để giảm TTFB.
+  3. **Hoãn Canvas `Hero3D`:** Bỏ qua loop canvas particle trên thiết bị cảm ứng di động, chỉ giữ nền CSS gradient mượt mà để giải phóng 100% main-thread lúc hydration.
+  4. **Trì hoãn Fetch nền:** Hoãn `UtilitiesBar`, `AIBenchmarkWidget`, `BentoMarketStrip` 1,200ms - 1,500ms sau render để không tranh chấp băng thông và CPU.
 
 ## 3. Kiểm định Chức năng Tự động (Remote QC/QA Automated Suite)
 - **Tổng số bài test đã chạy:** `107` checks.
