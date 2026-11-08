@@ -60,14 +60,13 @@ async function fetchCategory(category: string, limit = 4): Promise<PublishedArti
 
 export default async function PublicHomePage() {
   try {
-    const [latestData, techArticles, darkArticles, bizArticles] = await Promise.all([
-      fetchLatest(24),
-      fetchCategory("cong-nghe", 4),
-      fetchCategory("goc-toi", 4),
-      fetchCategory("kinh-doanh", 4),
-    ]);
-
+    // Consolidate into a single batched fetch to eliminate subrequest latency and slash TTFB
+    const latestData = await fetchLatest(36);
     const articles = Array.isArray(latestData?.rows) ? latestData.rows : [];
+
+    const techArticles = articles.filter(a => a.categorySlug === "cong-nghe" || a.categorySlug === "ai-channel");
+    const darkArticles = articles.filter(a => a.categorySlug === "goc-toi" || a.categorySlug === "the-gioi");
+    const bizArticles = articles.filter(a => a.categorySlug === "kinh-doanh" || a.categorySlug === "kinh-te");
     const heroArticle = articles[0];
     const centerSubArticles = articles.slice(1, 3);
     const fastStreamArticles = articles.slice(3, 7);
