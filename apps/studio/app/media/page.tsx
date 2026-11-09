@@ -137,7 +137,7 @@ export default function MediaPage() {
                   }}
                 >
                   <div style={{ position: "relative", width: "100%", height: 130, background: "#e2e8f0" }}>
-                    <img
+                    <img decoding="async"
                       src={item.imageUrl}
                       alt={item.title}
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}

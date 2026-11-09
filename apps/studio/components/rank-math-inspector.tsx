@@ -421,7 +421,7 @@ export function RankMathInspector(props: RankMathInspectorProps) {
                 {serpMode === "mobile" && heroImageUrl && (
                   <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 border border-gray-100 mt-1">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={heroImageUrl} alt="" className="w-full h-full object-cover" />
+                    <img decoding="async" src={heroImageUrl} alt="" className="w-full h-full object-cover" />
                   </div>
                 )}
               </div>
