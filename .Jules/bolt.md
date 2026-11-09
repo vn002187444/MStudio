@@ -71,3 +71,7 @@
 ## 2024-11-06 - Explicit DOMRect extraction & scroll layout thrashing
 **Learning:** Caching `DOMRect` using the spread operator (`...rect`) fails because properties like `width` and `top` are on the prototype. Additionally, caching viewport-relative coordinates (`rect.top`) inside `onMouseEnter` causes inaccurate calculations if the user scrolls before `onMouseMove`, while calling `getBoundingClientRect()` continuously causes layout thrashing.
 **Action:** Explicitly extract and assign `width`, `height`, `left` (`rect.left + window.scrollX`), and `top` (`rect.top + window.scrollY`) to cache absolute document-relative positions on `mouseenter`. Use `e.pageX` and `e.pageY` in `mousemove` events to calculate positions without forcing recalculations.
+
+## $(date +%Y-%m-%d) - Add async decoding to remaining images
+**Learning:** High priority, LCP images parsed on the main thread block execution and increase Total Blocking Time (TBT). Even though we applied this optimization previously to components like NewsCard, other images across the site (like ArticleHero, StoriesRail) were still missing it, causing inconsistent TBT performance.
+**Action:** Consistently apply `decoding="async"` to ALL `<img>` tags across the frontend (`apps/web` and `apps/studio`) to allow browsers to decode them off the main thread, lowering TBT while preserving fetch prioritization.
