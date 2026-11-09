@@ -13,6 +13,7 @@ interface ArticleHeroProps {
   credit?: string;
   alt?: string;
   seed?: string;
+  priority?: boolean;
 }
 
 const PLACEHOLDER_TONES = [
@@ -30,7 +31,7 @@ function toneIndex(seed: string): number {
   return hash % PLACEHOLDER_TONES.length;
 }
 
-export function ArticleHero({ imageUrl, credit, alt, seed }: ArticleHeroProps) {
+export function ArticleHero({ imageUrl, credit, alt, seed, priority }: ArticleHeroProps) {
   const [hasError, setHasError] = useState(false);
   const gradient = PLACEHOLDER_TONES[toneIndex(seed ?? "mstudio")];
 
@@ -51,7 +52,8 @@ export function ArticleHero({ imageUrl, credit, alt, seed }: ArticleHeroProps) {
             <img decoding="async"
               src={sanitizedUrl}
               alt={alt ?? ""}
-              loading="lazy"
+              loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : undefined}
               onError={() => setHasError(true)}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
             />

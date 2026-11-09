@@ -516,6 +516,7 @@ export default async function ArticlePage({
                     imageUrl={article.heroImageUrl || (CATEGORY_FALLBACK_IMAGES[article.categorySlug || "thoi-su"] ?? CATEGORY_FALLBACK_IMAGES["thoi-su"])}
                     alt={article.title}
                     seed={article.slug || article.id}
+                    priority={true}
                   />
                 )}
               </div>

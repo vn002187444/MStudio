@@ -75,3 +75,6 @@
 ## $(date +%Y-%m-%d) - Add async decoding to remaining images
 **Learning:** High priority, LCP images parsed on the main thread block execution and increase Total Blocking Time (TBT). Even though we applied this optimization previously to components like NewsCard, other images across the site (like ArticleHero, StoriesRail) were still missing it, causing inconsistent TBT performance.
 **Action:** Consistently apply `decoding="async"` to ALL `<img>` tags across the frontend (`apps/web` and `apps/studio`) to allow browsers to decode them off the main thread, lowering TBT while preserving fetch prioritization.
+## 2024-05-28 - LCP Optimization for Article Hero Image
+**Learning:** Using `loading="lazy"` on the Largest Contentful Paint (LCP) element (like the article hero image) is a performance anti-pattern because it delays the browser from fetching the critical image.
+**Action:** Always use `fetchPriority="high"` and `loading="eager"` (while retaining `decoding="async"`) on hero images that are part of the LCP to ensure they are loaded as quickly as possible.
