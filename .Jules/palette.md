@@ -82,3 +82,7 @@
 ## 2026-11-08 - Accessibility of Loading Page
 **Learning:** The public loading page (`apps/web/app/(public)/loading.tsx`) lacked keyboard accessibility for its actions (reload, view hot news) and included decorative characters that were not hidden from screen readers.
 **Action:** Always add explicit `focus-visible` classes to all interactive elements, and wrap purely decorative characters in `<span aria-hidden="true">`.
+
+## 2026-11-09 - Missing ARIA label and aria-hidden on decorative icons in Media App
+**Learning:** Found that the "Copy URL" button and "Active" status in `apps/studio/app/media/page.tsx` contained decorative symbols (📋, ✓) without `aria-hidden="true"`, causing screen readers to announce confusing extraneous information. Also, the "Copy URL" button lacked an explicit `aria-label` while holding decorative icons.
+**Action:** Always add `aria-hidden="true"` to purely decorative icons (like 📋 and ✓) inside UI components. Ensure buttons containing these icons have a descriptive `aria-label` (e.g., `aria-label="Copy URL ảnh"`).

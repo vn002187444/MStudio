@@ -78,7 +78,7 @@ export default function MediaPage() {
           <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 20 }}>
             <div style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>R2 Storage Bucket</div>
             <div style={{ fontSize: 24, fontWeight: 700, color: "#0f172a", marginTop: 4 }}>mstudio-raw</div>
-            <div style={{ fontSize: 12, color: "#16a34a", marginTop: 4 }}>✓ Active (Cloudflare Free Tier)</div>
+            <div style={{ fontSize: 12, color: "#16a34a", marginTop: 4 }}><span aria-hidden="true">✓</span> Active (Cloudflare Free Tier)</div>
           </div>
           <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 20 }}>
             <div style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>Chính sách Hotlink</div>
@@ -167,6 +167,7 @@ export default function MediaPage() {
                       <button
                         type="button"
                         onClick={() => handleCopyUrl(item.imageUrl, item.id)}
+                        aria-label={copiedId === item.id ? "Đã copy URL ảnh" : "Copy URL ảnh"}
                         style={{
                           flex: 1,
                           padding: "6px 8px",
@@ -178,7 +179,7 @@ export default function MediaPage() {
                           cursor: "pointer",
                         }}
                       >
-                        {copiedId === item.id ? "✓ Đã copy!" : "📋 Copy URL"}
+                        {copiedId === item.id ? <><span aria-hidden="true">✓</span> Đã copy!</> : <><span aria-hidden="true">📋</span> Copy URL</>}
                       </button>
                       <a
                         href={`/editor?article=${item.id}`}
