@@ -35,7 +35,7 @@ export function StoriesRail({ articles, className = "" }: StoriesRailProps) {
               >
                 <div className="h-full w-full overflow-hidden rounded-full border-2 border-slate-950 bg-slate-800">
                   {art.heroImageUrl ? (
-                    <img
+                    <img decoding="async"
                       src={art.heroImageUrl}
                       alt={art.title}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"

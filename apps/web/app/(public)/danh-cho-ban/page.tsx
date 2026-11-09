@@ -257,7 +257,7 @@ export default async function ForYouPage() {
                               aria-hidden="true"
                               className="relative w-full sm:w-[140px] md:w-[160px] h-[100px] shrink-0 rounded-xl overflow-hidden bg-slate-800 border border-white/10 block group-hover:shadow-lg transition-shadow"
                             >
-                              <img
+                              <img decoding="async"
                                 src={imageUrl}
                                 alt=""
                                 loading="lazy"

@@ -301,7 +301,7 @@ export default function EditorPage() {
           {heroImageUrl ? (
             <div style={{ marginBottom: 20, borderRadius: "var(--radius-sm)", overflow: "hidden", border: "1px solid var(--border)" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <img decoding="async"
                 src={heroImageUrl}
                 alt="Hero thumbnail preview"
                 style={{ width: "100%", maxHeight: 260, objectFit: "cover", display: "block" }}

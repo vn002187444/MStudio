@@ -48,7 +48,7 @@ export function ArticleHero({ imageUrl, credit, alt, seed }: ArticleHeroProps) {
           <>
             <AmbientGlow color="rgba(255,255,255,0.15)" className="z-10 opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <img decoding="async"
               src={sanitizedUrl}
               alt={alt ?? ""}
               loading="lazy"

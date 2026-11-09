@@ -189,7 +189,7 @@ function BlockView({
       return (
         <figure className="my-10 rounded-2xl overflow-hidden bg-slate-900 [html.light_&]:bg-slate-100 border border-white/10 [html.light_&]:border-slate-200 shadow-xl group">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt={block.attrs.alt ?? ""} loading="lazy" src={src} className="w-full h-auto object-cover block" />
+          <img decoding="async" alt={block.attrs.alt ?? ""} loading="lazy" src={src} className="w-full h-auto object-cover block" />
           {block.attrs.alt ? (
             <figcaption className="p-3 text-center text-xs md:text-sm text-slate-400 [html.light_&]:text-slate-600 bg-slate-950/80 [html.light_&]:bg-slate-50 border-t border-white/10 [html.light_&]:border-slate-200">
               {block.attrs.alt}
