@@ -78,3 +78,7 @@
 ## 2026-11-07 - Missing Keyboard Focus States on Form Action Buttons
 **Learning:** Found that primary form action buttons (like Submit Search, or Send Contact Message) lacked `focus-visible` styling. Without these classes, users navigating via keyboard (tabbing) get no visual feedback indicating which element currently has focus.
 **Action:** Always add explicit `focus-visible` utility classes (e.g., `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2`) to critical form action buttons to ensure keyboard accessibility and WCAG AA compliance.
+
+## 2026-11-08 - Accessibility of Loading Page
+**Learning:** The public loading page (`apps/web/app/(public)/loading.tsx`) lacked keyboard accessibility for its actions (reload, view hot news) and included decorative characters that were not hidden from screen readers.
+**Action:** Always add explicit `focus-visible` classes to all interactive elements, and wrap purely decorative characters in `<span aria-hidden="true">`.

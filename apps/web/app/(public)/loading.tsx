@@ -42,16 +42,17 @@ export default function PublicLoading() {
             <button
               type="button"
               onClick={handleReload}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all cursor-pointer shadow-md shadow-cyan-500/20 active:scale-95"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all cursor-pointer shadow-md shadow-cyan-500/20 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
               aria-label="Tải lại trang ngay lập tức"
             >
-              <span>↻ Tải lại</span>
+              <span aria-hidden="true">↻</span>
+              <span>Tải lại</span>
             </button>
             <a
               href="/dang-nong"
-              className="text-xs font-mono text-slate-400 hover:text-cyan-300 transition-colors hidden sm:inline-block px-2"
+              className="text-xs font-mono text-slate-400 hover:text-cyan-300 transition-colors hidden sm:inline-block px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded"
             >
-              Xem tin nóng →
+              Xem tin nóng <span aria-hidden="true">→</span>
             </a>
           </div>
         </div>
