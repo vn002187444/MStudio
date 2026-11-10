@@ -4,6 +4,8 @@ packages:
   - "packages/ai/*"
   - "workers/*"
 
+childConcurrency: 1
+
 # Sync the Cloudflare dev runtime across vite-plugin and wrangler.
 # @cloudflare/vite-plugin's beta pins an old miniflare/workerd whose
 # workerd supports max compat date 2026-09-28, but our apps target
