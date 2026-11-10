@@ -15,7 +15,10 @@
   "vars": {
     "ENVIRONMENT": "production",
     "LOG_LEVEL": "info",
-    "QUOTA_MODE": "SAFE"
+    "QUOTA_MODE": "SAFE",
+    "S3_ENDPOINT": "https://s3.minds.io.vn",
+    "S3_MEDIA_BUCKET": "mstudio-media",
+    "S3_RAW_BUCKET": "mstudio-raw"
   },
   "d1_databases": [
     {
@@ -35,12 +38,6 @@
       }
     ]
   },
-  "r2_buckets": [
-    {
-      "binding": "RAW_BUCKET",
-      "bucket_name": "mstudio-raw"
-    }
-  ],
   "env": {
     "dev": {
       "name": "mstudio-ingest-dev",

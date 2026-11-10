@@ -9,7 +9,7 @@ import {
   getSource,
 } from "@mstudio/db";
 import type { Logger } from "@mstudio/observability";
-import { isRehostable, rehostImage } from "./media.ts";
+import { isRehostable, rehostImage, type MediaBucket } from "./media.ts";
 import { parseFeed, type ParsedFeedItem } from "./parsers.ts";
 import { sha256Hex } from "./sha256.ts";
 
@@ -132,13 +132,14 @@ export async function processNormalizeMessage(
 }
 
 async function rehostImages(
-  bucket: Env["RAW_BUCKET"],
+  bucket: MediaBucket | undefined,
   db: D1Database,
   items: NormalizedItem[],
   rightsStatus: "clear" | "licensed",
   logger: Logger,
   options: NormalizeOptions,
 ): Promise<void> {
+  if (!bucket) return;
   for (const item of items) {
     if (!item.imageUrl) {
       continue;

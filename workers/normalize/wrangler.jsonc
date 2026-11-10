@@ -4,19 +4,16 @@
   "compatibility_date": "2026-10-08",
   "vars": {
     "ENVIRONMENT": "production",
-    "LOG_LEVEL": "info"
+    "LOG_LEVEL": "info",
+    "S3_ENDPOINT": "https://s3.minds.io.vn",
+    "S3_MEDIA_BUCKET": "mstudio-media",
+    "S3_RAW_BUCKET": "mstudio-raw"
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "mstudio_dev",
       "database_id": "6cef0de8-cd16-4494-a809-d1d177be002e"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "RAW_BUCKET",
-      "bucket_name": "mstudio-raw"
     }
   ],
   "queues": {

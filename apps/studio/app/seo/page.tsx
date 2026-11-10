@@ -513,7 +513,7 @@ export default function SeoDiscoveryPage() {
   "@type": "NewsArticle",
   "headline": "${testTitle}",
   "description": "${testDesc}",
-  "image": ["https://pub-r2.minds.io.vn/hero-image.webp"],
+  "image": ["https://s3.minds.io.vn/mstudio-media/hero-image.webp"],
   "datePublished": "2026-10-13T10:00:00Z",
   "dateModified": "2026-10-13T10:00:00Z",
   "author": {
@@ -1056,8 +1056,8 @@ export default function SeoDiscoveryPage() {
 
               <div style={{ padding: 16, border: "1px solid #e2e8f0", borderRadius: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>Nén ảnh WebP &amp; Chống lỗi Hotlink qua R2</div>
-                  <div style={{ fontSize: 13, color: "#64748b" }}>Tải ảnh gốc về bucket R2 mstudio-media và phân phối qua CDN với độ trễ thấp</div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>Nén ảnh WebP &amp; Chống lỗi Hotlink qua S3 NAS</div>
+                  <div style={{ fontSize: 13, color: "#64748b" }}>Tải ảnh gốc về S3 MinIO trên NAS và phân phối qua CDN với độ trễ thấp</div>
                 </div>
                 <input type="checkbox" defaultChecked style={{ transform: "scale(1.2)", cursor: "pointer" }} />
               </div>

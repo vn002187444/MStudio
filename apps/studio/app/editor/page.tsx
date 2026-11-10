@@ -561,13 +561,13 @@ export default function EditorPage() {
               Media (Ảnh &amp; Video)
             </h3>
             <label htmlFor="editor-hero-image" style={{ display: "block", marginBottom: 4, fontSize: "var(--text-sm)" }}>
-              Hero Image URL (R2 hoặc ảnh nguồn)
+              Hero Image URL (S3 NAS hoặc ảnh nguồn)
             </label>
             <input
               id="editor-hero-image"
               value={heroImageUrl}
               onChange={(e) => setHeroImageUrl(e.target.value)}
-              placeholder="https://pub-r2.minds.io.vn/..."
+              placeholder="https://s3.minds.io.vn/mstudio-media/..."
               spellCheck={false}
               style={{ ...fieldStyle, marginBottom: 8 }}
             />
