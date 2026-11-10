@@ -20,46 +20,31 @@ const BKNS_API = 'https://api-mstudio.minds.io.vn';
 const EDGE_API = 'https://api.mstudio.minds.io.vn';
 const STUDIO_CMS = 'https://studio.vn002187444.workers.dev';
 
-function fetchV4(targetUrl, options = {}) {
-  return new Promise((resolve) => {
-    const t0 = Date.now();
-    try {
-      const parsed = new URL(targetUrl);
-      const mod = parsed.protocol === 'https:' ? https : http;
-      const req = mod.request(parsed, {
-        method: options.method || 'GET',
-        headers: {
-          'User-Agent': 'MStudio-QA-Auditor/1.0',
-          ...(options.headers || {})
-        },
-        family: 4,
-        timeout: options.timeout || 12000
-      }, res => {
-        let text = '';
-        res.on('data', chunk => text += chunk);
-        res.on('end', () => {
-          resolve({
-            status: res.statusCode,
-            ok: res.statusCode >= 200 && res.statusCode < 300,
-            headers: res.headers,
-            text,
-            timeMs: Date.now() - t0,
-            url: targetUrl
-          });
-        });
-      });
-      req.on('timeout', () => {
-        req.destroy();
-        resolve({ status: 0, ok: false, error: 'Timeout (12s)', timeMs: Date.now() - t0, text: '', url: targetUrl });
-      });
-      req.on('error', err => {
-        resolve({ status: 0, ok: false, error: err.message, timeMs: Date.now() - t0, text: '', url: targetUrl });
-      });
-      req.end();
-    } catch (e) {
-      resolve({ status: 0, ok: false, error: e.message, timeMs: Date.now() - t0, text: '', url: targetUrl });
-    }
-  });
+async function fetchV4(targetUrl, options = {}) {
+  const t0 = Date.now();
+  try {
+    const res = await fetch(targetUrl, {
+      method: options.method || 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/html, */*',
+        ...(options.headers || {})
+      },
+      signal: AbortSignal.timeout(options.timeout || 12000),
+      redirect: 'manual'
+    });
+    const text = await res.text();
+    return {
+      status: res.status,
+      ok: res.status >= 200 && res.status < 300,
+      headers: Object.fromEntries(res.headers.entries()),
+      text,
+      timeMs: Date.now() - t0,
+      url: targetUrl
+    };
+  } catch (e) {
+    return { status: 0, ok: false, error: e.message, timeMs: Date.now() - t0, text: '', url: targetUrl };
+  }
 }
 
 const auditResults = {

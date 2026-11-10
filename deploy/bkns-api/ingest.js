@@ -7,6 +7,7 @@ import { DatabaseSync } from "node:sqlite";
 import crypto from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { synthesizeArticle } from "./synthesizer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dbPath = path.join(__dirname, "data", "mstudio.db");
@@ -276,18 +277,42 @@ export async function runIngest(options = {}) {
         const articleId = crypto.randomUUID();
         const revisionId = crypto.randomUUID();
         const publishKey = `${articleId}:${revisionId}`;
-        const canonicalUrl = `https://mstudio.minds.io.vn/bai-viet/${slug}`;
+
+        // Pass to AI Newsroom Synthesizer (handles both English and Vietnamese)
+        let finalTitle = item.title;
+        let finalSummary = item.summary;
+        let finalBody = `${item.title}\n\n${item.summary}\n\nNguồn: ${feed.source_name} (${item.url})`;
+
+        try {
+          const synthesized = await synthesizeArticle({
+            title: item.title,
+            summary: item.summary,
+            body: item.body || item.summary,
+            sourceName: feed.source_name,
+            feedUrl: item.url,
+            categorySlug
+          });
+          if (synthesized) {
+            finalTitle = synthesized.title || finalTitle;
+            finalSummary = synthesized.summary || finalSummary;
+            finalBody = synthesized.body || finalBody;
+          }
+        } catch (synthErr) {
+          console.warn(`[Ingest Synthesis Warning] ${synthErr.message}`);
+        }
+
+        const finalSlug = slugify(finalTitle) || slug;
+        const canonicalUrl = `https://mstudio.minds.io.vn/bai-viet/${finalSlug}`;
         const fallbackImg = CATEGORY_FALLBACK_IMAGES[categorySlug] || CATEGORY_FALLBACK_IMAGES["thoi-su"];
         const heroImage = item.imageUrl || fallbackImg;
-        const bodyContent = `${item.title}\n\n${item.summary}\n\nNguồn: ${feed.source_name} (${item.url})`;
 
-        insertStoryStmt.run(storyId, item.title, item.summary, nowIso, nowIso);
+        insertStoryStmt.run(storyId, finalTitle, finalSummary, nowIso, nowIso);
         insertArticleStmt.run(
           articleId, storyId, revisionId, revisionId, publishKey,
-          nowIso, nowIso, slug, categorySlug, heroImage,
-          item.title, item.summary, canonicalUrl, heroImage
+          nowIso, nowIso, finalSlug, categorySlug, heroImage,
+          finalTitle, finalSummary, canonicalUrl, heroImage
         );
-        insertRevisionStmt.run(revisionId, articleId, item.title, bodyContent, item.summary, nowIso);
+        insertRevisionStmt.run(revisionId, articleId, finalTitle, finalBody, finalSummary, nowIso);
 
         totalNewArticles++;
         feedNew++;
