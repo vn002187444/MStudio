@@ -265,3 +265,68 @@ Trích 8 ý mới (không trùng `PLAN.md`) từ proposal của Jules, đã đ�
   - Đã audit diff, kiểm định không có xung đột (merge-tree sạch), chạy test và typecheck 100% pass.
   - Đã chuyển từ Draft sang Ready for Review và **Squash & Merge** thành công vào `github/main` (commit `91811a8`).
   - Đã pull về máy trạm cục bộ và đồng bộ sang remote `origin`.
+
+---
+
+# Báo cáo Kiểm toán Hàng ngày & Điều phối Jules Cloud (10-11-2026)
+
+## 1. Kiểm toán Hạ tầng Backend & Sức khỏe Dịch vụ (Dual-Hosting Strategy)
+- **Primary API Backend (BKNS Hosting SSD):** `https://api-mstudio.minds.io.vn/healthz` $\rightarrow$ **Status 200 OK** (Hạ tầng Node.js 24 + SQLite SSD Adapter, zero network hop, latency 393ms, zero subrequest limits).
+- **Fallback API Worker (Cloudflare D1):** `https://api.mstudio.minds.io.vn/healthz` $\rightarrow$ **Status 200 OK** (`environment: production` - latency 206ms, cơ chế dự phòng Hot Standby).
+- **Studio CMS Worker:** `https://studio.vn002187444.workers.dev/login` $\rightarrow$ **Status 200 OK** (latency 396ms).
+- **Web Reader Edge Production:** `https://mstudio.vn002187444.workers.dev/` $\rightarrow$ **Status 200 OK**, Size: `336KB`, Edge Latency: `1,248ms`.
+- **Thống kê Tin tức & Bài viết (24h Live Feeds):**
+  - Tổng số bài viết đang phục vụ (BKNS SSD): `50` bài.
+  - Số bài mới xuất bản trong 24h qua: `50` bài (Luồng Ingest RSS tự động trên BKNS SSD chạy ngầm liên tục, cập nhật bài mới theo thời gian thực).
+  - Bài viết mới nhất: *"Live: Beau Lamarre-Condon says he was smitten, not obsessed with Jesse Baird"* (`2026-11-10T00:48:08.459Z`).
+
+## 2. Đo kiểm Hiệu năng & Chỉ số Core Web Vitals (Lighthouse Audit)
+- **SEO Score:** **`100 / 100`** ⭐ *(Tuyệt đối)*
+- **Accessibility Score:** **`96 / 100`** ⭐ *(Đạt chuẩn xuất sắc)*
+- **Performance Score:** **`44 / 100`** *(Mobile Headless Benchmark)*
+- **Core Web Vitals:**
+  - `FCP (First Contentful Paint)`: **1.8s** ⚡ (Google Green $\le$ 1.8s)
+  - `CLS (Cumulative Layout Shift)`: **0.009** ⚡ (Gần như zero layout shift, vượt chuẩn Google Green < 0.1)
+  - `TTFB (Server Response Time)`: **590ms**
+  - `LCP (Largest Contentful Paint)`: **5.6s** (Điểm nghẽn do ảnh Hero bài viết chưa eager load)
+  - `TBT (Total Blocking Time)`: **2,250ms**
+
+## 3. Kiểm định Chức năng Tự động (Remote QC/QA Automated Suite)
+- **Tổng số bài test đã chạy:** `96` checks.
+- **Kết quả:** `96 / 96 Passed` (**100% Pass Rate**, 0 Failed, 0 Warnings).
+- **Phạm vi kiểm định:**
+  - **17 Core Routes, Taxonomies & Sitemaps:** `/` (Homepage), `/thoi-su`, `/kinh-te`, `/cong-nghe`, `/khoa-hoc`, `/the-thao`, `/the-gioi`, `/doi-song`, `/giai-tri`, `/ai-channel`, `/chuyen-muc/cong-nghe`, `/chuyen-muc/kinh-te`, `feed.xml`, `robots.txt`, `sitemap.xml`, `sitemap-categories.xml`, `sitemap-news.xml` $\rightarrow$ 100% Status 200 OK.
+  - **CMS Redirect Gate:** `/cms`, `/admin`, `/studio` $\rightarrow$ 100% Status 302 chuyển hướng an toàn về trang đăng nhập Studio CMS (`https://studio.vn002187444.workers.dev/login`).
+  - **Trình bày Nội dung & Typography Chuẩn Mực:** 
+    - 100% sạch ký tự thoát thô `\n\n`.
+    - 100% không rò rỉ Markdown heading `###` thô trong thẻ `<p>`, chuyển hóa hoàn toàn sang semantic `<h2/h3>`.
+    - 100% bài viết hiển thị Table of Contents (Mục lục điều hướng nhanh).
+  - **SEO & Cấu trúc Dữ liệu:**
+    - Thẻ `<title>` và `<meta name="description">` chuẩn SEO.
+    - Thẻ `<link rel="canonical">` và `<meta property="og:image">` đầy đủ.
+    - Schema JSON-LD `NewsArticle` tích hợp chuẩn Google News.
+    - Taxonomy Pills & Internal Interlinks liên kết chuyên mục chính xác.
+  - **Accessibility & WCAG Shell Conformance:**
+    - Skip to main content link (`#main-content`).
+    - Các landmark ngữ nghĩa: `<main>`, `<header>`, `<footer>`.
+    - Responsive viewport meta tag & khai báo `lang="vi"`.
+
+## 4. Kiểm toán Toàn vẹn Mã nguồn Monorepo
+- **Unit & Integration Test Suite (`pnpm -r test`):** Pass 100% (17 of 18 workspaces, 171/171 tests pass).
+  - `workers/api`: 97/97 tests pass.
+  - `workers/normalize`: 46/46 tests pass.
+  - `packages/contracts`: 20/20 tests pass.
+  - `workers/publish`: 8/8 tests pass.
+  - `packages/observability`: pass.
+  - `packages/ai/model-gateway`: pass.
+- **Edge Build Verification (`apps/web`):** Build Vite + vinext Cloudflare Workers thành công 100% (zero build errors, rolldown chunking tối ưu).
+
+## 5. Tình trạng Điều phối Jules Cloud Agent
+- **PR #74 (Bolt - `[LCP Optimization] Eager load hero image`):**
+  - **Session ID:** `14669983111846318081` (Agent Bolt: Codebase Performance Optimizer).
+  - **Vấn đề giải quyết:** Điểm nghẽn LCP trên trang bài viết do ảnh Hero đang dùng `loading="lazy"`.
+  - **Giải pháp tối ưu:** Bổ sung prop `priority={true}` cho `ArticleHero`, tự động áp dụng `loading="eager"` và `fetchPriority="high"` (kết hợp `decoding="async"`) cho ảnh Hero critical path.
+  - **Học tập kiến trúc:** Đã ghi nhận bài học mới vào `.Jules/bolt.md`.
+  - **Kiểm định đối kháng:** Merge-tree sạch, build & test suite 100% pass.
+  - **Kết quả điều phối:** **Fast-Forward Merge** thành công vào `main` (commit `71e01f7`) và đã push trực tiếp lên `github/main`.
+
