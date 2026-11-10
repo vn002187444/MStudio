@@ -144,3 +144,19 @@ Mọi sản phẩm giao diện do **OpenCode CLI** thực hiện BẮT BUỘC ph
 23. **Quy tắc Độc Lập Timeout Signal Khi Gọi API Fallback (Resilient API Fetch Protocol):**
    - Khi cấu hình kiến trúc API có primary và fallback (Edge Worker API vs Host Backend SQLite): TUYỆT ĐỐI KHÔNG tái sử dụng cùng một `AbortSignal` hoặc `init` object cho cả 2 lượt gọi. Khi primary bị timeout sau $N$ ms, signal đã ở trạng thái `aborted`, nếu mang sang fallback sẽ khiến fallback bị ngắt ngay lập tức với `AbortError`.
    - Mỗi lượt gọi fetch BẮT BUỘC tạo `AbortSignal.timeout(...)` độc lập hoàn toàn, và lớp cuối cùng phải luôn trả về payload JSON mặc định hợp lệ (`{ rows: [], ... }`) với `status: 200` để các Server Components không bao giờ bị crash dây chuyền.
+
+24. **Quy tắc Chuyển Đổi Lưu Trữ: Triệt Tiêu Cloudflare R2 Sang S3/MinIO Trên NAS (Zero-R2 S3-on-NAS Protocol - BẮT BUỘC):**
+   - Dự án MStudio Channel và toàn bộ hệ thống đa tác nhân BẮT BUỘC KHÔNG dùng Cloudflare R2 cho lưu trữ media và assets thô (triệt tiêu 100% rủi ro trần chi phí, Class A/B operation limits và quota storage của Cloudflare Free Tier).
+   - **Hạ tầng S3 Chuẩn Hóa Trên NAS TerraMaster TOS 6 (MinIO Storage Engine):**
+     * **Public Endpoint (Internet/CDN):** `https://s3.minds.io.vn` (được bảo vệ và phân phối qua Cloudflare Tunnel `cloudflared-cv`).
+     * **Internal Endpoint (LAN/Host):** `http://192.168.0.187:9000` (port `9000` S3 API, port `9001` Web Console).
+     * **Credentials & Single Source of Truth:** `minioadmin` / `minioadmin_secure_pass_2026`, đã lưu trữ tập trung tại MinPanel Secret Vault (`s3:mstudio` & `s3:nas`).
+     * **Danh mục Buckets Đã Khởi Tạo:**
+       + `mstudio-media`: Lưu trữ ảnh/video bài viết, phân phối công khai qua CDN `https://s3.minds.io.vn/mstudio-media` (chính sách `download` public, chống lỗi 403 hotlink).
+       + `mstudio-raw`: Lưu trữ payload tin tức cào thô và HTML snapshot.
+       + `media`: Bucket media chung của hệ sinh thái.
+       + `mstudio-storage`: Bucket backup & exports.
+   - **Phân công trách nhiệm CommandCode CLI (`commandcode-ops`):**
+     * Sử dụng S3 client tương thích (`@aws-sdk/client-s3` hoặc REST S3 endpoint) để thay thế hoàn toàn các thao tác với R2Bucket.
+     * Cập nhật các biến môi trường cấu hình backend/worker trỏ sang MinIO S3 trên NAS thay vì binding Cloudflare R2.
+

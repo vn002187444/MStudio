@@ -52,8 +52,9 @@ Shared messages/API/domain payloads live in packages/contracts. Do not duplicate
 ## Database
 Use repository layer and migrations. Avoid hot-path full scans. Select required columns. Index demonstrated access patterns while considering write overhead.
 
-## Cloudflare Free tier
-Free-tier budget is a functional requirement. Prefer cache/static output, compact queue messages, batched background work, indexed D1 access, limited R2 variants and selective embeddings. Expensive/reprocessing features require a kill switch or QuotaGuard.
+## Cloudflare Free tier & Object Storage
+Free-tier budget is a functional requirement. Prefer cache/static output, compact queue messages, batched background work, indexed D1 access, and selective embeddings. Expensive/reprocessing features require a kill switch or QuotaGuard.
+Object storage: Zero R2 usage. All media, assets and raw scraper payloads are stored on NAS S3 (MinIO @ `https://s3.minds.io.vn` / `http://192.168.0.187:9000`).
 
 ## Next.js
 App Router-first. Prefer Server Components for content surfaces. Isolate Client Components. Never put crawler/model processing in reader request path.
