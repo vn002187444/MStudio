@@ -82,3 +82,7 @@
 ## 2026-11-12 - Avoid Math.sqrt() in high-frequency animation loops
 **Learning:** Calculating Math.sqrt() for every element in a requestAnimationFrame loop is expensive. We can optimize it by using squared distance (distSq) directly. Note that when replacing linear distance with squared distance in physics equations (like force or alpha calculations), the falloff curve changes from linear to quadratic. In this case, removing Math.sqrt() significantly reduces CPU load while providing an acceptable quadratic falloff.
 **Action:** When removing Math.sqrt() in physics loops, use squared distances in equations, keeping in mind that the interaction curve will become quadratic instead of linear.
+
+## 2026-11-13 - Cache static canvas paths in animation loops
+**Learning:** Constructing complex static paths (like grids) using `moveTo` and `lineTo` inside a `requestAnimationFrame` loop consumes unnecessary CPU cycles and increases Total Blocking Time (TBT).
+**Action:** Always extract static path construction out of the draw loop and cache it using `Path2D`. Render the cached path using `ctx.stroke(cachedPath)` to minimize path building overhead during high-frequency animations.

@@ -40,6 +40,7 @@ export const Hero3D = ({ className }: { className?: string }) => {
 
     let particles: { x: number; y: number; baseX: number; baseY: number; phaseX: number; phaseY: number; size: number }[] = [];
     let spacing = 40;
+    let gridPath: Path2D;
 
     const initParticles = () => {
       particles = [];
@@ -55,6 +56,16 @@ export const Hero3D = ({ className }: { className?: string }) => {
             size: Math.random() * 1.5 + 0.5,
           });
         }
+      }
+
+      gridPath = new Path2D();
+      for (let y = 0; y < height; y += spacing) {
+        gridPath.moveTo(0, y);
+        gridPath.lineTo(width, y);
+      }
+      for (let x = 0; x < width; x += spacing) {
+        gridPath.moveTo(x, 0);
+        gridPath.lineTo(x, height);
       }
     };
 
@@ -138,16 +149,9 @@ export const Hero3D = ({ className }: { className?: string }) => {
 
       ctx.strokeStyle = isLight ? "rgba(15, 23, 42, 0.06)" : "rgba(255, 255, 255, 0.03)";
       ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let y = 0; y < height; y += spacing) {
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
+      if (gridPath) {
+        ctx.stroke(gridPath);
       }
-      for (let x = 0; x < width; x += spacing) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-      }
-      ctx.stroke();
 
       const baseAlpha = isLight ? 0.15 : 0.1;
       const batches: Record<number, typeof particles> = { 0: [] };
