@@ -560,7 +560,7 @@ export default function EmailMailboxPage() {
               border: "1px solid var(--border)",
             }}
           >
-            📥 Hộp thư đến ({counts.unread} mới)
+            <span aria-hidden="true">📥</span> Hộp thư đến ({counts.unread} mới)
           </button>
           <button
             type="button"
@@ -580,7 +580,7 @@ export default function EmailMailboxPage() {
               boxShadow: "0 2px 8px rgba(37, 99, 235, 0.2)",
             }}
           >
-            ✍️ Soạn thư mới / Newsletter
+            <span aria-hidden="true">✍️</span> Soạn thư mới / Newsletter
           </button>
         </div>
       </div>
@@ -1038,7 +1038,7 @@ export default function EmailMailboxPage() {
                           }}
                           title="Đưa vào module Đính chính công khai"
                         >
-                          <span>🛠️ Đưa vào Đính chính</span>
+                          <span><span aria-hidden="true">🛠️</span> Đưa vào Đính chính</span>
                         </Link>
                       )}
                       <button
@@ -1053,7 +1053,7 @@ export default function EmailMailboxPage() {
                           cursor: "pointer",
                         }}
                       >
-                        ✓ Đã xử lý
+                        <span aria-hidden="true">✓</span> Đã xử lý
                       </button>
                       <button
                         type="button"
@@ -1285,9 +1285,9 @@ export default function EmailMailboxPage() {
             </label>
             <div role="group" aria-label="Loại thư phát hành" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               {[
-                { id: "newsletter", label: "📢 Bản tin Newsletter tuần", desc: "48,250 subscribers" },
-                { id: "article_alert", label: "⚡ Thông báo xuất bản bài mới", desc: "Breaking / Chuyên mục" },
-                { id: "direct", label: "✉️ Thư cá nhân / Báo chí", desc: "1 người nhận" },
+                { id: "newsletter", icon: "📢", label: "Bản tin Newsletter tuần", desc: "48,250 subscribers" },
+                { id: "article_alert", icon: "⚡", label: "Thông báo xuất bản bài mới", desc: "Breaking / Chuyên mục" },
+                { id: "direct", icon: "✉️", label: "Thư cá nhân / Báo chí", desc: "1 người nhận" },
               ].map((t) => (
                 <button
                   key={t.id}
@@ -1306,7 +1306,7 @@ export default function EmailMailboxPage() {
                   }}
                 >
                   <div style={{ fontSize: 13, fontWeight: 700, color: composeType === t.id ? "#1e40af" : "#111827" }}>
-                    {t.label}
+                    <span aria-hidden="true">{t.icon}</span> {t.label}
                   </div>
                   <div style={{ fontSize: 11, color: "#6b7280" }}>{t.desc}</div>
                 </button>
@@ -1369,7 +1369,7 @@ export default function EmailMailboxPage() {
                   cursor: "pointer",
                 }}
               >
-                ✓ Tiếp nhận bài viết độc giả
+                <span aria-hidden="true">✓</span> Tiếp nhận bài viết độc giả
               </button>
             </div>
           </div>

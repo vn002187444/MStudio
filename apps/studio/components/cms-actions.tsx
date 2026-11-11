@@ -297,6 +297,7 @@ export function AcceptRejectButtons({ rawItemId }: { rawItemId: string }) {
       <button
         disabled={busy}
         aria-busy={busy}
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
         onClick={() => void decide("accept")}
         type="button"
         style={{
@@ -317,6 +318,7 @@ export function AcceptRejectButtons({ rawItemId }: { rawItemId: string }) {
       <button
         disabled={busy}
         aria-busy={busy}
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
         onClick={() => void decide("reject")}
         type="button"
         style={{
@@ -409,6 +411,7 @@ export function TransitionPublishButtons({
             key={to}
             disabled={busy}
             aria-busy={busy}
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
             onClick={() => void transition(to)}
             type="button"
             style={{
@@ -430,6 +433,7 @@ export function TransitionPublishButtons({
         <button
           disabled={busy}
           aria-busy={busy}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
           onClick={() => void publish()}
           type="button"
           style={{
