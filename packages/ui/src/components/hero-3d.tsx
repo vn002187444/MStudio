@@ -164,12 +164,12 @@ export const Hero3D = ({ className }: { className?: string }) => {
           p.y = p.baseY + wave;
           batches[0].push(p);
         } else {
-          const distance = Math.sqrt(distSq);
-          const force = Math.max(0, 150 - distance) / 150;
+          const force = Math.max(0, 1 - distSq / 22500); // 150 * 150 = 22500
           p.x = p.baseX - dx * force * 0.1;
           p.y = p.baseY - dy * force * 0.1 + wave;
 
-          const rawAlpha = isLight ? Math.max(baseAlpha, 0.85 - distance / 350) : Math.max(baseAlpha, 1 - distance / 300);
+          // 350 * 350 = 122500, 300 * 300 = 90000
+          const rawAlpha = isLight ? Math.max(baseAlpha, 0.85 - (distSq / 122500)) : Math.max(baseAlpha, 1 - (distSq / 90000));
           const activeAlphaIndex = Math.min(9, Math.max(2, Math.round(rawAlpha * 10)));
           batches[activeAlphaIndex].push(p);
         }
