@@ -78,3 +78,7 @@
 ## 2024-05-28 - LCP Optimization for Article Hero Image
 **Learning:** Using `loading="lazy"` on the Largest Contentful Paint (LCP) element (like the article hero image) is a performance anti-pattern because it delays the browser from fetching the critical image.
 **Action:** Always use `fetchPriority="high"` and `loading="eager"` (while retaining `decoding="async"`) on hero images that are part of the LCP to ensure they are loaded as quickly as possible.
+
+## 2026-11-12 - Avoid Math.sqrt() in high-frequency animation loops
+**Learning:** Calculating Math.sqrt() for every element in a requestAnimationFrame loop is expensive. We can optimize it by using squared distance (distSq) directly. Note that when replacing linear distance with squared distance in physics equations (like force or alpha calculations), the falloff curve changes from linear to quadratic. In this case, removing Math.sqrt() significantly reduces CPU load while providing an acceptable quadratic falloff.
+**Action:** When removing Math.sqrt() in physics loops, use squared distances in equations, keeping in mind that the interaction curve will become quadratic instead of linear.
