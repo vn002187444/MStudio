@@ -1,6 +1,6 @@
 # Jules Cloud Agent Sessions Archive - MStudio Channel
-**Ngày lưu trữ:** 08-11-2026 22:37:36
-**Tổng số Sessions:** 58 (Hoàn thành: 42, Treo/Dọn dẹp: 16)
+**Ngày lưu trữ:** 11-11-2026 08:08:00
+**Tổng số Sessions:** 65 (Hoàn thành: 48, Đang thực thi/Điều phối: 2, Treo/Dọn dẹp: 15)
 
 Tài liệu lưu trữ toàn bộ lịch sử hoạt động, nguồn gốc (provenance) và các Pull Request do Jules Cloud Agent (`Bolt` và `Palette`) thực hiện cho repo `vn002187444/MStudio`.
 
@@ -8,6 +8,13 @@ Tài liệu lưu trữ toàn bộ lịch sử hoạt động, nguồn gốc (pro
 
 | ID Session | Persona / Tiêu đề | Trạng thái | Tạo lúc | PR Liên quan | URL Session |
 | :--- | :--- | :---: | :---: | :---: | :--- |
+| `16708622483521661487` | Bolt: Remove Math.sqrt from Hero3D loop | ⚡ IN_PROGRESS | 2026-11-10 20:49:58 | PR Đang khởi tạo | [Xem Session](https://jules.google.com/session/16708622483521661487) |
+| `8297715655513529956` | Palette: Micro-UX & Keyboard Focus WCAG AA | 🎨 IN_PROGRESS | 2026-11-10 02:13:22 | PR Đang khởi tạo | [Xem Session](https://jules.google.com/session/8297715655513529956) |
+| `14669983111846318081` | Bolt: [LCP Optimization] Eager load hero image | ✅ COMPLETED | 2026-11-09 20:45:10 | [PR #74](https://github.com/vn002187444/MStudio/pull/74) | [Xem Session](https://jules.google.com/session/14669983111846318081) |
+| `8974865025557187003` | Palette: A11y for decorative icons in media manager | ✅ COMPLETED | 2026-11-09 02:20:15 | [PR #73](https://github.com/vn002187444/MStudio/pull/73) | [Xem Session](https://jules.google.com/session/8974865025557187003) |
+| `8783762721909518163` | Bolt: Add async decoding to all images to reduce TBT | ✅ COMPLETED | 2026-11-08 20:35:10 | [PR #72](https://github.com/vn002187444/MStudio/pull/72) | [Xem Session](https://jules.google.com/session/8783762721909518163) |
+| `3989970976287008422` | Palette: Focus states and ARIA in loading page | ✅ COMPLETED | 2026-11-08 02:15:30 | [PR #71](https://github.com/vn002187444/MStudio/pull/71) | [Xem Session](https://jules.google.com/session/3989970976287008422) |
+| `12786732804781492590` | Bolt: Cache document-relative position in TiltCard | ✅ COMPLETED | 2026-11-07 20:30:15 | [PR #70](https://github.com/vn002187444/MStudio/pull/70) | [Xem Session](https://jules.google.com/session/12786732804781492590) |
 | `8194131685448933088` | Palette: Micro-UX & Accessibility Agent | ✅ COMPLETED | 2026-11-07 02:29:51 | [PR #68](https://github.com/vn002187444/MStudio/pull/68) | [Xem Session](https://jules.google.com/session/8194131685448933088) |
 | `14755915426455063149` | Bolt: Codebase Performance Optimizer | ✅ COMPLETED | 2026-11-06 20:32:27 | [PR #67](https://github.com/vn002187444/MStudio/pull/67) | [Xem Session](https://jules.google.com/session/14755915426455063149) |
 | `16476928489991815203` | Palette: Micro-UX and Accessibility Agent | ✅ COMPLETED | 2026-11-06 02:23:03 | [PR #66](https://github.com/vn002187444/MStudio/pull/66) | [Xem Session](https://jules.google.com/session/16476928489991815203) |
