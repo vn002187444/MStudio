@@ -1,11 +1,11 @@
-import { apiBaseUrl } from "../../lib/api";
+import { fetchApi } from "../../lib/api";
 import { buildSitemap, siteOrigin } from "../../lib/seo";
 import type { SitemapEntry } from "../../lib/seo";
 
 /**
  * /sitemap.xml (PLAN machine endpoints) — routes công khai + bài
- * published gần nhất từ GET /articles. Free-tier: giới hạn 200 bài
- * mới nhất, monthly sitemap tách riêng khi quy mô lớn.
+ * published gần nhất từ GET /articles. Free-tier: giới hạn 100 bài
+ * mới nhất (hợp lệ API validation max=100) qua fetchApi chịu lỗi kép.
  */
 const STATIC_PATHS: Array<{ loc: string; changefreq: SitemapEntry["changefreq"]; priority: number }> = [
   { loc: "/", changefreq: "hourly", priority: 1.0 },
@@ -45,7 +45,7 @@ export async function GET() {
   }));
 
   try {
-    const response = await fetch(`${apiBaseUrl()}/articles?limit=200`, {
+    const response = await fetchApi("/articles?limit=100", {
       next: { revalidate: 300 },
     });
     if (response.ok) {

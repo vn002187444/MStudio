@@ -6,6 +6,20 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin()),
   title: "MStudio Channel",
   description: "MStudio Channel — tin tức evidence-first, biên tập có kiểm chứng.",
+  alternates: {
+    canonical: siteOrigin(),
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

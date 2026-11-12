@@ -1,4 +1,4 @@
-import { apiBaseUrl } from "../../lib/api";
+import { fetchApi } from "../../lib/api";
 import {
   buildNewsSitemap,
   isWithinNewsWindow,
@@ -9,7 +9,7 @@ import type { NewsSitemapEntry } from "../../lib/seo";
 /**
  * /sitemap-news.xml (Google News) — bài published trong cửa sổ 48h
  * theo NEWS_WINDOW_MS của packages/seo. Publication name/ ngôn ngữ
- * theo brand (vi).
+ * theo brand (vi). Sử dụng fetchApi để tự động fallback khi Primary API bận.
  */
 interface PublishedArticle {
   id: string;
@@ -23,7 +23,7 @@ export async function GET() {
   const entries: NewsSitemapEntry[] = [];
 
   try {
-    const response = await fetch(`${apiBaseUrl()}/articles?limit=100`, {
+    const response = await fetchApi("/articles?limit=100", {
       next: { revalidate: 300 },
     });
     if (response.ok) {
