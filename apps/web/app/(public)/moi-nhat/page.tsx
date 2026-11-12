@@ -7,6 +7,10 @@ import { BentoGrid, BentoCard, AmbientGlow } from "@mstudio/ui";
 export const metadata: Metadata = {
   title: "Mới nhất | MStudio Channel",
   description: "Tin mới nhất từ MStudio Channel — cập nhật liên tục từ pipeline biên tập.",
+  robots: { index: true, follow: true },
+  alternates: {
+    canonical: `${siteOrigin()}/moi-nhat`,
+  },
 };
 
 export default async function LatestPage() {

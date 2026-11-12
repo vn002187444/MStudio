@@ -1,4 +1,4 @@
-import { apiBaseUrl } from "../../lib/api";
+import { fetchApi } from "../../lib/api";
 import { buildSitemap, siteOrigin } from "../../lib/seo";
 import type { SitemapEntry } from "../../lib/seo";
 
@@ -17,7 +17,7 @@ export async function GET() {
   const entries: SitemapEntry[] = [];
 
   try {
-    const response = await fetch(`${apiBaseUrl()}/categories`, {
+    const response = await fetchApi(`/categories`, {
       next: { revalidate: 3600 },
     });
     if (response.ok) {

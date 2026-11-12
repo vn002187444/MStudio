@@ -3,6 +3,20 @@ import vinextHandler from "vinext/server/fetch-handler";
 export default {
   async fetch(request: Request, env: any, ctx: any): Promise<Response> {
     const url = new URL(request.url);
+
+    // 1. Chuẩn hóa trailing slash: chuyển hướng 301 vĩnh viễn sang URL tuyệt đối (SEO Canonicalization)
+    if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+      const cleanPath = url.pathname.replace(/\/+$/, "");
+      const targetUrl = new URL(cleanPath + url.search, request.url);
+      return new Response(null, {
+        status: 301,
+        headers: {
+          Location: targetUrl.toString(),
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
+    }
+
     const response = await (vinextHandler as any).fetch(request, env, ctx);
 
     // Cache-Control Edge Header for public pages to ensure sub-50ms TTFB

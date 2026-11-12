@@ -12,6 +12,10 @@ import { BentoGrid, BentoCard, AmbientGlow } from "@mstudio/ui";
 export const metadata: Metadata = {
   title: "Đang nóng | MStudio Channel",
   description: "Bài đang được đọc nhiều trên MStudio Channel — xếp hạng theo tương tác thật.",
+  robots: { index: true, follow: true },
+  alternates: {
+    canonical: `${siteOrigin()}/dang-nong`,
+  },
 };
 
 export default async function TrendingPage() {

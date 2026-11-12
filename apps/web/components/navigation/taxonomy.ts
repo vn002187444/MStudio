@@ -8,23 +8,23 @@ export interface TaxonomyItem {
 }
 
 export const primaryNav: TaxonomyItem[] = [
-  { href: "/moi-nhat/", label: "Mới nhất" },
-  { href: "/danh-cho-ban/", label: "Dành cho bạn" },
-  { href: "/dang-nong/", label: "Đang nóng" },
-  { href: "/the-gioi/", label: "Thế giới" },
-  { href: "/cong-nghe/", label: "Công nghệ" },
-  { href: "/ai-channel/", label: "AI Channel" },
-  { href: "/giai-tri/", label: "Giải trí" },
-  { href: "/kham-pha/", label: "Khám phá" },
-  { href: "/doi-song/", label: "Đời sống" },
-  { href: "/goc-toi/", label: "Góc Tối" },
+  { href: "/moi-nhat", label: "Mới nhất" },
+  { href: "/danh-cho-ban", label: "Dành cho bạn" },
+  { href: "/dang-nong", label: "Đang nóng" },
+  { href: "/the-gioi", label: "Thế giới" },
+  { href: "/cong-nghe", label: "Công nghệ" },
+  { href: "/ai-channel", label: "AI Channel" },
+  { href: "/giai-tri", label: "Giải trí" },
+  { href: "/kham-pha", label: "Khám phá" },
+  { href: "/doi-song", label: "Đời sống" },
+  { href: "/goc-toi", label: "Góc Tối" },
 ];
 
 /** Dải trending — chủ đề tĩnh, không số liệu giả (source count chỉ khi có dữ liệu thật). */
 export const trendingTopics: TaxonomyItem[] = [
-  { href: "/ai-channel/", label: "AI Channel" },
-  { href: "/cong-nghe/", label: "Công nghệ" },
-  { href: "/the-gioi/", label: "Thế giới" },
+  { href: "/ai-channel", label: "AI Channel" },
+  { href: "/cong-nghe", label: "Công nghệ" },
+  { href: "/the-gioi", label: "Thế giới" },
 ];
 
 interface CategoryApiRow {
@@ -52,7 +52,7 @@ export async function fetchPrimaryNav(): Promise<TaxonomyItem[]> {
     }
     return payload.categories
       .filter((row) => row.status === "active" && /^[a-z0-9-]+$/.test(row.slug))
-      .map((row) => ({ href: `/${row.slug}/`, label: row.labelVi }));
+      .map((row) => ({ href: `/${row.slug}`, label: row.labelVi }));
   } catch {
     return primaryNav;
   }
