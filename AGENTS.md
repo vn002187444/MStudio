@@ -25,7 +25,6 @@ Only edit task.paths. If another path becomes necessary, stop and report require
 ## Branches
 - feat/MST-xxx-opencode
 - feat/MST-xxx-commandcode
-- feat/MST-xxx-jules
 - fix/MST-xxx-<owner>
 
 One task = one primary owner = one branch/PR.
@@ -35,10 +34,7 @@ One task = one primary owner = one branch/PR.
 Web/Studio UI, components, responsive, accessibility and SEO rendering.
 
 ### Command Code
-Workers, queues, D1/repositories/migrations, auth, observability and AI backend contracts.
-
-### Jules
-Isolated tests, docs, fixes and refactors after contracts stabilize.
+Workers, queues, D1/repositories/migrations, auth, observability, AI backend contracts, automated test suites, documentation, and safe terminal operations.
 
 ### Human Lead
 Architecture gates, schema/migration approval, secrets, editorial/risk policy and final merge.

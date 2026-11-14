@@ -1,5 +1,6 @@
-# Jules Cloud Agent Sessions Archive - MStudio Channel
-**Ngày lưu trữ:** 14-11-2026 08:05:00
+# Jules Cloud Agent Sessions Archive - MStudio Channel (Archived & Read-Only)
+**Ngày lưu trữ:** 14-11-2026 21:50:00  
+**Trạng thái hỗ trợ:** 🛑 **Đã dừng hỗ trợ / Read-Only kể từ 11/11/2026**. Jules không thể tạo tác vụ mới hay ghi dữ liệu. Toàn bộ lịch sử dưới đây được lưu trữ tĩnh làm tài liệu tham khảo nguồn gốc.  
 **Tổng số Sessions:** 67 (Hoàn thành: 52, Treo/Dọn dẹp: 15)
 
 Tài liệu lưu trữ toàn bộ lịch sử hoạt động, nguồn gốc (provenance) và các Pull Request do Jules Cloud Agent (`Bolt` và `Palette`) thực hiện cho repo `vn002187444/MStudio`.

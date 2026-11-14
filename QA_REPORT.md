@@ -614,13 +614,14 @@ Trích 8 ý mới (không trùng `PLAN.md`) từ proposal của Jules, đã đ�
   - **Rule 17 (Đồng bộ Delta Định kỳ D1):** Endpoint `/api/admin/delta` hoạt động hoàn hảo với token `mstudio_ingest_secret_2026`. GitHub Actions `Daily D1 Backup Sync` chạy thành công lúc 06:58 AM VN.
   - **Rule 24 (Zero-R2 S3-on-NAS):** Triệt tiêu 100% Cloudflare R2Bucket bindings, MinIO S3 cluster trên NAS lưu trữ an toàn.
 
-## 5. Tình trạng Điều phối Jules Cloud Agent
-- **Đánh giá Sức khỏe & Phiên Jules (`jules_health_check`):** Trạng thái `healthy`, version `0.4.0`, API reachable 100%.
-- **Trạng thái PRs trên GitHub:** Toàn bộ các Pull Request do Jules Cloud Agent tạo ra (PR #74, #75, #76, #77, #78) đã được Squash & Merge hoàn tất vào nhánh `main`. Không có PR nào bị tồn đọng, lỗi hay treo.
-- **Cập nhật Lưu trữ Jules Sessions Archive (`docs/JULES_SESSIONS_ARCHIVE.md`):**
-  - Xác nhận và đồng bộ trạng thái lưu trữ của các Agent Bolt ⚡ và Palette 🎨.
-- **Tuân thủ Quy tắc Jules Cloud (Rule 6):**
-  - Giữ vững cơ chế feedback loop trên session hiện tại khi có yêu cầu fix/tinh chỉnh, không tạo session rác phân mảnh PR.
+## 5. Chuyển Đổi Mô Hình Đa Tác Nhân & Dừng Hỗ Trợ Jules Cloud (11/11/2026)
+- **Thông báo Chuyển đổi Trạng thái:** Từ ngày 11 tháng 11 năm 2026, Google Jules đã chính thức chuyển sang chế độ chỉ đọc (read-only). Người dùng không thể tạo tác vụ mới, chạy các phiên làm việc tương tác hay thực hiện các thao tác ghi dữ liệu hệ thống được nữa.
+- **Thực thi Loại bỏ Hoàn Toàn Jules MCP:**
+  - Đã loại bỏ Jules MCP server ra khỏi cấu hình `mcp_config.json`.
+  - Đã loại bỏ các quyền truy cập `mcp(jules/...)` và cập nhật lại toàn bộ các kịch bản Automation / Sidecars (`daily-performance-articles-jules-fix`, `daily-website-qa-jules-fix`).
+  - Đã xóa định nghĩa subagent `jules-cloud-worker.md` khỏi hệ sinh thái Agent.
+  - Cập nhật quy chuẩn SDLC (`GEMINI.md`, `AGENTS.md`, `PLAN.md`, `SDLC_RULES.md`) chuyển toàn bộ trọng trách backend, QC/QA, unit test và migrations sang **CommandCode CLI** và **Antigravity Lead Orchestrator**.
+- **Lưu trữ Lịch sử:** Toàn bộ lịch sử 19 phiên làm việc và 5 PR thành công (#74-#78) của Jules trên MStudio được lưu trữ ở chế độ Read-Only tại `docs/JULES_SESSIONS_ARCHIVE.md` để làm bằng chứng lịch sử.
 
 
 

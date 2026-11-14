@@ -1,6 +1,6 @@
 # MStudio Channel PLAN
 
-> Single source of truth cho Human Lead, OpenCode CLI, Command Code CLI và Google Jules.
+> Single source of truth cho Human Lead, OpenCode CLI và Command Code CLI.
 
 ## Hard requirements
 - Brand: MStudio Channel.
@@ -555,9 +555,9 @@ Guardrails: repetition caps, source diversity, Follow/Hide, “Vì sao tôi th�
 
 ## Agent ownership
 - OpenCode CLI: frontend/product implementation, apps/web, Studio UI, packages/ui và rendering/SEO integration.
-- Command Code CLI: Workers, D1/repositories/migrations, auth, observability, ModelGateway/backend AI contracts, QuotaGuard.
-- Google Jules: async isolated tests/docs/bugfix/refactor/dependency PRs sau khi contracts ổn định.
+- Command Code CLI: Workers, D1/repositories/migrations, auth, observability, ModelGateway/backend AI contracts, QuotaGuard, automated test suites, documentation và safe DevOps.
 - Human Lead: architecture, schema gates, editorial/risk policy, secrets, final review/merge.
+*(Ghi chú: Google Jules đã chính thức dừng hỗ trợ chuyển sang chế độ read-only từ 11/11/2026).*
 
 ## Skills policy
 Trước khi code task nào, agent phải load skills liệt kê trong `backlog.yaml -> task_skills[<TASK-ID>]` bằng skill tool. Skills là bắt buộc, không optional.
@@ -608,11 +608,11 @@ Sprint 1 Foundation/RSS -> Sprint 2 Story Intelligence -> Sprint 3 AI Pipeline -
 ## Follow-up tasks (QA re-evaluation 2026-10-09)
 Nối tiếp FU-01..FU-07 trong `QA_REPORT.md` §5. Mỗi task nhỏ, một owner, xong là đóng.
 
-- **FU-08 .gitignore hardening** (owner: jules): thêm `.env*`, `*.pem`, `*.key` vào `.gitignore`; verify không có secret tracked. Acceptance: `git ls-files` sạch + fresh clone không lộ secret mẫu. Tests: secret-scan. Quota: none.
+- **FU-08 .gitignore hardening** (owner: commandcode): thêm `.env*`, `*.pem`, `*.key` vào `.gitignore`; verify không có secret tracked. Acceptance: `git ls-files` sạch + fresh clone không lộ secret mẫu. Tests: secret-scan. Quota: none.
 - **FU-10 Auth/RBAC backlog draft** (owner: commandcode, human_gate: editorial/architecture): draft task Worker auth (session, roles Admin/Editor/Reviewer/SEO/Analyst theo mục Security), rate-limit sensitive APIs, audit log. Acceptance: task YAML duyệt bởi Human. Không code khi chưa duyệt scope.
 - **FU-11 Category expansion draft** (owner: human phân công sau draft): draft taxonomy mở rộng + migration + UI category template đi kèm. Acceptance: Human duyệt phạm vi trước khi tách MST task.
 - **FU-12 Scheduler concurrency eval + ADR** (owner: commandcode, Human quyết): benchmark 3 phương án (tuần tự hiện tại / `Promise.all` / `allSettled`) trên ingest — đo D1 write contention, fetch burst, queue lag, quota impact; viết ADR chọn 1. Các nhánh `MST-007-perf` / `MST-123-optimize` giữ làm tham chiếu tới khi ADR xong. Acceptance: ADR merged + branch thua đóng.
-- **FU-13 Deploy runbook** (owner: jules): doc chuẩn các bước `wrangler queue create mstudio-events`, deploy api/analytics, `d1 migrations apply 0001–0006`, verify `/healthz` + `/recommendations`. Acceptance: người khác làm theo runbook pass từ đầu tới cuối.
+- **FU-13 Deploy runbook** (owner: commandcode): doc chuẩn các bước `wrangler queue create mstudio-events`, deploy api/analytics, `d1 migrations apply 0001–0006`, verify `/healthz` + `/recommendations`. Acceptance: người khác làm theo runbook pass từ đầu tới cuối.
 - **FU-14 CF credentials + deploy execution** (owner: human + commandcode): Human cấp credentials; cmdc chạy runbook FU-13 lên môi trường thật, báo cáo quota impact thực tế. Acceptance: API/analytics live, queue hoạt động, `/articles/:id` trả published article.
 - **FU-16 Zod forms (APPROVED 10-10-2026, owner: opencode)**: chuẩn hóa validation form Studio/Web bằng Zod shared (tiếp nối `workers/api`). Acceptance: mọi form FE dùng schema Zod chung, test pass.
 - **FU-17 Auto internal-link (APPROVED 10-10-2026, owner: commandcode)**: AI quét Entity/Topic DB, tự chèn contextual anchor khi sinh bài. Acceptance: bài xuất bản có internal links + không chèn vào tin loại trừ (nếu có).
