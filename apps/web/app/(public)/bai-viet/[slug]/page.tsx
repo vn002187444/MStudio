@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import { notFound, redirect, RedirectType } from "next/navigation";
 import { fetchApi } from "../../../../lib/api";
 import { newsArticleJsonLd, siteOrigin } from "../../../../lib/seo";
@@ -113,7 +114,7 @@ function renderMarkdownLinks(text: string): string {
 
 async function fetchArticle(slug: string): Promise<PublishedArticle | undefined> {
   try {
-    const response = await fetchApi(`/articles/${encodeURIComponent(slug)}`, { cache: "no-store" });
+    const response = await fetchApi(`/articles/${encodeURIComponent(slug)}`);
     if (response.status === 404) return undefined;
     if (!response.ok) return undefined;
     const payload = (await response.json()) as { article: PublishedArticle };
@@ -123,56 +124,23 @@ async function fetchArticle(slug: string): Promise<PublishedArticle | undefined>
   }
 }
 
+const getCachedArticle = cache(async (slug: string): Promise<PublishedArticle | undefined> => {
+  return fetchArticle(slug);
+});
+
 async function fetchRelatedArticles(articleId: string, currentCategory?: string) {
   try {
-    const response = await fetchApi(
-      `/recommendations?articleId=${encodeURIComponent(articleId)}&limit=4`,
-      { cache: "no-store" },
-    ).catch(() => null);
-
-    let candidates: Array<{ articleId: string; reason: string }> = [];
+    const url = currentCategory
+      ? `/articles?category=${encodeURIComponent(currentCategory)}&limit=4`
+      : `/articles?limit=4`;
+    const response = await fetchApi(url).catch(() => null);
     if (response && response.ok) {
-      try {
-        const payload = (await response.json()) as {
-          candidates: Array<{ articleId: string; reason: string }>;
-        };
-        if (Array.isArray(payload.candidates)) {
-          candidates = payload.candidates;
-        }
-      } catch {
-        candidates = [];
-      }
-    }
-
-    let valid: (PublishedArticle & { reason: string })[] = [];
-    if (candidates.length > 0) {
-      const uniqueIds = Array.from(new Set(candidates.map(c => c.articleId)));
-      const ids = uniqueIds.join(",");
-      const response = await fetchApi(`/articles?ids=${ids}`, { cache: "no-store" }).catch(() => null);
-      if (response && response.ok) {
-        const data = (await response.json()) as { rows?: PublishedArticle[] };
-        if (Array.isArray(data.rows)) {
-          valid = data.rows.map(row => {
-            const reason = candidates.find(c => c.articleId === row.id)?.reason || "";
-            return { ...row, reason };
-          });
-        }
-      }
-    }
-    if (valid.length > 0) return valid;
-
-    const fallbackRes = await fetchApi(`/articles?limit=4`, { cache: "no-store" }).catch(() => null);
-    if (fallbackRes && fallbackRes.ok) {
-      try {
-        const data = (await fallbackRes.json()) as { rows?: PublishedArticle[] };
-        if (Array.isArray(data.rows)) {
-          return data.rows
-            .filter((a) => a.id !== articleId)
-            .slice(0, 3)
-            .map((a) => ({ ...a, reason: "Tin nổi bật khác" }));
-        }
-      } catch {
-        return [];
+      const data = (await response.json()) as { rows?: PublishedArticle[] };
+      if (Array.isArray(data.rows)) {
+        return data.rows
+          .filter((a) => a.id !== articleId)
+          .slice(0, 3)
+          .map((a) => ({ ...a, reason: "Tin liên quan" }));
       }
     }
     return [];
@@ -200,7 +168,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }> | { slug: string };
 }): Promise<Metadata> {
   const { slug } = await Promise.resolve(params);
-  const article = await fetchArticle(slug);
+  const article = await getCachedArticle(slug);
   if (!article) {
     return { title: "Không tìm thấy | MStudio Channel", robots: { index: false, follow: false } };
   }
@@ -428,7 +396,7 @@ export default async function ArticlePage({
   params: Promise<{ slug: string }> | { slug: string };
 }) {
   const { slug } = await Promise.resolve(params);
-  const article = await fetchArticle(slug);
+  const article = await getCachedArticle(slug);
   if (!article) {
     notFound();
   }

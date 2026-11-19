@@ -34,7 +34,7 @@ async function fetchHttp(url, options = {}) {
     const res = await fetch(url, {
       method: options.method || 'GET',
       headers: {
-        'User-Agent': 'MStudio-E2E-Runner/1.0 (Automated QC/QA Agent)',
+        'User-Agent': options.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/html, */*',
         ...(options.headers || {})
       },

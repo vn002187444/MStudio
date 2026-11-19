@@ -117,12 +117,12 @@ function renderCategoryWidget(slug?: string) {
   }
 }
 
-async function fetchCategoryArticles(categorySlug?: string, limit = 20): Promise<PublishedArticleRecord[]> {
+async function fetchCategoryArticles(categorySlug?: string, limit = 12): Promise<PublishedArticleRecord[]> {
   try {
     const url = categorySlug
       ? `/articles?category=${encodeURIComponent(categorySlug)}&limit=${limit}`
       : `/articles?limit=${limit}`;
-    const response = await fetchApi(url, { cache: "no-store" });
+    const response = await fetchApi(url);
     if (!response.ok) return [];
     const payload = (await response.json()) as ArticlesResponse;
     return Array.isArray(payload.rows) ? payload.rows : [];
@@ -133,7 +133,7 @@ async function fetchCategoryArticles(categorySlug?: string, limit = 20): Promise
 
 async function fetchSuggestedArticles(limit = 6): Promise<PublishedArticleRecord[]> {
   try {
-    const response = await fetchApi(`/articles?limit=${limit}`, { cache: "no-store" });
+    const response = await fetchApi(`/articles?limit=${limit}`);
     if (!response.ok) return [];
     const payload = (await response.json()) as ArticlesResponse;
     return Array.isArray(payload.rows) ? payload.rows : [];
@@ -151,7 +151,7 @@ export async function CategoryTemplate({
   description: string;
   categorySlug?: string;
 }) {
-  const articles = await fetchCategoryArticles(categorySlug, 20);
+  const articles = await fetchCategoryArticles(categorySlug, 12);
   const suggestedArticles = articles.length === 0 ? await fetchSuggestedArticles(6) : [];
   const [heroArticle, ...restArticles] = articles;
   const theme = getCategoryTheme(categorySlug);

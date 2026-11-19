@@ -24,11 +24,23 @@ export async function fetchApi(path: string, init?: RequestInit): Promise<Respon
   const primaryUrl = `${apiBaseUrl()}${normPath}`;
   const fallbackUrl = `${apiFallbackUrl()}${normPath}`;
 
+  const baseHeaders: Record<string, string> = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 MStudio-Edge/1.0",
+    "Accept": "application/json",
+  };
+
+  const { cache: _ignoredCache, headers: initHeaders, ...cleanInit } = init || {};
+  const mergedHeaders = {
+    ...baseHeaders,
+    ...(initHeaders ? Object.fromEntries(new Headers(initHeaders).entries()) : {}),
+  };
+
   // 1. Try Primary with fresh timeout signal
   try {
     const primaryInit: RequestInit = {
-      ...init,
-      signal: init?.signal ?? AbortSignal.timeout(3000),
+      ...cleanInit,
+      headers: mergedHeaders,
+      signal: init?.signal ?? AbortSignal.timeout(3500),
     };
     const res = await fetch(primaryUrl, primaryInit);
     if (res.ok) {
@@ -39,8 +51,9 @@ export async function fetchApi(path: string, init?: RequestInit): Promise<Respon
   // 2. Try Fallback with clean separate timeout signal
   try {
     const fallbackInit: RequestInit = {
-      ...init,
-      signal: AbortSignal.timeout(2500),
+      ...cleanInit,
+      headers: mergedHeaders,
+      signal: AbortSignal.timeout(3500),
     };
     const fbRes = await fetch(fallbackUrl, fallbackInit);
     if (fbRes.ok) {
