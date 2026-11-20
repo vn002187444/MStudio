@@ -12,7 +12,8 @@
     "test": "pnpm -r test",
     "test:e2e": "node scripts/e2e-verification.mjs",
     "deploy": "pnpm --filter web run deploy",
-    "sync:d1": "node scripts/sync-bkns-to-d1.mjs"
+    "sync:d1": "node scripts/sync-bkns-to-d1.mjs",
+    "cleanup:d1": "node scripts/cleanup-d1-orphans.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.148.0"

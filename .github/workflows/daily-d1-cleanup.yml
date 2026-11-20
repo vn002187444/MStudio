@@ -1,0 +1,40 @@
+name: Daily D1 Orphan Cleanup
+
+on:
+  schedule:
+    # Chạy hàng ngày lúc 03:30 AM giờ VN (20:30 UTC), trước giờ reset hạn ngạch D1 (07:00 AM VN / 00:00 UTC)
+    - cron: '30 20 * * *'
+  workflow_dispatch:
+    inputs:
+      dailyLimit:
+        description: 'Số lượng bản ghi tối đa dọn dẹp trong đợt này'
+        required: false
+        default: '30000'
+      dryRun:
+        description: 'Chỉ kiểm tra và đếm số lượng, không thực thi xóa'
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run Batched Safe D1 Orphan Cleanup
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 9db1a9ece3ede791fd3cfb5d13bd6765
+          CLOUDFLARE_D1_DATABASE_ID: 6cef0de8-cd16-4494-a809-d1d177be002e
+        run: |
+          ARGS=""
+          if [ "${{ inputs.dryRun }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          if [ -n "${{ inputs.dailyLimit }}" ]; then
+            ARGS="$ARGS --limit=${{ inputs.dailyLimit }}"
+          fi
+          node scripts/cleanup-d1-orphans.mjs $ARGS
