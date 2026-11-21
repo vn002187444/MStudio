@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 
 // Helper to escape SQL single quotes
 function sqlEscape(val) {
@@ -16,13 +17,6 @@ function sqlEscape(val) {
 
 function getCfToken() {
   if (process.env.CLOUDFLARE_API_TOKEN) return process.env.CLOUDFLARE_API_TOKEN;
-  // Local wrangler token fallback
-  const wranglerPath = path.join(os.homedir(), 'AppData', 'Roaming', 'xdg.config', '.wrangler', 'config', 'default.toml');
-  if (fs.existsSync(wranglerPath)) {
-    const content = fs.readFileSync(wranglerPath, 'utf-8');
-    const match = /oauth_token\s*=\s*"([^"]+)"/.exec(content);
-    if (match) return match[1];
-  }
   return null;
 }
 
@@ -32,32 +26,52 @@ const CF_D1_DATABASE_ID = process.env.CLOUDFLARE_D1_DATABASE_ID || '6cef0de8-cd1
 const BKNS_API_URL = process.env.BKNS_API_URL || 'https://api-mstudio.minds.io.vn';
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'mstudio_ingest_secret_2026';
 
-if (!CF_TOKEN) {
-  console.error('[Sync Error] Missing CLOUDFLARE_API_TOKEN. Please set it in env.');
-  process.exit(1);
-}
-
 async function queryD1(sql) {
-  const url = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/d1/database/${CF_D1_DATABASE_ID}/query`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${CF_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ sql })
-  });
+  if (CF_TOKEN) {
+    const url = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/d1/database/${CF_D1_DATABASE_ID}/query`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${CF_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sql })
+    });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`D1 API HTTP ${res.status}: ${text}`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`D1 API HTTP ${res.status}: ${text}`);
+    }
+
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(`D1 Execution Error: ${JSON.stringify(data.errors)}`);
+    }
+    return data.result;
   }
 
-  const data = await res.json();
-  if (!data.success) {
-    throw new Error(`D1 Execution Error: ${JSON.stringify(data.errors)}`);
+  // Fallback to wrangler CLI
+  const trimmed = sql.trim();
+  if (trimmed.toUpperCase().startsWith('SELECT')) {
+    const safeSql = trimmed.replace(/\r?\n/g, ' ').replace(/"/g, '\"');
+    const cmd = `pnpm exec wrangler d1 execute mstudio_dev --remote --command "${safeSql}" --json`;
+    const output = execSync(cmd, { encoding: 'utf8', timeout: 90000, stdio: ['pipe', 'pipe', 'pipe'] });
+    const jsonMatch = output.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    return jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(output.trim());
   }
-  return data.result;
+
+  const tmpFile = path.join(os.tmpdir(), `d1_sync_${Date.now()}_${Math.random().toString(36).substring(7)}.sql`);
+  try {
+    fs.writeFileSync(tmpFile, sql, 'utf8');
+    const cmd = `pnpm exec wrangler d1 execute mstudio_dev --remote --file "${tmpFile}" --json`;
+    const output = execSync(cmd, { encoding: 'utf8', timeout: 90000, stdio: ['pipe', 'pipe', 'pipe'] });
+    const jsonMatch = output.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    return jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(output.trim());
+  } finally {
+    try {
+      if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
+    } catch (_) {}
+  }
 }
 
 export async function runD1Sync() {

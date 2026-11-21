@@ -26,19 +26,13 @@ const INTER_CHUNK_DELAY_MS = 10500; // Cloudflare D1 10-second resource consumpt
 
 function getCfToken() {
   if (process.env.CLOUDFLARE_API_TOKEN) return process.env.CLOUDFLARE_API_TOKEN;
-  const wranglerPath = path.join(os.homedir(), 'AppData', 'Roaming', 'xdg.config', '.wrangler', 'config', 'default.toml');
-  if (fs.existsSync(wranglerPath)) {
-    const content = fs.readFileSync(wranglerPath, 'utf-8');
-    const match = /oauth_token\s*=\s*"([^"]+)"/.exec(content);
-    if (match) return match[1];
-  }
   return null;
 }
 
 const CF_TOKEN = getCfToken();
 
 async function executeD1Query(sql, retries = 4) {
-  // If API token is available, prefer REST API for speed and reliability
+  // If API token is available in env, prefer REST API
   if (CF_TOKEN) {
     const url = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/d1/database/${CF_D1_DATABASE_ID}/query`;
     for (let attempt = 1; attempt <= retries; attempt++) {
@@ -68,15 +62,15 @@ async function executeD1Query(sql, retries = 4) {
     throw new Error('D1 Query failed after retries due to 429 rate limit.');
   }
 
-  // Fallback to wrangler CLI
-  const safeSql = sql.replace(/"/g, '\"');
-  const cmd = `pnpm exec wrangler d1 execute mstudio_dev --remote --command "${safeSql}"`;
-  const output = execSync(cmd, { encoding: 'utf8', timeout: 60000, stdio: ['pipe', 'pipe', 'pipe'] });
+  // Robust execution via wrangler CLI with --command & --json flag
+  const flattenedSql = sql.replace(/\r?\n/g, ' ').replace(/"/g, '\"').trim();
+  const cmd = `pnpm exec wrangler d1 execute mstudio_dev --remote --command "${flattenedSql}" --json`;
+  const output = execSync(cmd, { encoding: 'utf8', timeout: 90000, stdio: ['pipe', 'pipe', 'pipe'] });
   const jsonMatch = output.match(/\[\s*\{[\s\S]*\}\s*\]/);
   if (jsonMatch) {
     return JSON.parse(jsonMatch[0]);
   }
-  return [];
+  return JSON.parse(output.trim());
 }
 
 async function sleep(ms) {
