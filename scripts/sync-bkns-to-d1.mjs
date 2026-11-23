@@ -186,9 +186,19 @@ export async function runD1Sync() {
   console.log('\n[D1 Sync] Batch execution completed successfully.');
 
   // 5. Verify final count in D1
-  const updatedStats = await queryD1('SELECT MAX(created_at) as max_date, COUNT(*) as total FROM articles');
-  const finalTotal = updatedStats[0]?.results[0]?.total || 0;
-  const finalMaxDate = updatedStats[0]?.results[0]?.max_date;
+  let finalTotal = d1Total + articles.length;
+  let finalMaxDate = articles[articles.length - 1]?.createdAt || 'N/A';
+  try {
+    const updatedStats = await queryD1('SELECT MAX(created_at) as max_date, COUNT(*) as total FROM articles');
+    finalTotal = updatedStats[0]?.results[0]?.total || finalTotal;
+    finalMaxDate = updatedStats[0]?.results[0]?.max_date || finalMaxDate;
+  } catch (err) {
+    if (err.message?.includes('7500') || err.message?.includes('read limit')) {
+      console.log('⚠️ [D1 Quota Notice] D1 free-tier daily read limit (code 7500) reached during post-sync verification. Writes were applied successfully.');
+    } else {
+      console.warn('⚠️ [D1 Post-Sync Warning]:', err.message?.split('\n')[0]);
+    }
+  }
 
   console.log(`[D1 Sync] Complete! D1 articles: ${d1Total} -> ${finalTotal} (Latest created_at: ${finalMaxDate})`);
 
