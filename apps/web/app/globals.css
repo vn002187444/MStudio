@@ -1249,11 +1249,29 @@ h3 {
   display: flex;
   width: max-content;
   will-change: transform;
+  contain: layout style paint;
   animation: ticker-slide 35s linear infinite;
 }
 
 .animate-ticker-60fps:hover {
   animation-play-state: paused;
+}
+
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 560px;
+}
+
+@media (max-width: 767px) {
+  .spotlight-card,
+  .stream-main-card,
+  .stream-side-card,
+  .bento-col-3,
+  .bento-col-4,
+  .bento-col-8 {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
 }
 
 /* ── Light Mode Solar Glassmorphism Global Overrides ── */

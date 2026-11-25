@@ -94,7 +94,7 @@ export async function runOrphanCleanup(options = {}) {
   console.log('--- 1. INSPECTING CURRENT D1 ORPHAN STATUS ---');
   const statsQuery = `
     SELECT count(*) as total_raw_items FROM raw_items;
-    SELECT count(*) as orphan_count FROM raw_items WHERE id NOT IN (SELECT raw_item_id FROM story_sources WHERE raw_item_id IS NOT NULL);
+    SELECT count(*) as orphan_count FROM raw_items WHERE NOT EXISTS (SELECT 1 FROM story_sources s WHERE s.raw_item_id = raw_items.id);
     SELECT count(*) as total_stories FROM stories;
     SELECT count(*) as total_articles FROM articles;
   `;
@@ -149,7 +149,7 @@ export async function runOrphanCleanup(options = {}) {
       DELETE FROM raw_items 
       WHERE id IN (
         SELECT id FROM raw_items 
-        WHERE id NOT IN (SELECT raw_item_id FROM story_sources WHERE raw_item_id IS NOT NULL) 
+        WHERE NOT EXISTS (SELECT 1 FROM story_sources s WHERE s.raw_item_id = raw_items.id)
         LIMIT ${currentChunk}
       );
     `;
@@ -177,7 +177,7 @@ export async function runOrphanCleanup(options = {}) {
   // 3. Final verification & Remaining count
   console.log('\n--- 3. POST-CLEANUP VERIFICATION ---');
   const verifyRes = await executeD1Query(`
-    SELECT count(*) as remaining_orphans FROM raw_items WHERE id NOT IN (SELECT raw_item_id FROM story_sources WHERE raw_item_id IS NOT NULL);
+    SELECT count(*) as remaining_orphans FROM raw_items WHERE NOT EXISTS (SELECT 1 FROM story_sources s WHERE s.raw_item_id = raw_items.id);
     SELECT count(*) as total_raw_items FROM raw_items;
   `);
 

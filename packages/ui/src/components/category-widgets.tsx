@@ -312,7 +312,7 @@ export function BentoMarketStrip({
       </div>
 
       {/* 60 FPS Continuous Marquee Strip */}
-      <div className="relative w-full overflow-hidden">
+      <div className="relative w-full overflow-hidden [contain:layout_style_paint]">
         <div className="animate-ticker-60fps flex gap-3 py-1">
           {marqueeList.map((t, idx) => (
             <div

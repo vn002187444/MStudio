@@ -19,7 +19,7 @@ export const AmbientGlow = ({
       aria-hidden="true"
     >
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[80px]"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
           width: sizeValue,
           height: sizeValue,

@@ -67,6 +67,7 @@ test("migrations create the documented hot-query indexes", async () => {
       "idx_articles_story_status",
       "idx_articles_trending",
       "idx_claims_story_status",
+      "idx_editorial_decisions_raw_item",
       "idx_entities_normalized",
       "idx_facts_story",
       "idx_feeds_enabled_created",
@@ -81,6 +82,7 @@ test("migrations create the documented hot-query indexes", async () => {
       "idx_reader_events_article",
       "idx_reader_events_user",
       "idx_story_entities_entity",
+      "idx_story_sources_raw_item",
       "idx_story_sources_story",
     ]);
   } finally {

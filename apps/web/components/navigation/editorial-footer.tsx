@@ -8,7 +8,7 @@ import { BentoGrid, BentoCard, BrandLogo } from "@mstudio/ui";
  */
 export function EditorialFooter() {
   return (
-    <footer className="editorial-footer w-full bg-[var(--void-deep)] text-[var(--solar-light)] pt-16 pb-24 border-t border-[var(--void-surface)] mt-24 transition-colors duration-300">
+    <footer className="editorial-footer cv-auto w-full bg-[var(--void-deep)] text-[var(--solar-light)] pt-16 pb-24 border-t border-[var(--void-surface)] mt-24 transition-colors duration-300">
       <div className="container-content max-w-[var(--container)] mx-auto px-4 md:px-8">
         <BentoGrid className="mb-12">
           {/* Brand Col */}

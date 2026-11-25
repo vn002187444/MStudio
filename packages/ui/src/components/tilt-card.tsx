@@ -1,42 +1,44 @@
 "use client";
 
 import React, { useRef } from "react";
-import { motion, useMotionValue, useSpring, useTransform, type HTMLMotionProps } from "motion/react";
 import { cn } from "../utils";
 
-interface TiltCardProps extends Omit<HTMLMotionProps<"div">, "scale"> {
+interface TiltCardProps extends React.HTMLAttributes<HTMLDivElement> {
   maxAngle?: number;
   scale?: number;
 }
 
+/**
+ * Lightweight GPU-composited 3D tilt card using CSS custom properties.
+ * Zero motion/react runtime cost on mobile & initial page hydration.
+ */
 export const TiltCard = ({
   className,
   children,
   maxAngle = 6,
   scale = 1.02,
+  style,
+  onMouseEnter,
+  onMouseMove,
+  onMouseLeave,
   ...props
 }: TiltCardProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const rectRef = useRef<{ width: number; height: number; left: number; top: number } | null>(null);
-  const reducedMotionRef = useRef<boolean | null>(null);
+  const disabledRef = useRef<boolean | null>(null);
 
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
+  const isDisabled = () => {
+    if (disabledRef.current === null && typeof window !== "undefined") {
+      disabledRef.current =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+        window.matchMedia("(pointer: coarse)").matches;
+    }
+    return disabledRef.current ?? false;
+  };
 
-  const springConfig = { damping: 30, stiffness: 200, mass: 1 };
-
-  const springX = useSpring(x, springConfig);
-  const springY = useSpring(y, springConfig);
-
-  const rotateX = useTransform(springY, [-0.5, 0.5], [maxAngle, -maxAngle]);
-  const rotateY = useTransform(springX, [-0.5, 0.5], [-maxAngle, maxAngle]);
-
-  const glareX = useTransform(springX, [-0.5, 0.5], ["100%", "0%"]);
-  const glareY = useTransform(springY, [-0.5, 0.5], ["100%", "0%"]);
-
-
-  const handleMouseEnter = () => {
-    if (!ref.current) return;
+  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    onMouseEnter?.(e);
+    if (!ref.current || isDisabled()) return;
     const rect = ref.current.getBoundingClientRect();
     rectRef.current = {
       width: rect.width,
@@ -44,21 +46,17 @@ export const TiltCard = ({
       left: rect.left + window.scrollX,
       top: rect.top + window.scrollY,
     };
-    reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    ref.current.style.setProperty("--tilt-scale", String(scale));
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
-
-    // Respect reduced motion
-    if (reducedMotionRef.current === null) {
-      reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    }
-    if (reducedMotionRef.current) return;
+    onMouseMove?.(e);
+    const el = ref.current;
+    if (!el || isDisabled()) return;
 
     let rect = rectRef.current;
     if (!rect) {
-      const rawRect = ref.current.getBoundingClientRect();
+      const rawRect = el.getBoundingClientRect();
       rect = {
         width: rawRect.width,
         height: rawRect.height,
@@ -68,53 +66,51 @@ export const TiltCard = ({
       rectRef.current = rect;
     }
 
-    const width = rect.width;
-    const height = rect.height;
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const xPct = (e.pageX - rect.left) / rect.width - 0.5;
+    const yPct = (e.pageY - rect.top) / rect.height - 0.5;
 
-    const mouseX = e.pageX - rect.left;
-    const mouseY = e.pageY - rect.top;
-
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-
-    x.set(xPct);
-    y.set(yPct);
+    el.style.setProperty("--tilt-rx", `${(-yPct * maxAngle).toFixed(2)}deg`);
+    el.style.setProperty("--tilt-ry", `${(xPct * maxAngle).toFixed(2)}deg`);
+    el.style.setProperty("--glare-x", `${((0.5 - xPct) * 100).toFixed(1)}%`);
+    el.style.setProperty("--glare-y", `${((0.5 - yPct) * 100).toFixed(1)}%`);
   };
 
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    onMouseLeave?.(e);
+    const el = ref.current;
+    if (el) {
+      el.style.setProperty("--tilt-rx", "0deg");
+      el.style.setProperty("--tilt-ry", "0deg");
+      el.style.setProperty("--tilt-scale", "1");
+    }
     rectRef.current = null;
   };
 
   return (
-    <motion.div
+    <div
       ref={ref}
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
-        rotateX,
-        rotateY,
-        transformPerspective: 1000,
+        transform:
+          "perspective(1000px) rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg)) scale(var(--tilt-scale, 1))",
+        transition: "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)",
+        ...style,
       }}
-      whileHover={{ scale }}
       className={cn("relative group rounded-[var(--bento-radius-outer)] transform-gpu", className)}
       {...props}
     >
-      {/* Glare effect */}
-      <motion.div
+      <div
+        aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-20 rounded-[var(--bento-radius-outer)] overflow-hidden transition-opacity duration-300 opacity-0 group-hover:opacity-100"
         style={{
-          background: "radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 80%)",
-          left: glareX as any,
-          top: glareY as any,
-          transform: "translate(-50%, -50%)",
-          width: "200%",
-          height: "200%",
+          background:
+            "radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255,255,255,0.18) 0%, transparent 65%)",
         }}
       />
-      {children as any}
-    </motion.div>
+      {children}
+    </div>
   );
 };
