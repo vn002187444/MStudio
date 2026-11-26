@@ -301,7 +301,10 @@ export async function runIngest(options = {}) {
           console.warn(`[Ingest Synthesis Warning] ${synthErr.message}`);
         }
 
-        const finalSlug = slugify(finalTitle) || slug;
+        let finalSlug = slugify(finalTitle) || slug;
+        if (finalSlug !== slug && checkArticleStmt.get(item.url, finalSlug)) {
+          finalSlug = `${finalSlug}-${articleId.slice(0, 6)}`;
+        }
         const canonicalUrl = `https://mstudio.minds.io.vn/bai-viet/${finalSlug}`;
         const fallbackImg = CATEGORY_FALLBACK_IMAGES[categorySlug] || CATEGORY_FALLBACK_IMAGES["thoi-su"];
         const heroImage = item.imageUrl || fallbackImg;
