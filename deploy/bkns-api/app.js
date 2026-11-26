@@ -28,6 +28,25 @@ const BLOCKED_BOT_REGEX = /Reflectionbot|Bytespider|PetalBot|Amazonbot/i;
 // 🟢 Legitimate AI Search & SEO Indexers to welcome
 const ALLOWED_AI_SEARCH_BOT_REGEX = /GPTBot|OAI-SearchBot|ClaudeBot|PerplexityBot|Applebot|Googlebot|Bingbot/i;
 
+let ingestRunning = false;
+let lastIngestSummary = null;
+
+function triggerBackgroundIngest(maxFeeds, sourceLabel) {
+  if (ingestRunning) {
+    return false;
+  }
+  ingestRunning = true;
+  runIngest({ maxFeeds })
+    .then((summary) => {
+      lastIngestSummary = summary;
+    })
+    .catch((err) => console.error(`[${sourceLabel} Error]:`, err))
+    .finally(() => {
+      ingestRunning = false;
+    });
+  return true;
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const userAgent = req.headers["user-agent"] || "";
@@ -63,10 +82,36 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      const maxFeeds = Number(url.searchParams.get("maxFeeds")) || 25;
-      const summary = await runIngest({ maxFeeds });
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ ok: true, summary }));
+      const maxFeeds = Math.max(1, Math.min(Number(url.searchParams.get("maxFeeds")) || 25, 50));
+      const isAsync = url.searchParams.get("async") === "true" || url.searchParams.get("async") === "1";
+
+      if (isAsync) {
+        const started = triggerBackgroundIngest(maxFeeds, "Admin-Ingest");
+        res.writeHead(started ? 202 : 200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          ok: true,
+          status: started ? "accepted" : "already_running",
+          maxFeeds,
+          lastIngestSummary
+        }));
+        return;
+      }
+
+      if (ingestRunning) {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: true, status: "already_running", lastIngestSummary }));
+        return;
+      }
+
+      ingestRunning = true;
+      try {
+        const summary = await runIngest({ maxFeeds });
+        lastIngestSummary = summary;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: true, summary }));
+      } finally {
+        ingestRunning = false;
+      }
       return;
     }
 
@@ -165,13 +210,13 @@ server.listen(port, () => {
     // Initial background run 30s after startup
     setTimeout(() => {
       console.log("[MStudio Ingest] Running initial background feed scan...");
-      runIngest({ maxFeeds: 15 }).catch((err) => console.error("[Auto-Ingest Startup Error]:", err));
+      triggerBackgroundIngest(15, "Auto-Ingest Startup");
     }, 30_000);
 
     // Periodic interval
     setInterval(() => {
       console.log("[MStudio Ingest] Running scheduled periodic feed scan...");
-      runIngest({ maxFeeds: 25 }).catch((err) => console.error("[Auto-Ingest Interval Error]:", err));
+      triggerBackgroundIngest(25, "Auto-Ingest Interval");
     }, INGEST_INTERVAL_MS);
   }
 });
