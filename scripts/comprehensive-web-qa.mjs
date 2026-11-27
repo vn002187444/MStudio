@@ -182,7 +182,7 @@ async function runQA() {
         // 4.6 Hero Image Check
         const heroImgMatch = html.match(/<img[^>]+src="([^">]+)"[^>]*>/i);
         if (heroImgMatch) {
-          const imgSrc = heroImgMatch[1];
+          const imgSrc = heroImgMatch[1].replace(/&amp;/g, "&");
           const hasAlt = heroImgMatch[0].includes("alt=");
           recordTest("accessibility", `[${slug}] Hero image has alt attribute`, hasAlt);
 

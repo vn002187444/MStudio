@@ -52,16 +52,37 @@ function slugify(text) {
     .replace(/-+/g, "-");
 }
 
+const ENTITY_MAP = {
+  "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&apos;": "'", "&#39;": "'",
+  "&nbsp;": " ", "&mdash;": "—", "&ndash;": "–", "&hellip;": "…",
+  "&#8216;": "'", "&#8217;": "'", "&#8220;": '"', "&#8221;": '"', "&#038;": "&",
+  "&copy;": "©", "&reg;": "®", "&trade;": "™",
+  "&agrave;": "à", "&aacute;": "á", "&acirc;": "â", "&atilde;": "ã",
+  "&egrave;": "è", "&eacute;": "é", "&ecirc;": "ê",
+  "&igrave;": "ì", "&iacute;": "í", "&icirc;": "î", "&iuml;": "ï",
+  "&ograve;": "ò", "&oacute;": "ó", "&ocirc;": "ô", "&otilde;": "õ",
+  "&ugrave;": "ù", "&uacute;": "ú", "&yacute;": "ý",
+  "&ccedil;": "ç", "&ntilde;": "ñ",
+};
+
 function decodeEntities(str) {
   if (!str) return "";
-  return str
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&#x27;/g, "'")
-    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+  const decodeOnce = (input) =>
+    input.replace(/&(?:[a-z\d]+|#\d+|#x[a-f\d]+);/gi, (entity) => {
+      const lower = entity.toLowerCase();
+      if (ENTITY_MAP[lower]) return ENTITY_MAP[lower];
+      if (lower.startsWith("&#x")) {
+        const code = parseInt(lower.slice(3, -1), 16);
+        return !isNaN(code) && code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : entity;
+      }
+      if (lower.startsWith("&#")) {
+        const code = parseInt(lower.slice(2, -1), 10);
+        return !isNaN(code) && code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : entity;
+      }
+      return entity;
+    });
+  // Run twice to catch double-encoded entities like &amp;oacute;
+  return decodeOnce(decodeOnce(str));
 }
 
 function stripHtml(str) {
