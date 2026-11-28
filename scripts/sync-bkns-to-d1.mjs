@@ -89,14 +89,34 @@ export async function runD1Sync() {
   console.log(`[D1 Sync] Fetching delta from BKNS: ${deltaUrl.replace(ADMIN_TOKEN, '***')}`);
 
   let delta;
+  const maxAttempts = 3;
   try {
-    const res = await fetch(deltaUrl, {
-      headers: { 'User-Agent': 'MStudio-D1-Sync/1.0' }
-    });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} from BKNS API: ${await res.text()}`);
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const res = await fetch(deltaUrl, {
+          headers: {
+            'User-Agent': 'MStudio-D1-Sync/1.0',
+            'Accept': 'application/json'
+          },
+          signal: AbortSignal.timeout(25000)
+        });
+        const rawText = await res.text();
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status} from BKNS API: ${rawText.slice(0, 200)}`);
+        }
+        const cleaned = rawText.replace(/^\uFEFF/, '').trim();
+        if (!cleaned.startsWith('{')) {
+          throw new Error(`Non-JSON response (HTTP ${res.status}): ${cleaned.slice(0, 120)}`);
+        }
+        delta = JSON.parse(cleaned);
+        break;
+      } catch (attemptErr) {
+        if (attempt === maxAttempts) throw attemptErr;
+        const delayMs = attempt * 3000;
+        console.warn(`[D1 Sync] Attempt ${attempt}/${maxAttempts} failed (${attemptErr.message}). Retrying in ${delayMs / 1000}s...`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
     }
-    delta = await res.json();
   } catch (err) {
     // If BKNS API hasn't deployed the /api/admin/delta endpoint yet, fallback to reading local SQLite if available
     console.warn(`[D1 Sync] Remote delta failed (${err.message}), checking local SQLite fallback...`);
@@ -187,7 +207,7 @@ export async function runD1Sync() {
 
   // 5. Verify final count in D1
   let finalTotal = d1Total + articles.length;
-  let finalMaxDate = articles[articles.length - 1]?.createdAt || 'N/A';
+  let finalMaxDate = articles[articles.length - 1]?.created_at || articles[articles.length - 1]?.createdAt || 'N/A';
   try {
     const updatedStats = await queryD1('SELECT MAX(created_at) as max_date, COUNT(*) as total FROM articles');
     finalTotal = updatedStats[0]?.results[0]?.total || finalTotal;
