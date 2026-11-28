@@ -249,8 +249,9 @@ export function BentoMarketStrip({
       ? GLOBAL30_TICKERS
       : cryptoList;
 
-  // Duplicate for seamless 60 FPS infinite loop
-  const marqueeList = [...currentList, ...currentList];
+  // Optimize DOM weight: take top 15 tickers (30 cards duplicated instead of 60)
+  const displayList = React.useMemo(() => currentList.slice(0, 15), [currentList]);
+  const marqueeList = React.useMemo(() => [...displayList, ...displayList], [displayList]);
 
   return (
     <div
@@ -312,7 +313,7 @@ export function BentoMarketStrip({
       </div>
 
       {/* 60 FPS Continuous Marquee Strip */}
-      <div className="relative w-full overflow-hidden [contain:layout_style_paint]">
+      <div className="relative w-full overflow-hidden [contain:layout_style_paint] [content-visibility:auto]">
         <div className="animate-ticker-60fps flex gap-3 py-1">
           {marqueeList.map((t, idx) => (
             <div
