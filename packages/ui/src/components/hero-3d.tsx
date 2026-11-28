@@ -74,32 +74,29 @@ export const Hero3D = ({ className }: { className?: string }) => {
     let mouseX = width / 2;
     let mouseY = height / 2;
     let isIntersecting = true;
-    let cachedX = 0;
-    let cachedY = 0;
 
-    const updateRect = () => {
-      const rect = canvas.getBoundingClientRect();
-      cachedX = rect.left + window.scrollX;
-      cachedY = rect.top + window.scrollY;
+    const handlePointerMove = (e: PointerEvent) => {
+      mouseX = e.offsetX;
+      mouseY = e.offsetY;
     };
 
-    updateRect();
-
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseX = e.pageX - cachedX;
-      mouseY = e.pageY - cachedY;
+    const handlePointerLeave = () => {
+      mouseX = width / 2;
+      mouseY = height / 2;
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    container.addEventListener("pointermove", handlePointerMove, { passive: true });
+    container.addEventListener("pointerleave", handlePointerLeave, { passive: true });
 
-    const resizeObserver = new ResizeObserver(() => {
-      if (!container) return;
-      width = container.clientWidth;
-      height = container.clientHeight;
-      canvas.width = width;
-      canvas.height = height;
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (!entries[0]) return;
+      const { width: w, height: h } = entries[0].contentRect;
+      if (w === 0 || h === 0) return;
+      width = w;
+      height = h;
+      canvas.width = w;
+      canvas.height = h;
       initParticles();
-      updateRect();
     });
     resizeObserver.observe(container);
 
@@ -205,7 +202,8 @@ export const Hero3D = ({ className }: { className?: string }) => {
     animationFrameId = requestAnimationFrame(draw);
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
+      container.removeEventListener("pointermove", handlePointerMove);
+      container.removeEventListener("pointerleave", handlePointerLeave);
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       themeObserver.disconnect();

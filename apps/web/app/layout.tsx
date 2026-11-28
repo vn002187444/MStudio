@@ -44,25 +44,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
 
-        {/* Inter font — non-render-blocking load with system fallback */}
+        {/* Inter font — optimized subset with font-display: optional to eliminate FOUT & re-layout LCP delay */}
         <link
-          id="gfont-inter"
+          rel="preload"
+          as="style"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional&subset=latin,vietnamese"
+        />
+        <link
           rel="stylesheet"
-          media="print"
-          href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap&subset=latin,vietnamese"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional&subset=latin,vietnamese"
         />
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              '(function(){var l=document.getElementById("gfont-inter");if(!l)return;if(l.sheet){l.media="all";}else{l.addEventListener("load",function(){l.media="all";});}})();',
-          }}
-        />
-        <noscript>
-          <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap&subset=latin,vietnamese"
-          />
-        </noscript>
 
         {/* Speculation Rules API for Instant Route Navigation (0ms click latency) */}
         <script
